@@ -1,17 +1,49 @@
 package core
 
-import ()
+import (
+	"github.com/YouDad/blockchain/utils"
+)
+
+const (
+	dbFile       = "blockchain.db"
+	blocksBucket = "blocks"
+)
 
 type Blockchain struct {
-	Blocks []*Block
+	*utils.Database
+}
+
+type BlockchainIterator struct {
+	*Blockchain
+	next []byte
+}
+
+func (bc *Blockchain) Begin() (iter *BlockchainIterator) {
+	lastBlock := DeserializeBlock(bc.GetLastest())
+	return &BlockchainIterator{bc, lastBlock.Hash}
+}
+
+func (iter *BlockchainIterator) Next() (nextBlock *Block) {
+	blockBytes := iter.Get(iter.next)
+	if len(blockBytes) == 0 {
+		return nil
+	}
+	nextBlock = DeserializeBlock(blockBytes)
+	iter.next = nextBlock.PrevBlockHash
+	return nextBlock
 }
 
 func (bc *Blockchain) AddBlock(data string) {
-	prevBlock := bc.Blocks[len(bc.Blocks)-1]
-	newBlock := NewBlock(data, prevBlock.Hash)
-	bc.Blocks = append(bc.Blocks, newBlock)
+	lastestBlock := DeserializeBlock(bc.GetLastest())
+	newBlock := NewBlock(data, lastestBlock.Hash)
+	bc.SetLastest(newBlock.Hash, newBlock.Serialize())
 }
 
 func NewBlockchain() *Blockchain {
-	return &Blockchain{[]*Block{NewGenesisBlock()}}
+	db, exists := utils.OpenDatabase()
+	if !exists {
+		genesis := NewGenesisBlock()
+		db.SetLastest(genesis.Hash, genesis.Serialize())
+	}
+	return &Blockchain{db}
 }
