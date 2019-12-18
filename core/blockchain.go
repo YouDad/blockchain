@@ -1,12 +1,8 @@
 package core
 
 import (
+	"github.com/YouDad/blockchain/app"
 	"github.com/YouDad/blockchain/utils"
-)
-
-const (
-	dbFile       = "blockchain.db"
-	blocksBucket = "blocks"
 )
 
 type Blockchain struct {
@@ -33,7 +29,7 @@ func (iter *BlockchainIterator) Next() (nextBlock *Block) {
 	return nextBlock
 }
 
-func (bc *Blockchain) AddBlock(data string) {
+func (bc *Blockchain) AddBlock(data app.App) {
 	lastestBlock := DeserializeBlock(bc.GetLastest())
 	newBlock := NewBlock(data, lastestBlock.Hash)
 	bc.SetLastest(newBlock.Hash, newBlock.Serialize())
@@ -42,7 +38,7 @@ func (bc *Blockchain) AddBlock(data string) {
 func NewBlockchain() *Blockchain {
 	db, exists := utils.OpenDatabase()
 	if !exists {
-		genesis := NewGenesisBlock()
+		genesis := NewBlock(coreConfig.GetGenesis(), make([]byte, 32))
 		db.SetLastest(genesis.Hash, genesis.Serialize())
 	}
 	return &Blockchain{db}

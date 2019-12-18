@@ -1,39 +1,26 @@
-package cli
+package text
 
 import (
 	"flag"
 	"fmt"
-	"github.com/YouDad/blockchain/core"
 	"log"
 	"os"
 	"strconv"
+
+	"github.com/YouDad/blockchain/core"
 )
 
 var (
 	blockchain *core.Blockchain
 )
 
-func init() {
-	blockchain = core.NewBlockchain()
-	defer blockchain.Close()
-}
-
-type CLI struct{}
-
-//打印用法
-func (cli *CLI) printUsage() {
+func printUsage() {
 	fmt.Println("Usage:")
 	fmt.Println("  addblock -data BLOCK_DATA - add a block to the blockchain")
 	fmt.Println("  printchain - print all the blocks of the blockchain")
 }
 
-//添加区块数据
-func (cli *CLI) addBlock(data string) {
-	blockchain.AddBlock(data)
-}
-
-//打印区块链上所有区块数据
-func (cli *CLI) printChain() {
+func printChain() {
 	iter := blockchain.Begin()
 
 	for {
@@ -42,18 +29,23 @@ func (cli *CLI) printChain() {
 			break
 		}
 		pow := core.NewProofOfWork(block)
-		fmt.Printf("Prev: %x\n", block.PrevBlockHash)
-		fmt.Printf("Hash: %x\n", block.Hash)
-		fmt.Printf("Data: %s\n", block.Data)
-		fmt.Printf("PoW: %s\n\n", strconv.FormatBool(pow.Validate()))
+		fmt.Printf("Prev:   %x\n", block.PrevBlockHash)
+		fmt.Printf("Hash:   %x\n", block.Hash)
+		fmt.Printf("String: %s\n", block.App.ToString())
+		fmt.Printf("PoW:    %s\n\n", strconv.FormatBool(pow.Validate()))
 	}
 }
 
-func (cli *CLI) Run() {
+func validateArgs() {
 	if len(os.Args) < 2 {
-		cli.printUsage()
+		printUsage()
 		os.Exit(1)
 	}
+}
+
+func Main() {
+	validateArgs()
+
 	addBlockCmd := flag.NewFlagSet("addblock", flag.ExitOnError)
 	printChainCmd := flag.NewFlagSet("printchain", flag.ExitOnError)
 	addBlockData := addBlockCmd.String("data", "", "Block data")
@@ -69,19 +61,22 @@ func (cli *CLI) Run() {
 			log.Panic(err)
 		}
 	default:
-		cli.printUsage()
+		printUsage()
 		os.Exit(1)
 	}
+
+	blockchain = core.NewBlockchain()
+	defer blockchain.Close()
 
 	if addBlockCmd.Parsed() {
 		if *addBlockData == "" {
 			addBlockCmd.Usage()
 			os.Exit(1)
 		}
-		cli.addBlock(*addBlockData)
+		blockchain.AddBlock(GetAppString(*addBlockData))
 	}
 
 	if printChainCmd.Parsed() {
-		cli.printChain()
+		printChain()
 	}
 }

@@ -5,26 +5,24 @@ import (
 	"encoding/gob"
 	"log"
 	"time"
+
+	"github.com/YouDad/blockchain/app"
 )
 
 type Block struct {
 	Timestamp     int64
-	Data          []byte
 	PrevBlockHash []byte
 	Hash          []byte
 	Nonce         int64
+	App           app.App
 }
 
-func NewGenesisBlock() *Block {
-	return NewBlock("Genesis Block", make([]byte, 32))
-}
-
-func NewBlock(data string, prevBlockHash []byte) *Block {
+func NewBlock(data app.App, prevBlockHash []byte) *Block {
 	block := &Block{
 		Timestamp:     time.Now().Unix(),
-		Data:          []byte(data),
 		PrevBlockHash: prevBlockHash,
 		Hash:          []byte{},
+		App:           data,
 	}
 
 	pow := NewProofOfWork(block)
@@ -47,6 +45,7 @@ func (b *Block) Serialize() []byte {
 
 func DeserializeBlock(d []byte) *Block {
 	var block Block
+	block.App = coreConfig.GetAppdata()
 
 	err := gob.NewDecoder(bytes.NewReader(d)).Decode(&block)
 	if err != nil {

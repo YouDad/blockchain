@@ -22,7 +22,7 @@ func OpenDatabase() (db *Database, exists bool) {
 	}
 
 	db = &Database{_db}
-	db.View(func(tx *bolt.Tx) error {
+	db.Update(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket(blocksBucket)
 		if bucket == nil {
 			log.Println("New a Database...")
@@ -32,7 +32,7 @@ func OpenDatabase() (db *Database, exists bool) {
 			}
 		}
 
-		exists = bucket == nil
+		exists = bucket != nil
 
 		return nil
 	})

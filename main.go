@@ -1,10 +1,9 @@
 package main
 
 import (
-	"github.com/YouDad/blockchain/cli"
+	"github.com/YouDad/blockchain/app/text"
 )
 
 func main() {
-	CLI := &cli.CLI{}
-	CLI.Run()
+	text.Main()
 }
