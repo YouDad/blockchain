@@ -16,5 +16,11 @@ var (
 )
 
 func InitCore(config CoreConfig) {
-	coreConfig = config
+	if config.GetAppdata != nil {
+		coreConfig.GetAppdata = config.GetAppdata
+	}
+
+	if config.GetGenesis != nil {
+		coreConfig.GetGenesis = config.GetGenesis
+	}
 }

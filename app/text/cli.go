@@ -16,6 +16,7 @@ var (
 
 func printUsage() {
 	fmt.Println("Usage:")
+	fmt.Println("  createblockchain - create a new blockchain")
 	fmt.Println("  addblock -data BLOCK_DATA - add a block to the blockchain")
 	fmt.Println("  printchain - print all the blocks of the blockchain")
 }
@@ -46,10 +47,16 @@ func validateArgs() {
 func Main() {
 	validateArgs()
 
+	createBlockChainCmd := flag.NewFlagSet("createblockchain", flag.ExitOnError)
 	addBlockCmd := flag.NewFlagSet("addblock", flag.ExitOnError)
 	printChainCmd := flag.NewFlagSet("printchain", flag.ExitOnError)
 	addBlockData := addBlockCmd.String("data", "", "Block data")
 	switch os.Args[1] {
+	case "createblockchain":
+		err := createBlockChainCmd.Parse(os.Args[2:])
+		if err != nil {
+			log.Panic(err)
+		}
 	case "addblock":
 		err := addBlockCmd.Parse(os.Args[2:])
 		if err != nil {
@@ -65,7 +72,11 @@ func Main() {
 		os.Exit(1)
 	}
 
-	blockchain = core.NewBlockchain()
+	if createBlockChainCmd.Parsed() {
+		blockchain = core.CreateBlockchain()
+	} else {
+		blockchain = core.NewBlockchain()
+	}
 	defer blockchain.Close()
 
 	if addBlockCmd.Parsed() {

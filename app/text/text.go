@@ -10,7 +10,7 @@ type TextApp struct {
 	str string
 }
 
-func init() {
+func Init() {
 	core.InitCore(core.CoreConfig{
 		GetAppdata: func() app.App {
 			return GetAppString("")

@@ -1,8 +1,10 @@
 package utils
 
 import (
-	"github.com/boltdb/bolt"
 	"log"
+	"os"
+
+	"github.com/boltdb/bolt"
 )
 
 var (
@@ -15,28 +17,32 @@ type Database struct {
 	*bolt.DB
 }
 
-func OpenDatabase() (db *Database, exists bool) {
+func IsDatabaseExists() bool {
+	_, err := os.Stat(dbFile)
+	return !os.IsNotExist(err)
+}
+
+func CreateDatabase() *Database {
+	db, err := bolt.Open(dbFile, 0600, nil)
+	if err != nil {
+		log.Panic(err)
+	}
+
+	db.Update(func(tx *bolt.Tx) error {
+		_, err := tx.CreateBucket(blocksBucket)
+		return err
+	})
+
+	return &Database{db}
+}
+
+func OpenDatabase() (db *Database) {
 	_db, err := bolt.Open(dbFile, 0600, nil)
 	if err != nil {
 		log.Panic(err)
 	}
 
-	db = &Database{_db}
-	db.Update(func(tx *bolt.Tx) error {
-		bucket := tx.Bucket(blocksBucket)
-		if bucket == nil {
-			log.Println("New a Database...")
-			_, err := tx.CreateBucket([]byte(blocksBucket))
-			if err != nil {
-				log.Panic(err)
-			}
-		}
-
-		exists = bucket != nil
-
-		return nil
-	})
-	return db, exists
+	return &Database{_db}
 }
 
 func (db *Database) Close() {
