@@ -1,4 +1,4 @@
-package coin
+package core
 
 import (
 	"encoding/hex"
@@ -12,6 +12,8 @@ import (
 type coinBlockchain struct {
 	*core.Blockchain
 }
+
+const genesisBlockData = "The Times 03/Jan/2009 Chancellor on brink of second bailout for banks"
 
 func NewBlockchain() *coinBlockchain {
 	return &coinBlockchain{core.NewBlockchain()}
