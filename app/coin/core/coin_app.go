@@ -42,7 +42,7 @@ func (app *CoinApp) HashPart() []byte {
 func (app *CoinApp) ToString() string {
 	ret := "\n"
 	for i, tx := range app.Transactions {
-		ret += fmt.Sprintf("Txs[%d]: %+v\n", i, tx)
+		ret += fmt.Sprintf("Txs[%d].%+v\n", i, tx)
 	}
 	return ret
 }

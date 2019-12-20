@@ -1,8 +1,7 @@
 package core
 
 import (
-	"fmt"
-	"os"
+	"log"
 
 	"github.com/YouDad/blockchain/app"
 	"github.com/YouDad/blockchain/utils"
@@ -40,8 +39,7 @@ func (bc *Blockchain) AddBlock(data app.App) {
 
 func NewBlockchain() *Blockchain {
 	if !utils.IsDatabaseExists() {
-		fmt.Println("No existing blockchain found. Create one to continue.")
-		os.Exit(1)
+		log.Panicln("No existing blockchain found. Create one to continue.")
 	}
 
 	return &Blockchain{utils.OpenDatabase()}
@@ -49,8 +47,7 @@ func NewBlockchain() *Blockchain {
 
 func CreateBlockchain() *Blockchain {
 	if utils.IsDatabaseExists() {
-		fmt.Println("Blockchain existed, Create failed.")
-		os.Exit(1)
+		log.Panicln("Blockchain existed, Create failed.")
 	}
 
 	db := utils.CreateDatabase()

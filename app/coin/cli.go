@@ -19,6 +19,8 @@ func Main() {
 		cmd.CreateBlockchainCmd,
 		cmd.SendCmd,
 		cmd.PrintChainCmd,
+		cmd.ListAddressCmd,
+		cmd.CreateWalletCmd,
 	)
 
 	if err := rootCmd.Execute(); err != nil {
