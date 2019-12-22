@@ -2,7 +2,6 @@ package core
 
 import (
 	"bytes"
-	"crypto/sha256"
 	"encoding/gob"
 	"fmt"
 
@@ -28,15 +27,14 @@ func GetCoinApp(txs []*Transaction) *CoinApp {
 }
 
 func (app *CoinApp) HashPart() []byte {
-	var txHashes [][]byte
-	var txHash [32]byte
+	var txs [][]byte
 
 	for _, tx := range app.Transactions {
-		txHashes = append(txHashes, tx.ID)
+		txs = append(txs, tx.Serialize())
 	}
-	txHash = sha256.Sum256(bytes.Join(txHashes, []byte{}))
+	mTree := NewMerkleTree(txs)
 
-	return txHash[:]
+	return mTree.RootNode.Data
 }
 
 func (app *CoinApp) ToString() string {

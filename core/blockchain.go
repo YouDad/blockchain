@@ -17,7 +17,7 @@ type BlockchainIterator struct {
 }
 
 func (bc *Blockchain) Begin() (iter *BlockchainIterator) {
-	lastBlock := DeserializeBlock(bc.GetLastest())
+	lastBlock := DeserializeBlock(bc.Blocks().GetLastest())
 	return &BlockchainIterator{bc, lastBlock.Hash}
 }
 
@@ -31,10 +31,11 @@ func (iter *BlockchainIterator) Next() (nextBlock *Block) {
 	return nextBlock
 }
 
-func (bc *Blockchain) AddBlock(data app.App) {
-	lastestBlock := DeserializeBlock(bc.GetLastest())
+func (bc *Blockchain) AddBlock(data app.App) *Block {
+	lastestBlock := DeserializeBlock(bc.Blocks().GetLastest())
 	newBlock := NewBlock(data, lastestBlock.Hash)
-	bc.SetLastest(newBlock.Hash, newBlock.Serialize())
+	bc.Blocks().SetLastest(newBlock.Hash, newBlock.Serialize())
+	return newBlock
 }
 
 func NewBlockchain() *Blockchain {
@@ -50,7 +51,8 @@ func CreateBlockchain() *Blockchain {
 		log.Panicln("Blockchain existed, Create failed.")
 	}
 
-	db := utils.CreateDatabase()
+	db := utils.OpenDatabase()
+	db.Blocks().Clear()
 	genesis := NewBlock(coreConfig.GetGenesis(), make([]byte, 32))
 	db.SetLastest(genesis.Hash, genesis.Serialize())
 	return &Blockchain{db}

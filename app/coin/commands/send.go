@@ -2,10 +2,12 @@ package commands
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/spf13/cobra"
 
 	"github.com/YouDad/blockchain/app/coin/core"
+	"github.com/YouDad/blockchain/app/coin/wallet"
 )
 
 var (
@@ -27,12 +29,25 @@ var SendCmd = &cobra.Command{
 	Use:   "send",
 	Short: "Send AMOUNT of coins from FROM address to TO",
 	Run: func(cmd *cobra.Command, args []string) {
+		if !wallet.ValidateAddress(sendFrom) {
+			log.Panic("ERROR: Sender address is not valid")
+		}
+
+		if !wallet.ValidateAddress(sendTo) {
+			log.Panic("ERROR: Recipient address is not valid")
+		}
+
 		bc := core.NewBlockchain()
 		defer bc.Close()
+		utxoSet := core.NewUTXOSet()
+		defer utxoSet.Close()
 
-		tx := bc.NewUTXOTransaction(sendFrom, sendTo, sendAmount)
-		bc.AddBlock(core.GetCoinApp([]*core.Transaction{tx}))
+		tx := utxoSet.NewUTXOTransaction(sendFrom, sendTo, sendAmount)
+		cbTx := core.NewCoinbaseTX(sendFrom, "")
+		txs := []*core.Transaction{cbTx, tx}
+
+		newBlocks := bc.AddBlock(core.GetCoinApp(txs))
+		utxoSet.Update(newBlocks)
 		fmt.Println("Success!")
-		fmt.Println("Done!")
 	},
 }

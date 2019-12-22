@@ -25,9 +25,13 @@ var CreateBlockchainCmd = &cobra.Command{
 	Short: "Create a blockchain and send genesis block reward to ADDRESS",
 	Run: func(cmd *cobra.Command, args []string) {
 		if !wallet.ValidateAddress(createBlockchainAddress) {
-			log.Panicln("Address is not valid")
+			log.Panic("Address is not valid")
 		}
 		core.CreateBlockchain(createBlockchainAddress)
+		utxoSet := core.NewUTXOSet()
+		defer utxoSet.Close()
+
+		utxoSet.Reindex()
 		fmt.Println("Done!")
 	},
 }

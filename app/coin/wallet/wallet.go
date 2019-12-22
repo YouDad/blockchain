@@ -30,7 +30,7 @@ func NewWallet() *Wallet {
 }
 
 // GetAddress returns wallet address
-func (w Wallet) GetAddress() []byte {
+func (w *Wallet) GetAddress() []byte {
 	pubKeyHash := HashPubKey(w.PublicKey)
 
 	versionedPayload := append([]byte{version}, pubKeyHash...)
@@ -61,8 +61,8 @@ func ValidateAddress(address string) bool {
 	pubKeyHash := utils.Base58Decode([]byte(address))
 
 	version := pubKeyHash[0:1]
-	pubKeyHash = pubKeyHash[1 : len(pubKeyHash)-addressChecksumLen]
 	actualChecksum := pubKeyHash[len(pubKeyHash)-addressChecksumLen:]
+	pubKeyHash = pubKeyHash[1 : len(pubKeyHash)-addressChecksumLen]
 
 	targetChecksum := checksum(append(version, pubKeyHash...))
 

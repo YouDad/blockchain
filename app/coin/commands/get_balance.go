@@ -2,6 +2,7 @@ package commands
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/spf13/cobra"
 
@@ -25,10 +26,19 @@ var GetBalanceCmd = &cobra.Command{
 		bc := core.NewBlockchain()
 		defer bc.Close()
 
+		utxoSet := core.NewUTXOSet()
+		defer utxoSet.Close()
+
 		balance := 0
 		pubKeyHash := utils.Base58Decode([]byte(getBalanceAddress))
+
+		if len(pubKeyHash) <= 4 {
+			fmt.Println("Address incorrect!")
+			os.Exit(1)
+		}
+
 		pubKeyHash = pubKeyHash[1 : len(pubKeyHash)-4]
-		UTXOs := bc.FindUTXO(pubKeyHash)
+		UTXOs := utxoSet.FindUTXO(pubKeyHash)
 
 		for _, out := range UTXOs {
 			balance += out.Value

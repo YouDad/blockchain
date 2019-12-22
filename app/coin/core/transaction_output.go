@@ -2,6 +2,8 @@ package core
 
 import (
 	"bytes"
+	"encoding/gob"
+	"log"
 
 	"github.com/YouDad/blockchain/utils"
 )
@@ -30,4 +32,36 @@ func NewTXOutput(address string, value int) *TXOutput {
 	txo.Lock([]byte(address))
 
 	return txo
+}
+
+// TXOutputs collects TXOutput
+type TXOutputs struct {
+	Outputs []TXOutput
+}
+
+// Serialize serializes TXOutputs
+func (outs TXOutputs) Serialize() []byte {
+	var buff bytes.Buffer
+
+	enc := gob.NewEncoder(&buff)
+	err := enc.Encode(outs)
+	if err != nil {
+		log.Panic(err)
+	}
+
+	return buff.Bytes()
+}
+
+// DeserializeOutputs deserializes TXOutputs
+func DeserializeOutputs(data []byte) TXOutputs {
+	var outputs TXOutputs
+
+	reader := bytes.NewReader(data)
+	decoder := gob.NewDecoder(reader)
+	err := decoder.Decode(&outputs)
+	if err != nil {
+		log.Panic(err)
+	}
+
+	return outputs
 }

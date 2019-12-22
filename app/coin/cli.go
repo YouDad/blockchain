@@ -21,6 +21,7 @@ func Main() {
 		cmd.PrintChainCmd,
 		cmd.ListAddressCmd,
 		cmd.CreateWalletCmd,
+		cmd.ReindexUTXOCmd,
 	)
 
 	if err := rootCmd.Execute(); err != nil {
