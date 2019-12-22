@@ -25,6 +25,7 @@ var PrintChainCmd = &cobra.Command{
 			}
 
 			pow := core.NewProofOfWork(block)
+			fmt.Printf("Height: %d\n", block.Height)
 			fmt.Printf("Prev: %x\n", block.PrevBlockHash)
 			fmt.Printf("Hash: %x\n", block.Hash)
 			fmt.Printf("PoW : %s\n", strconv.FormatBool(pow.Validate()))

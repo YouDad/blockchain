@@ -13,22 +13,18 @@ var (
 	globalDB *bolt.DB
 )
 
-const (
-	dbFile = "blockchain.db"
-)
-
 type Database struct {
 	*bolt.DB
 
 	current_bucket []byte
 }
 
-func IsDatabaseExists() bool {
+func IsDatabaseExists(dbFile string) bool {
 	_, err := os.Stat(dbFile)
 	return !os.IsNotExist(err)
 }
 
-func OpenDatabase() *Database {
+func OpenDatabase(dbFile string) *Database {
 	var err error
 
 	if ref == 0 {

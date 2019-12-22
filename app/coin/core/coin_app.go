@@ -15,7 +15,7 @@ type CoinApp struct {
 }
 
 func Init() {
-	core.InitCore(core.CoreConfig{
+	core.InitCore(core.Config{
 		GetAppdata: func() app.App {
 			return GetCoinApp(nil)
 		},

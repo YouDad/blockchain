@@ -6,15 +6,16 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/YouDad/blockchain/app/coin/wallet"
+	"github.com/YouDad/blockchain/core"
 )
 
 var CreateWalletCmd = &cobra.Command{
 	Use:   "create_wallet",
 	Short: "Generates a new key-pair and saves it into the wallet file",
 	Run: func(cmd *cobra.Command, args []string) {
-		wallets, _ := wallet.NewWallets()
+		wallets, _ := wallet.NewWallets(core.CoreConfig.WalletFile)
 		address := wallets.CreateWallet()
-		wallets.SaveToFile()
+		wallets.SaveToFile(core.CoreConfig.WalletFile)
 
 		fmt.Printf("Your new address: %s\n", address)
 	},

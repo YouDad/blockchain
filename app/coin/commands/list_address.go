@@ -7,13 +7,14 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/YouDad/blockchain/app/coin/wallet"
+	"github.com/YouDad/blockchain/core"
 )
 
 var ListAddressCmd = &cobra.Command{
 	Use:   "list_address",
 	Short: "Lists all addresses from the wallet file",
 	Run: func(cmd *cobra.Command, args []string) {
-		wallets, err := wallet.NewWallets()
+		wallets, err := wallet.NewWallets(core.CoreConfig.WalletFile)
 		if err != nil {
 			log.Panic(err)
 		}

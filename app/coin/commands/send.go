@@ -46,7 +46,7 @@ var SendCmd = &cobra.Command{
 		cbTx := core.NewCoinbaseTX(sendFrom, "")
 		txs := []*core.Transaction{cbTx, tx}
 
-		newBlocks := bc.AddBlock(core.GetCoinApp(txs))
+		newBlocks := bc.MineBlock(txs)
 		utxoSet.Update(newBlocks)
 		fmt.Println("Success!")
 	},

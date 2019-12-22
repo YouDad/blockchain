@@ -1,6 +1,7 @@
 package core
 
 import (
+	"errors"
 	"log"
 
 	"github.com/YouDad/blockchain/app"
@@ -31,29 +32,67 @@ func (iter *BlockchainIterator) Next() (nextBlock *Block) {
 	return nextBlock
 }
 
-func (bc *Blockchain) AddBlock(data app.App) *Block {
+func (bc *Blockchain) MineBlock(data app.App) *Block {
 	lastestBlock := DeserializeBlock(bc.Blocks().GetLastest())
-	newBlock := NewBlock(data, lastestBlock.Hash)
+	newBlock := NewBlock(data, lastestBlock.Hash, lastestBlock.Height+1)
 	bc.Blocks().SetLastest(newBlock.Hash, newBlock.Serialize())
 	return newBlock
 }
 
+func (bc *Blockchain) AddBlock(block *Block) {
+	if bc.Blocks().Get(block.Hash) != nil {
+		return
+	}
+
+	lastestBlock := DeserializeBlock(bc.Blocks().GetLastest())
+	if lastestBlock.Height < block.Height {
+		err := bc.Blocks().SetLastest(block.Hash, block.Serialize())
+		if err != nil {
+			log.Panic(err)
+		}
+	}
+}
+
 func NewBlockchain() *Blockchain {
-	if !utils.IsDatabaseExists() {
+	if !utils.IsDatabaseExists(CoreConfig.DatabaseFile) {
 		log.Panicln("No existing blockchain found. Create one to continue.")
 	}
 
-	return &Blockchain{utils.OpenDatabase()}
+	return &Blockchain{utils.OpenDatabase(CoreConfig.DatabaseFile)}
 }
 
 func CreateBlockchain() *Blockchain {
-	if utils.IsDatabaseExists() {
+	if utils.IsDatabaseExists(CoreConfig.DatabaseFile) {
 		log.Panicln("Blockchain existed, Create failed.")
 	}
 
-	db := utils.OpenDatabase()
+	db := utils.OpenDatabase(CoreConfig.DatabaseFile)
 	db.Blocks().Clear()
-	genesis := NewBlock(coreConfig.GetGenesis(), make([]byte, 32))
+	genesis := NewBlock(CoreConfig.GetGenesis(), make([]byte, 32), 1)
 	db.SetLastest(genesis.Hash, genesis.Serialize())
 	return &Blockchain{db}
+}
+
+func (bc *Blockchain) GetBestHeight() int {
+	return DeserializeBlock(bc.Blocks().GetLastest()).Height
+}
+
+func (bc *Blockchain) GetBlock(hash []byte) (*Block, error) {
+	value := bc.Blocks().Get(hash)
+	if len(value) == 0 {
+		return nil, errors.New("Block is not found.")
+	}
+	return DeserializeBlock(value), nil
+}
+
+func (bc *Blockchain) GetBlockHashes() (hashes [][]byte) {
+	iter := bc.Begin()
+	for {
+		block := iter.Next()
+		if block == nil {
+			break
+		}
+		hashes = append(hashes, block.Hash)
+	}
+	return hashes
 }

@@ -84,7 +84,7 @@ func Main() {
 			addBlockCmd.Usage()
 			os.Exit(1)
 		}
-		blockchain.AddBlock(GetAppString(*addBlockData))
+		blockchain.MineBlock(GetAppString(*addBlockData))
 	}
 
 	if printChainCmd.Parsed() {

@@ -22,7 +22,7 @@ func (u *UTXOSet) NewUTXOTransaction(from, to string, amount int) *Transaction {
 	var inputs []TXInput
 	var outputs []TXOutput
 
-	wallets, err := wallet.NewWallets()
+	wallets, err := wallet.NewWallets(core.CoreConfig.WalletFile)
 	if err != nil {
 		log.Panic(err)
 	}

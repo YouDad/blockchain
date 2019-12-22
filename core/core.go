@@ -4,23 +4,31 @@ import (
 	"github.com/YouDad/blockchain/app"
 )
 
-type CoreConfig struct {
-	GetAppdata func() app.App
-	GetGenesis func() app.App
-	// DatabaseFile string
-	// BlocksBucket string
+type Config struct {
+	GetAppdata   func() app.App
+	GetGenesis   func() app.App
+	DatabaseFile string
+	WalletFile   string
 }
 
 var (
-	coreConfig CoreConfig
+	CoreConfig Config
 )
 
-func InitCore(config CoreConfig) {
+func InitCore(config Config) {
 	if config.GetAppdata != nil {
-		coreConfig.GetAppdata = config.GetAppdata
+		CoreConfig.GetAppdata = config.GetAppdata
 	}
 
 	if config.GetGenesis != nil {
-		coreConfig.GetGenesis = config.GetGenesis
+		CoreConfig.GetGenesis = config.GetGenesis
+	}
+
+	if config.DatabaseFile != "" {
+		CoreConfig.DatabaseFile = config.DatabaseFile
+	}
+
+	if config.WalletFile != "" {
+		CoreConfig.WalletFile = config.WalletFile
 	}
 }

@@ -22,7 +22,7 @@ func NewBlockchain() *CoinBlockchain {
 }
 
 func CreateBlockchain(address string) {
-	core.InitCore(core.CoreConfig{
+	core.InitCore(core.Config{
 		GetGenesis: func() app.App {
 			return GetCoinApp([]*Transaction{
 				NewCoinbaseTX(address, genesisBlockData),
@@ -34,6 +34,15 @@ func CreateBlockchain(address string) {
 
 func NewProofOfWork(b *core.Block) *core.ProofOfWork {
 	return core.NewProofOfWork(b)
+}
+
+func (bc *CoinBlockchain) MineBlock(Transactions []*Transaction) *core.Block {
+	for _, tx := range Transactions {
+		if !bc.VerifyTransaction(tx) {
+			log.Panic("ERROR: Invalid transaction")
+		}
+	}
+	return bc.Blockchain.MineBlock(GetCoinApp(Transactions))
 }
 
 // FindSpendableOutputs finds and returns unspent outputs to reference in inputs

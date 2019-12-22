@@ -11,7 +11,7 @@ type TextApp struct {
 }
 
 func Init() {
-	core.InitCore(core.CoreConfig{
+	core.InitCore(core.Config{
 		GetAppdata: func() app.App {
 			return GetAppString("")
 		},

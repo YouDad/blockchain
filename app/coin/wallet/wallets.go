@@ -20,10 +20,10 @@ type Wallets struct {
 }
 
 // NewWallets creates Wallets and fills it from a file if it exists
-func NewWallets() (*Wallets, error) {
+func NewWallets(walletFile string) (*Wallets, error) {
 	wallets := Wallets{Wallets: make(map[string]*Wallet)}
 
-	err := wallets.loadFromFile()
+	err := wallets.loadFromFile(walletFile)
 
 	return &wallets, err
 }
@@ -55,7 +55,7 @@ func (ws Wallets) GetWallet(address string) Wallet {
 }
 
 // LoadFromFile loads wallets from the file
-func (ws *Wallets) loadFromFile() error {
+func (ws *Wallets) loadFromFile(walletFile string) error {
 	_, err := os.Stat(walletFile)
 	if os.IsNotExist(err) {
 		return err
@@ -72,7 +72,7 @@ func (ws *Wallets) loadFromFile() error {
 }
 
 // SaveToFile saves wallets to a file
-func (ws Wallets) SaveToFile() {
+func (ws Wallets) SaveToFile(walletFile string) {
 	var content bytes.Buffer
 
 	encoder := gob.NewEncoder(&content)
