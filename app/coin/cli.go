@@ -22,6 +22,7 @@ func Main() {
 		cmd.ListAddressCmd,
 		cmd.CreateWalletCmd,
 		cmd.ReindexUTXOCmd,
+		cmd.StartNodeCmd,
 	)
 
 	if err := rootCmd.Execute(); err != nil {

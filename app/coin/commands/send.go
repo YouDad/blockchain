@@ -8,18 +8,21 @@ import (
 
 	"github.com/YouDad/blockchain/app/coin/core"
 	"github.com/YouDad/blockchain/app/coin/wallet"
+	"github.com/YouDad/blockchain/p2p"
 )
 
 var (
 	sendFrom   string
 	sendTo     string
 	sendAmount int
+	sendMine   bool
 )
 
 func init() {
 	SendCmd.Flags().StringVar(&sendFrom, "from", "", "Source wallet address")
 	SendCmd.Flags().StringVar(&sendTo, "to", "", "Destination wallet address")
 	SendCmd.Flags().IntVar(&sendAmount, "amount", -1, "Amount to send")
+	SendCmd.Flags().BoolVar(&sendMine, "mine", false, "")
 	SendCmd.MarkFlagRequired("from")
 	SendCmd.MarkFlagRequired("to")
 	SendCmd.MarkFlagRequired("amount")
@@ -43,11 +46,16 @@ var SendCmd = &cobra.Command{
 		defer utxoSet.Close()
 
 		tx := utxoSet.NewUTXOTransaction(sendFrom, sendTo, sendAmount)
-		cbTx := core.NewCoinbaseTX(sendFrom, "")
-		txs := []*core.Transaction{cbTx, tx}
 
-		newBlocks := bc.MineBlock(txs)
-		utxoSet.Update(newBlocks)
+		if sendMine {
+			cbTx := core.NewCoinbaseTX(sendFrom, "")
+			txs := []*core.Transaction{cbTx, tx}
+
+			newBlocks := bc.MineBlock(txs)
+			utxoSet.Update(newBlocks)
+		} else {
+			p2p.SendTx(p2p.KnownNodes[0], tx)
+		}
 		fmt.Println("Success!")
 	},
 }
