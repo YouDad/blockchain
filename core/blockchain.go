@@ -23,6 +23,7 @@ func (bc *Blockchain) Begin() (iter *BlockchainIterator) {
 }
 
 func (iter *BlockchainIterator) Next() (nextBlock *Block) {
+	iter.Blockchain.Blocks()
 	blockBytes := iter.Get(iter.next)
 	if len(blockBytes) == 0 {
 		return nil
@@ -69,7 +70,7 @@ func CreateBlockchain() *Blockchain {
 	db := utils.OpenDatabase(CoreConfig.DatabaseFile)
 	db.Blocks().Clear()
 	genesis := NewBlock(CoreConfig.GetGenesis(), make([]byte, 32), 1)
-	db.SetLastest(genesis.Hash, genesis.Serialize())
+	db.Blocks().SetLastest(genesis.Hash, genesis.Serialize())
 	return &Blockchain{db}
 }
 

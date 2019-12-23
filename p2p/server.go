@@ -23,7 +23,7 @@ const (
 var (
 	nodeAddress     string
 	miningAddress   string
-	KnownNodes      = []string{"localhost:3000"}
+	KnownNodes      = []string{"s25.natfrp.org:14116"}
 	blocksInTransit = [][]byte{}
 	mempool         = make(map[string]core.Transaction)
 )
@@ -217,7 +217,8 @@ func handleBlock(request []byte, bc *core.CoinBlockchain) {
 
 		blocksInTransit = blocksInTransit[1:]
 	} else {
-		UTXOSet := core.UTXOSet{bc}
+		UTXOSet := core.NewUTXOSet()
+		defer UTXOSet.Close()
 		UTXOSet.Reindex()
 	}
 }
@@ -345,7 +346,8 @@ func handleTx(request []byte, bc *core.CoinBlockchain) {
 			txs = append(txs, cbTx)
 
 			newBlock := bc.MineBlock(txs)
-			UTXOSet := core.UTXOSet{bc}
+			UTXOSet := core.NewUTXOSet()
+			defer UTXOSet.Close()
 			UTXOSet.Reindex()
 
 			fmt.Println("New block is mined!")
