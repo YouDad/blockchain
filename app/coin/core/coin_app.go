@@ -10,11 +10,15 @@ import (
 )
 
 type CoinApp struct {
-	app.App
 	Transactions []*Transaction
 }
 
 func Init() {
+	gob.Register(CoinApp{
+		Transactions: []*Transaction{
+			&Transaction{},
+		},
+	})
 	core.InitCore(core.Config{
 		GetAppdata: func() app.App {
 			return GetCoinApp(nil)

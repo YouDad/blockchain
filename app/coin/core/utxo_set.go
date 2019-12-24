@@ -2,10 +2,10 @@ package core
 
 import (
 	"encoding/hex"
-	"log"
 
 	"github.com/YouDad/blockchain/app/coin/wallet"
 	"github.com/YouDad/blockchain/core"
+	"github.com/YouDad/blockchain/log"
 )
 
 // UTXOSet represents UTXO set
@@ -136,10 +136,7 @@ func (u UTXOSet) Reindex() {
 			log.Panic(err)
 		}
 
-		err = u.UTXOSet().Set(key, outs.Serialize())
-		if err != nil {
-			log.Panic(err)
-		}
+		u.UTXOSet().Set(key, outs.Serialize())
 	}
 }
 
@@ -161,14 +158,13 @@ func (u UTXOSet) Update(block *core.Block) {
 					}
 				}
 
-				var err error
 				if len(updatedOuts.Outputs) == 0 {
-					err = u.UTXOSet().Delete(vin.Txid)
+					err := u.UTXOSet().Delete(vin.Txid)
+					if err != nil {
+						log.Panic(err)
+					}
 				} else {
-					err = u.UTXOSet().Set(vin.Txid, updatedOuts.Serialize())
-				}
-				if err != nil {
-					log.Panic(err)
+					u.UTXOSet().Set(vin.Txid, updatedOuts.Serialize())
 				}
 			}
 		}
@@ -178,9 +174,6 @@ func (u UTXOSet) Update(block *core.Block) {
 			newOutputs.Outputs = append(newOutputs.Outputs, out)
 		}
 
-		err := u.UTXOSet().Set(tx.ID, newOutputs.Serialize())
-		if err != nil {
-			log.Panic(err)
-		}
+		u.UTXOSet().Set(tx.ID, newOutputs.Serialize())
 	}
 }

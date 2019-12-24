@@ -1,10 +1,9 @@
 package coin
 
 import (
-	"log"
-
 	cmd "github.com/YouDad/blockchain/app/coin/commands"
 	"github.com/YouDad/blockchain/app/coin/core"
+	"github.com/YouDad/blockchain/log"
 )
 
 func Init() {
@@ -18,10 +17,9 @@ func Main() {
 		cmd.GetBalanceCmd,
 		cmd.CreateBlockchainCmd,
 		cmd.SendCmd,
-		cmd.PrintChainCmd,
+		cmd.GetVersionCmd,
 		cmd.ListAddressCmd,
 		cmd.CreateWalletCmd,
-		cmd.ReindexUTXOCmd,
 		cmd.StartNodeCmd,
 	)
 

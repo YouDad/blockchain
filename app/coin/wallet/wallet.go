@@ -6,10 +6,10 @@ import (
 	"crypto/elliptic"
 	"crypto/rand"
 	"crypto/sha256"
-	"log"
 
 	"golang.org/x/crypto/ripemd160"
 
+	"github.com/YouDad/blockchain/log"
 	"github.com/YouDad/blockchain/utils"
 )
 

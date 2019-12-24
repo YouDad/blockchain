@@ -1,14 +1,16 @@
 package utils
 
 import (
-	"log"
 	"os"
 
 	"github.com/boltdb/bolt"
+
+	"github.com/YouDad/blockchain/log"
 )
 
 var (
 	lastest  = []byte("lastest")
+	genesis  = []byte("genesis")
 	ref      = 0
 	globalDB *bolt.DB
 )
@@ -43,7 +45,10 @@ func OpenDatabase(dbFile string) *Database {
 func (db *Database) Close() {
 	ref--
 	if ref == 0 {
-		db.DB.Close()
+		err := db.DB.Close()
+		if err != nil {
+			log.Panic(err)
+		}
 		globalDB = nil
 	}
 }
@@ -61,8 +66,8 @@ func (db *Database) UTXOSet() *Database {
 	return db.getBucket("utxo_set")
 }
 
-func (db *Database) Clear() error {
-	return db.Update(func(tx *bolt.Tx) error {
+func (db *Database) Clear() {
+	err := db.Update(func(tx *bolt.Tx) error {
 		err := tx.DeleteBucket(db.current_bucket)
 		if err == bolt.ErrBucketNotFound {
 			err = nil
@@ -74,10 +79,21 @@ func (db *Database) Clear() error {
 		_, err = tx.CreateBucket(db.current_bucket)
 		return err
 	})
+	if err != nil {
+		log.Panic(err)
+	}
+}
+
+func (db *Database) GetGenesis() []byte {
+	return db.Get(genesis)
 }
 
 func (db *Database) GetLastest() []byte {
 	return db.Get(lastest)
+}
+
+func (db *Database) GetByInt(key int) []byte {
+	return db.Get(intToByte(key))
 }
 
 func (db *Database) Get(key []byte) (value []byte) {
@@ -92,19 +108,28 @@ func (db *Database) Get(key []byte) (value []byte) {
 	return value
 }
 
-func (db *Database) SetLastest(key []byte, value []byte) error {
-	err := db.Set(key, value)
-	if err != nil {
-		return err
-	}
-
-	return db.Set(lastest, value)
+func (db *Database) SetGenesis(key []byte, value []byte) {
+	db.Set(key, value)
+	db.Set(lastest, value)
+	db.Set(genesis, value)
 }
 
-func (db *Database) Set(key []byte, value []byte) error {
-	return db.Update(func(tx *bolt.Tx) error {
+func (db *Database) SetLastest(key []byte, value []byte) {
+	db.Set(key, value)
+	db.Set(lastest, value)
+}
+
+func (db *Database) SetByInt(key int, value []byte) {
+	db.Set(intToByte(key), value)
+}
+
+func (db *Database) Set(key []byte, value []byte) {
+	err := db.Update(func(tx *bolt.Tx) error {
 		return tx.Bucket(db.current_bucket).Put(key, value)
 	})
+	if err != nil {
+		log.Panic(err)
+	}
 }
 
 func (db *Database) Delete(key []byte) error {

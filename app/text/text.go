@@ -1,16 +1,18 @@
 package text
 
 import (
+	"encoding/gob"
+
 	"github.com/YouDad/blockchain/app"
 	"github.com/YouDad/blockchain/core"
 )
 
 type TextApp struct {
-	app.App
 	str string
 }
 
 func Init() {
+	gob.Register(TextApp{})
 	core.InitCore(core.Config{
 		GetAppdata: func() app.App {
 			return GetAppString("")

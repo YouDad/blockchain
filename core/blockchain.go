@@ -2,9 +2,9 @@ package core
 
 import (
 	"errors"
-	"log"
 
 	"github.com/YouDad/blockchain/app"
+	"github.com/YouDad/blockchain/log"
 	"github.com/YouDad/blockchain/utils"
 )
 
@@ -37,6 +37,7 @@ func (bc *Blockchain) MineBlock(data app.App) *Block {
 	lastestBlock := DeserializeBlock(bc.Blocks().GetLastest())
 	newBlock := NewBlock(data, lastestBlock.Hash, lastestBlock.Height+1)
 	bc.Blocks().SetLastest(newBlock.Hash, newBlock.Serialize())
+	bc.Blocks().SetByInt(newBlock.Height, newBlock.Serialize())
 	return newBlock
 }
 
@@ -47,11 +48,13 @@ func (bc *Blockchain) AddBlock(block *Block) {
 
 	lastestBlock := DeserializeBlock(bc.Blocks().GetLastest())
 	if lastestBlock.Height < block.Height {
-		err := bc.Blocks().SetLastest(block.Hash, block.Serialize())
-		if err != nil {
-			log.Panic(err)
-		}
+		bc.Blocks().SetLastest(block.Hash, block.Serialize())
+		bc.Blocks().SetByInt(block.Height, block.Serialize())
 	}
+}
+
+func IsBlockchainExists() bool {
+	return utils.IsDatabaseExists(CoreConfig.DatabaseFile)
 }
 
 func NewBlockchain() *Blockchain {
@@ -62,6 +65,18 @@ func NewBlockchain() *Blockchain {
 	return &Blockchain{utils.OpenDatabase(CoreConfig.DatabaseFile)}
 }
 
+func CreateBlockchainFromGenesis(genesis *Block) *Blockchain {
+	if utils.IsDatabaseExists(CoreConfig.DatabaseFile) {
+		log.Panicln("Blockchain existed, Create failed.")
+	}
+
+	db := utils.OpenDatabase(CoreConfig.DatabaseFile)
+	db.Blocks().Clear()
+	db.Blocks().SetGenesis(genesis.Hash, genesis.Serialize())
+	db.Blocks().SetByInt(genesis.Height, genesis.Serialize())
+	return &Blockchain{db}
+}
+
 func CreateBlockchain() *Blockchain {
 	if utils.IsDatabaseExists(CoreConfig.DatabaseFile) {
 		log.Panicln("Blockchain existed, Create failed.")
@@ -70,7 +85,8 @@ func CreateBlockchain() *Blockchain {
 	db := utils.OpenDatabase(CoreConfig.DatabaseFile)
 	db.Blocks().Clear()
 	genesis := NewBlock(CoreConfig.GetGenesis(), make([]byte, 32), 1)
-	db.Blocks().SetLastest(genesis.Hash, genesis.Serialize())
+	db.Blocks().SetGenesis(genesis.Hash, genesis.Serialize())
+	db.Blocks().SetByInt(genesis.Height, genesis.Serialize())
 	return &Blockchain{db}
 }
 

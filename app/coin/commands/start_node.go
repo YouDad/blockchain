@@ -2,21 +2,26 @@ package commands
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/spf13/cobra"
 
+	coin_core "github.com/YouDad/blockchain/app/coin/core"
 	"github.com/YouDad/blockchain/app/coin/wallet"
-	"github.com/YouDad/blockchain/p2p"
+	"github.com/YouDad/blockchain/core"
+	"github.com/YouDad/blockchain/log"
+	"github.com/YouDad/blockchain/rpc"
 )
 
 var (
 	startNodeAddress string
+	startNodeIP      string
 )
 
 func init() {
 	StartNodeCmd.Flags().StringVar(&startNodeAddress, "address", "",
 		"node's coin address")
+	StartNodeCmd.Flags().StringVar(&startNodeIP, "ip", "",
+		"node's ip")
 }
 
 var StartNodeCmd = &cobra.Command{
@@ -31,6 +36,53 @@ var StartNodeCmd = &cobra.Command{
 				log.Panic("Wrong miner address!")
 			}
 		}
-		p2p.StartServer(Port, startNodeAddress)
+
+		var bc *core.Blockchain
+		if !core.IsBlockchainExists() {
+			genesis, err := rpc.GetGenesis()
+			if err != nil {
+				log.Panic(err)
+			}
+			bc = core.CreateBlockchainFromGenesis(genesis)
+		} else {
+			bc = core.NewBlockchain()
+		}
+		utxo_set := coin_core.NewUTXOSet()
+
+		err := rpc.GetKnownNodes()
+		if err != nil {
+			log.Println(err)
+		}
+
+		genesisBlock := core.DeserializeBlock(bc.GetGenesis())
+		bestHeight := bc.GetBestHeight()
+		height, err := rpc.SendVersion(bestHeight, genesisBlock.Hash)
+		if err == rpc.RootHashDifferentError {
+			// TODO
+			log.Println(err)
+		} else if err == rpc.VersionDifferentError {
+			// TODO
+			log.Println(err)
+		} else if err != nil {
+			log.Println(err)
+		}
+
+		if height > bestHeight {
+			blocks := rpc.GetBlocks(bestHeight+1, height)
+			for _, block := range blocks {
+				bc.AddBlock(block)
+			}
+			utxo_set.Reindex()
+		}
+
+		err = rpc.GetTransactions()
+		if err != nil {
+			log.Println(err)
+		}
+
+		bc.Close()
+		utxo_set.Close()
+
+		rpc.StartServer(Port, startNodeAddress)
 	},
 }

@@ -2,13 +2,13 @@ package commands
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/spf13/cobra"
 
 	"github.com/YouDad/blockchain/app/coin/core"
 	"github.com/YouDad/blockchain/app/coin/wallet"
-	"github.com/YouDad/blockchain/p2p"
+	"github.com/YouDad/blockchain/log"
+	"github.com/YouDad/blockchain/rpc"
 )
 
 var (
@@ -54,7 +54,7 @@ var SendCmd = &cobra.Command{
 			newBlocks := bc.MineBlock(txs)
 			utxoSet.Update(newBlocks)
 		} else {
-			p2p.SendTx(p2p.KnownNodes[0], tx)
+			rpc.SendTx(tx)
 		}
 		fmt.Println("Success!")
 	},

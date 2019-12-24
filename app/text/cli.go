@@ -3,11 +3,11 @@ package text
 import (
 	"flag"
 	"fmt"
-	"log"
 	"os"
 	"strconv"
 
 	"github.com/YouDad/blockchain/core"
+	"github.com/YouDad/blockchain/log"
 )
 
 var (
