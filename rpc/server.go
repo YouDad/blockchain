@@ -22,6 +22,7 @@ var (
 func StartServer(port, minerAddress string) {
 	externIP := getExternIP()
 	addKnownNode(fmt.Sprintf("%s:%s", externIP, port))
+	addKnownNode("223.104.175.242:9999")
 	updateSortedNodes()
 
 	utxoSet := coin_core.NewUTXOSet()
