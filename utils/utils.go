@@ -28,18 +28,18 @@ func ReverseBytes(data []byte) {
 func intToByte(num int) []byte {
 	var bytes [4]byte
 
-	bytes[0] = byte((num & 0x000000ff) >> 0)
+	bytes[0] = byte(num >> 0)
 	if num < 1<<8 {
 		return bytes[:1]
 	}
-	bytes[1] = byte((num & 0x0000ff00) >> 8)
+	bytes[1] = byte(num >> 8)
 	if num < 1<<16 {
 		return bytes[:2]
 	}
-	bytes[2] = byte((num & 0x00ff0000) >> 16)
+	bytes[2] = byte(num >> 16)
 	if num < 1<<24 {
 		return bytes[:3]
 	}
-	bytes[3] = byte((num & 0xff000000) >> 24)
+	bytes[3] = byte(num >> 24)
 	return bytes[:4]
 }

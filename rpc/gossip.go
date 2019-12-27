@@ -51,7 +51,7 @@ func addKnownNode(node string) {
 
 func updateKnownNode(node string, nano int64) {
 	arr := knownNodes[node]
-	arr[arr[5]] = int(nano / 1_000_000_000)
+	arr[arr[5]] = int(nano / 1e9)
 	arr[5] = (arr[5] + 1) % 5
 	knownNodes[node] = arr
 }
