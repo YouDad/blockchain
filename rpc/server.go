@@ -2,12 +2,12 @@ package rpc
 
 import (
 	"fmt"
+	"log"
 	"net"
 	"net/http"
 	"net/rpc"
 
 	coin_core "github.com/YouDad/blockchain/app/coin/core"
-	"github.com/YouDad/blockchain/log"
 )
 
 const (

@@ -2,10 +2,9 @@ package rpc
 
 import (
 	"fmt"
+	"log"
 	"sort"
 	"time"
-
-	"github.com/YouDad/blockchain/log"
 )
 
 type position struct {

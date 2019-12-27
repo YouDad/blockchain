@@ -2,10 +2,10 @@ package core
 
 import (
 	"encoding/hex"
+	"log"
 
 	"github.com/YouDad/blockchain/app/coin/wallet"
 	"github.com/YouDad/blockchain/core"
-	"github.com/YouDad/blockchain/log"
 )
 
 // UTXOSet represents UTXO set

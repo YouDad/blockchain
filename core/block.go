@@ -3,10 +3,10 @@ package core
 import (
 	"bytes"
 	"encoding/gob"
+	"log"
 	"time"
 
 	"github.com/YouDad/blockchain/app"
-	"github.com/YouDad/blockchain/log"
 )
 
 type Block struct {

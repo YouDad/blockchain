@@ -2,10 +2,10 @@ package commands
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/spf13/cobra"
 
-	"github.com/YouDad/blockchain/log"
 	"github.com/YouDad/blockchain/rpc"
 )
 

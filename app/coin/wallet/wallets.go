@@ -6,9 +6,8 @@ import (
 	"encoding/gob"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
-
-	"github.com/YouDad/blockchain/log"
 )
 
 func init() {

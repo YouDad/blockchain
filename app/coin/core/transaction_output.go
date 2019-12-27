@@ -3,8 +3,8 @@ package core
 import (
 	"bytes"
 	"encoding/gob"
+	"log"
 
-	"github.com/YouDad/blockchain/log"
 	"github.com/YouDad/blockchain/utils"
 )
 

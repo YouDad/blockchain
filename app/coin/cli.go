@@ -1,9 +1,10 @@
 package coin
 
 import (
+	"log"
+
 	cmd "github.com/YouDad/blockchain/app/coin/commands"
 	"github.com/YouDad/blockchain/app/coin/core"
-	"github.com/YouDad/blockchain/log"
 )
 
 func Init() {

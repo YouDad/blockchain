@@ -5,10 +5,10 @@ import (
 	"crypto/ecdsa"
 	"encoding/hex"
 	"errors"
+	"log"
 
 	"github.com/YouDad/blockchain/app"
 	"github.com/YouDad/blockchain/core"
-	"github.com/YouDad/blockchain/log"
 )
 
 type CoinBlockchain struct {

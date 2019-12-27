@@ -3,8 +3,7 @@ package utils
 import (
 	"bytes"
 	"encoding/binary"
-
-	"github.com/YouDad/blockchain/log"
+	"log"
 )
 
 // IntToHex converts an int64 to a byte array

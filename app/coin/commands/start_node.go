@@ -2,13 +2,13 @@ package commands
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/spf13/cobra"
 
 	coin_core "github.com/YouDad/blockchain/app/coin/core"
 	"github.com/YouDad/blockchain/app/coin/wallet"
 	"github.com/YouDad/blockchain/core"
-	"github.com/YouDad/blockchain/log"
 	"github.com/YouDad/blockchain/rpc"
 )
 

@@ -9,10 +9,9 @@ import (
 	"encoding/gob"
 	"encoding/hex"
 	"fmt"
+	"log"
 	"math/big"
 	"strings"
-
-	"github.com/YouDad/blockchain/log"
 )
 
 const subsidy = 10

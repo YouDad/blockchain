@@ -1,11 +1,10 @@
 package utils
 
 import (
+	"log"
 	"os"
 
 	"github.com/boltdb/bolt"
-
-	"github.com/YouDad/blockchain/log"
 )
 
 var (
