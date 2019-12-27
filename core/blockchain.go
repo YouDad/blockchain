@@ -18,7 +18,7 @@ type BlockchainIterator struct {
 }
 
 func (bc *Blockchain) Begin() (iter *BlockchainIterator) {
-	lastBlock := DeserializeBlock(bc.Blocks().GetLastest())
+	lastBlock := DeserializeBlock(bc.GetLastest())
 	return &BlockchainIterator{bc, lastBlock.Hash}
 }
 
@@ -34,10 +34,10 @@ func (iter *BlockchainIterator) Next() (nextBlock *Block) {
 }
 
 func (bc *Blockchain) MineBlock(data app.App) *Block {
-	lastestBlock := DeserializeBlock(bc.Blocks().GetLastest())
+	lastestBlock := DeserializeBlock(bc.GetLastest())
 	newBlock := NewBlock(data, lastestBlock.Hash, lastestBlock.Height+1)
-	bc.Blocks().SetLastest(newBlock.Hash, newBlock.Serialize())
-	bc.Blocks().SetByInt(newBlock.Height, newBlock.Serialize())
+	bc.SetLastest(newBlock.Hash, newBlock.Serialize())
+	bc.SetByInt(newBlock.Height, newBlock.Serialize())
 	return newBlock
 }
 
@@ -46,10 +46,10 @@ func (bc *Blockchain) AddBlock(block *Block) {
 		return
 	}
 
-	lastestBlock := DeserializeBlock(bc.Blocks().GetLastest())
+	lastestBlock := DeserializeBlock(bc.GetLastest())
 	if lastestBlock.Height < block.Height {
-		bc.Blocks().SetLastest(block.Hash, block.Serialize())
-		bc.Blocks().SetByInt(block.Height, block.Serialize())
+		bc.SetLastest(block.Hash, block.Serialize())
+		bc.SetByInt(block.Height, block.Serialize())
 	}
 }
 
@@ -72,8 +72,8 @@ func CreateBlockchainFromGenesis(genesis *Block) *Blockchain {
 
 	db := utils.OpenDatabase(CoreConfig.DatabaseFile)
 	db.Blocks().Clear()
-	db.Blocks().SetGenesis(genesis.Hash, genesis.Serialize())
-	db.Blocks().SetByInt(genesis.Height, genesis.Serialize())
+	db.SetGenesis(genesis.Hash, genesis.Serialize())
+	db.SetByInt(genesis.Height, genesis.Serialize())
 	return &Blockchain{db}
 }
 
@@ -85,13 +85,13 @@ func CreateBlockchain() *Blockchain {
 	db := utils.OpenDatabase(CoreConfig.DatabaseFile)
 	db.Blocks().Clear()
 	genesis := NewBlock(CoreConfig.GetGenesis(), make([]byte, 32), 1)
-	db.Blocks().SetGenesis(genesis.Hash, genesis.Serialize())
-	db.Blocks().SetByInt(genesis.Height, genesis.Serialize())
+	db.SetGenesis(genesis.Hash, genesis.Serialize())
+	db.SetByInt(genesis.Height, genesis.Serialize())
 	return &Blockchain{db}
 }
 
 func (bc *Blockchain) GetBestHeight() int {
-	return DeserializeBlock(bc.Blocks().GetLastest()).Height
+	return DeserializeBlock(bc.GetLastest()).Height
 }
 
 func (bc *Blockchain) GetBlock(hash []byte) (*Block, error) {

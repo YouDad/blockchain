@@ -54,7 +54,7 @@ var SendCmd = &cobra.Command{
 			newBlocks := bc.MineBlock(txs)
 			utxoSet.Update(newBlocks)
 		} else {
-			rpc.SendTx(tx)
+			rpc.SendTransaction(tx)
 		}
 		fmt.Println("Success!")
 	},

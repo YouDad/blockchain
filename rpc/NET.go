@@ -2,7 +2,6 @@ package rpc
 
 import (
 	"bytes"
-	"fmt"
 
 	coin_core "github.com/YouDad/blockchain/app/coin/core"
 	"github.com/YouDad/blockchain/core"
@@ -14,16 +13,18 @@ type NET struct {
 }
 
 /*
- * NET's remote function
- * Local function {SendTx} can call this function
- * TODO
+ * NET's gossip function
+ * Local function {SendTransaction} can call this function
  */
-type SendTxArgs coin_core.Transaction
-type SendTxReply byte
+type SendTransactionArgs = coin_core.Transaction
+type SendTransactionReply = byte
 
-func (net *NET) SendTx(args *SendTxArgs, reply *SendTxReply) error {
-	log.Println("SendTx")
-	fmt.Println("Get a sendtx")
+func (net *NET) SendTransaction(args *SendTransactionArgs, reply *SendTransactionReply) error {
+	log.Println("SendTransaction")
+	if !isTransactionExists(args) {
+		addTransactionToMempool(args)
+		SendTransaction(args)
+	}
 	return nil
 }
 
@@ -56,7 +57,7 @@ type SendVersionReply = Version
 
 func (net *NET) SendVersion(args *SendVersionArgs, reply *SendVersionReply) error {
 	log.Println("SendVersion")
-	genesis := core.DeserializeBlock(net.u.Blocks().GetGenesis())
+	genesis := core.DeserializeBlock(net.u.GetGenesis())
 	height := net.u.GetBestHeight()
 	*reply = Version{
 		Version:  version,
@@ -70,9 +71,67 @@ func (net *NET) SendVersion(args *SendVersionArgs, reply *SendVersionReply) erro
 		}
 
 		if args.Height > height {
-			//FIXME
 			log.Printf("GetHeight: %d, NowHeight: %d\n", args.Height, height)
+			blocks := GetBlocks(height+1, args.Height)
+			for _, block := range blocks {
+				net.u.AddBlock(block)
+				net.u.Update(block)
+			}
 		}
 	}
+	return nil
+}
+
+/*
+ * NET's gossip function
+ * Local function {SendBlock} can call this function
+ */
+type SendBlockArgs = core.Block
+type SendBlockReply = NIL
+
+func (net *NET) SendBlock(args *SendBlockArgs, reply *SendBlockReply) error {
+	log.Println("SendBlock")
+
+	lastestBlock := core.DeserializeBlock(net.u.GetLastest())
+	genesisBlock := core.DeserializeBlock(net.u.GetGenesis())
+	lastestHash := lastestBlock.Hash
+	height := lastestBlock.Height
+
+	if !net.u.Blocks().IsExist(args.Hash) {
+		SendBlock(args)
+		net.u.Blocks().Set(args.Hash, []byte{})
+	}
+
+	if args.Height > height+1 {
+		bestHeight, err := SendVersion(height, genesisBlock.Hash)
+		if err == RootHashDifferentError {
+			// TODO
+			log.Println(err)
+		} else if err == VersionDifferentError {
+			// TODO
+			log.Println(err)
+		} else if err != nil {
+			log.Println(err)
+		} else {
+			if bestHeight > height {
+				blocks := GetBlocks(bestHeight+1, height)
+				for _, block := range blocks {
+					net.u.AddBlock(block)
+					net.u.Update(block)
+				}
+			}
+		}
+	}
+
+	if args.Height == net.u.GetBestHeight()+1 && bytes.Equal(args.PrevBlockHash, lastestHash) {
+		net.u.SetLastest(args.Hash, args.Serialize())
+	}
+	return nil
+}
+
+type HeartBeatArgs = NIL
+type HeartBeatReply = NIL
+
+func (net *NET) HeartBeat(args *HeartBeatArgs, reply *HeartBeatReply) error {
 	return nil
 }

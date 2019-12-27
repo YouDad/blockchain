@@ -16,15 +16,19 @@ const (
 )
 
 var (
-	miningAddress string
-	ServerReady   = make(chan interface{}, 1)
+	ServerReady = make(chan interface{}, 1)
 )
 
 func StartServer(port, minerAddress string) {
-	miningAddress = minerAddress
-	utxo_set := coin_core.NewUTXOSet()
-	rpc.Register(&DB{utxo_set})
-	rpc.Register(&NET{utxo_set})
+	externIP := getExternIP()
+	addKnownNode(fmt.Sprintf("%s:%s", externIP, port))
+	updateSortedNodes()
+
+	utxoSet := coin_core.NewUTXOSet()
+	go mining(minerAddress, utxoSet)
+	go knownNodeUpdating()
+	rpc.Register(&DB{utxoSet})
+	rpc.Register(&NET{utxoSet})
 	rpc.HandleHTTP()
 	l, err := net.Listen(protocol, fmt.Sprintf("0.0.0.0:%s", port))
 	if err != nil {

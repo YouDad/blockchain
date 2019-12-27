@@ -11,54 +11,33 @@ import (
 	"github.com/YouDad/blockchain/log"
 )
 
-var (
-	knownNodes = make(map[string]bool)
-)
-
-func init() {
-	knownNodes["192.168.42.108:9999"] = true
-}
-
-func addKnownNode(node string) {
-	knownNodes[node] = true
-}
-
-func delKnownNode(node string) {
-	delete(knownNodes, node)
-}
-
 type NIL = bool
 
+func call(node, method string, args interface{}, reply interface{}) error {
+	client, err := rpc.DialHTTP(protocol, node)
+	if err != nil {
+		return err
+	}
+
+	return client.Call(method, args, reply)
+}
+
 func Call(method string, args interface{}, reply interface{}) error {
-	log.Printf("Call %s\n", method)
+	log.Println("Call", method)
 	for node, _ := range knownNodes {
-		client, err := rpc.DialHTTP(protocol, node)
-		if err != nil {
-			delKnownNode(node)
-			log.Println(node, err)
-			continue
-		}
-
-		err = client.Call(method, args, reply)
+		err := call(node, method, args, reply)
 		if err != nil {
 			log.Println(node, err)
 			continue
 		}
-
 		return nil
 	}
 	return errors.New("None of the nodes responded!")
 }
 
 func CallMySelf(port string, method string, args interface{}, reply interface{}) error {
-	log.Printf("CallMySelf %s\n", method)
-	client, err := rpc.DialHTTP(protocol, fmt.Sprintf("127.0.0.1:%s", port))
-	if err != nil {
-		return err
-	}
-
-	err = client.Call(method, args, reply)
-	return err
+	log.Println("CallMySelf", method)
+	return call(fmt.Sprintf("127.0.0.1:%s", port), method, args, reply)
 }
 
 func GetBalance(port string, address string) (int, error) {
@@ -74,9 +53,15 @@ func GetVersion(port string) (Version, error) {
 }
 
 // Send New Transaction To Known Node
-func SendTx(tx *coin_core.Transaction) error {
-	// TODO
-	return nil
+func SendTransaction(tx *coin_core.Transaction) {
+	BOOL := true
+	GossipCall("NET.SendTransaction", tx, &BOOL)
+}
+
+// Send New Block To Known Node
+func SendBlock(block *core.Block) {
+	BOOL := true
+	GossipCall("NET.SendBlock", block, &BOOL)
 }
 
 // Get Other Nodes From Known Node
@@ -145,7 +130,20 @@ func GetBlocks(from, to int) []*core.Block {
 }
 
 // From Known Node Get Lastest Transactions
-func GetTransactions() error {
-	// TODO
-	return nil
+func GetTransactions() {
+	var txs []*coin_core.Transaction
+	BOOL := true
+	err := Call("DB.GetTransactions", &BOOL, &txs)
+	if err != nil {
+		log.Println(err)
+	} else {
+		for _, tx := range txs {
+			addTransactionToMempool(tx)
+		}
+	}
+}
+
+func HeartBeat(address string) {
+	BOOL := true
+	call(address, "NET.HeartBeat", &BOOL, &BOOL)
 }

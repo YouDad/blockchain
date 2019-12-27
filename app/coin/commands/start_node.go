@@ -75,10 +75,7 @@ var StartNodeCmd = &cobra.Command{
 			utxo_set.Reindex()
 		}
 
-		err = rpc.GetTransactions()
-		if err != nil {
-			log.Println(err)
-		}
+		rpc.GetTransactions()
 
 		bc.Close()
 		utxo_set.Close()

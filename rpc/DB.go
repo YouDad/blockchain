@@ -69,3 +69,15 @@ func (db *DB) GetBalance(args *GetBalanceArgs, reply *GetBalanceReply) error {
 
 	return nil
 }
+
+/*
+ * DB's remote function
+ * Local function {GetTransactions} can call this function
+ */
+type GetTransactionsArgs = NIL
+type GetTransactionsReply = []*coin_core.Transaction
+
+func (db *DB) GetTransactions(args *GetTransactionsArgs, reply *GetTransactionsReply) error {
+	*reply = getTransactions()
+	return nil
+}

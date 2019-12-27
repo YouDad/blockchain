@@ -85,15 +85,15 @@ func (db *Database) Clear() {
 }
 
 func (db *Database) GetGenesis() []byte {
-	return db.Get(genesis)
+	return db.Blocks().Get(genesis)
 }
 
 func (db *Database) GetLastest() []byte {
-	return db.Get(lastest)
+	return db.Blocks().Get(lastest)
 }
 
 func (db *Database) GetByInt(key int) []byte {
-	return db.Get(intToByte(key))
+	return db.Blocks().Get(intToByte(key))
 }
 
 func (db *Database) Get(key []byte) (value []byte) {
@@ -108,19 +108,23 @@ func (db *Database) Get(key []byte) (value []byte) {
 	return value
 }
 
+func (db *Database) IsExist(key []byte) bool {
+	return db.Get(key) != nil
+}
+
 func (db *Database) SetGenesis(key []byte, value []byte) {
-	db.Set(key, value)
-	db.Set(lastest, value)
-	db.Set(genesis, value)
+	db.Blocks().Set(key, value)
+	db.Blocks().Set(lastest, value)
+	db.Blocks().Set(genesis, value)
 }
 
 func (db *Database) SetLastest(key []byte, value []byte) {
-	db.Set(key, value)
-	db.Set(lastest, value)
+	db.Blocks().Set(key, value)
+	db.Blocks().Set(lastest, value)
 }
 
 func (db *Database) SetByInt(key int, value []byte) {
-	db.Set(intToByte(key), value)
+	db.Blocks().Set(intToByte(key), value)
 }
 
 func (db *Database) Set(key []byte, value []byte) {
