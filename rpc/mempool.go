@@ -3,7 +3,7 @@ package rpc
 import (
 	"encoding/hex"
 
-	"github.com/YouDad/blockchain/app/coin/coin_core"
+	"github.com/YouDad/blockchain/coin_core"
 )
 
 var (

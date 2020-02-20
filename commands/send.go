@@ -6,9 +6,9 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/YouDad/blockchain/app/coin/coin_core"
-	"github.com/YouDad/blockchain/app/coin/wallet"
+	"github.com/YouDad/blockchain/coin_core"
 	"github.com/YouDad/blockchain/rpc"
+	"github.com/YouDad/blockchain/wallet"
 )
 
 var (

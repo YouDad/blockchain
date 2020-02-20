@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"net/rpc"
 
-	"github.com/YouDad/blockchain/app/coin/coin_core"
+	"github.com/YouDad/blockchain/coin_core"
 )
 
 const (

@@ -3,7 +3,7 @@ package coin_core
 import (
 	"bytes"
 
-	"github.com/YouDad/blockchain/app/coin/wallet"
+	"github.com/YouDad/blockchain/wallet"
 )
 
 // TXInput represents a transaction input

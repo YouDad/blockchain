@@ -4,8 +4,8 @@ import (
 	"encoding/hex"
 	"log"
 
-	"github.com/YouDad/blockchain/app/coin/wallet"
 	"github.com/YouDad/blockchain/core"
+	"github.com/YouDad/blockchain/wallet"
 )
 
 // UTXOSet represents UTXO set
