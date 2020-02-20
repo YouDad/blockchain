@@ -9,7 +9,7 @@ import (
 
 // UTXOSet represents UTXO set
 type UTXOSet struct {
-	*CoinBlockchain
+	*Blockchain
 }
 
 func NewUTXOSet() *UTXOSet {
@@ -113,7 +113,7 @@ func (u UTXOSet) FindUTXO(pubKeyHash []byte) []TXOutput {
 // Reindex rebuilds the UTXO set
 func (u UTXOSet) Reindex() {
 	u.UTXOSet().Clear()
-	UTXO := u.CoinBlockchain.FindUTXO()
+	UTXO := u.Blockchain.FindUTXO()
 
 	for txID, outs := range UTXO {
 		key, err := hex.DecodeString(txID)

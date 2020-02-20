@@ -20,7 +20,7 @@ var (
 )
 
 func Init(port string) {
-	addKnownNode("39.107.64.93:9999")
+	addKnownNode("127.0.0.1:9999")
 	externIP := getExternIP()
 	addKnownNode(fmt.Sprintf("%s:%s", externIP, port))
 	updateSortedNodes()

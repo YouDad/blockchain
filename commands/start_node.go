@@ -45,7 +45,7 @@ var StartNodeCmd = &cobra.Command{
 			}
 			bc = core.CreateBlockchainFromGenesis(genesis)
 		} else {
-			bc = core.NewBlockchai()
+			bc = core.NewBlockchain()
 		}
 		utxo_set := core.NewUTXOSet()
 
