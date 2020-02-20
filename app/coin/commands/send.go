@@ -6,7 +6,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/YouDad/blockchain/app/coin/core"
+	"github.com/YouDad/blockchain/app/coin/coin_core"
 	"github.com/YouDad/blockchain/app/coin/wallet"
 	"github.com/YouDad/blockchain/rpc"
 )
@@ -40,16 +40,16 @@ var SendCmd = &cobra.Command{
 			log.Panic("ERROR: Recipient address is not valid")
 		}
 
-		bc := core.NewBlockchain()
+		bc := coin_core.NewBlockchain()
 		defer bc.Close()
-		utxoSet := core.NewUTXOSet()
+		utxoSet := coin_core.NewUTXOSet()
 		defer utxoSet.Close()
 
 		tx := utxoSet.NewUTXOTransaction(sendFrom, sendTo, sendAmount)
 
 		if sendMine {
-			cbTx := core.NewCoinbaseTX(sendFrom, "")
-			txs := []*core.Transaction{cbTx, tx}
+			cbTx := coin_core.NewCoinbaseTX(sendFrom, "")
+			txs := []*coin_core.Transaction{cbTx, tx}
 
 			newBlocks := bc.MineBlock(txs)
 			utxoSet.Update(newBlocks)

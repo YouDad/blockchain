@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/YouDad/blockchain/app"
-	coin_core "github.com/YouDad/blockchain/app/coin/core"
+	"github.com/YouDad/blockchain/app/coin/coin_core"
 	"github.com/YouDad/blockchain/core"
 	"github.com/YouDad/blockchain/rpc"
 )

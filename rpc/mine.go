@@ -1,7 +1,7 @@
 package rpc
 
 import (
-	coin_core "github.com/YouDad/blockchain/app/coin/core"
+	"github.com/YouDad/blockchain/app/coin/coin_core"
 )
 
 func mining(address string, utxoSet *coin_core.UTXOSet) {

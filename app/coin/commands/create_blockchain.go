@@ -6,7 +6,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/YouDad/blockchain/app/coin/core"
+	"github.com/YouDad/blockchain/app/coin/coin_core"
 	"github.com/YouDad/blockchain/app/coin/wallet"
 )
 
@@ -27,8 +27,8 @@ var CreateBlockchainCmd = &cobra.Command{
 		if !wallet.ValidateAddress(createBlockchainAddress) {
 			log.Panic("Address is not valid")
 		}
-		core.CreateBlockchain(createBlockchainAddress)
-		utxoSet := core.NewUTXOSet()
+		coin_core.CreateBlockchain(createBlockchainAddress)
+		utxoSet := coin_core.NewUTXOSet()
 		defer utxoSet.Close()
 
 		utxoSet.Reindex()

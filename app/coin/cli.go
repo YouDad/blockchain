@@ -3,12 +3,12 @@ package coin
 import (
 	"log"
 
+	"github.com/YouDad/blockchain/app/coin/coin_core"
 	cmd "github.com/YouDad/blockchain/app/coin/commands"
-	"github.com/YouDad/blockchain/app/coin/core"
 )
 
 func Init() {
-	core.Init()
+	coin_core.Init()
 }
 
 // Run parses command line arguments and processes commands

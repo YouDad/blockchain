@@ -1,4 +1,4 @@
-package core
+package coin_core
 
 import (
 	"encoding/hex"

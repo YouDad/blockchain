@@ -4,7 +4,7 @@ import (
 	"errors"
 	"log"
 
-	coin_core "github.com/YouDad/blockchain/app/coin/core"
+	"github.com/YouDad/blockchain/app/coin/coin_core"
 	"github.com/YouDad/blockchain/app/coin/wallet"
 	"github.com/YouDad/blockchain/core"
 	"github.com/YouDad/blockchain/utils"
