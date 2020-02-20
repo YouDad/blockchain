@@ -4,7 +4,6 @@ import (
 	"errors"
 	"log"
 
-	"github.com/YouDad/blockchain/app"
 	"github.com/YouDad/blockchain/utils"
 )
 
@@ -33,7 +32,7 @@ func (iter *BlockchainIterator) Next() (nextBlock *Block) {
 	return nextBlock
 }
 
-func (bc *Blockchain) MineBlock(data app.App) *Block {
+func (bc *Blockchain) MineBlock(data CoinApp) *Block {
 	lastestBlock := DeserializeBlock(bc.GetLastest())
 	newBlock := NewBlock(data, lastestBlock.Hash, lastestBlock.Height+1)
 	bc.SetLastest(newBlock.Hash, newBlock.Serialize())
@@ -60,7 +59,7 @@ func IsBlockchainExists() bool {
 	return utils.IsDatabaseExists(CoreConfig.DatabaseFile)
 }
 
-func NewBlockchain() *Blockchain {
+func NewBlockchai() *Blockchain {
 	if !utils.IsDatabaseExists(CoreConfig.DatabaseFile) {
 		log.Panicln("No existing blockchain found. Create one to continue.")
 	}
@@ -80,7 +79,7 @@ func CreateBlockchainFromGenesis(genesis *Block) *Blockchain {
 	return &Blockchain{db}
 }
 
-func CreateBlockchain() *Blockchain {
+func CreateBlockchai() *Blockchain {
 	if utils.IsDatabaseExists(CoreConfig.DatabaseFile) {
 		log.Panicln("Blockchain existed, Create failed.")
 	}

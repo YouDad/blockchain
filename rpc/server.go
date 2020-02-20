@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"net/rpc"
 
-	"github.com/YouDad/blockchain/coin_core"
+	"github.com/YouDad/blockchain/core"
 )
 
 const (
@@ -28,7 +28,7 @@ func Init(port string) {
 
 func StartServer(port, minerAddress string) {
 	Port = port
-	utxoSet := coin_core.NewUTXOSet()
+	utxoSet := core.NewUTXOSet()
 	go mining(minerAddress, utxoSet)
 	go knownNodeUpdating()
 	rpc.Register(&DB{utxoSet})

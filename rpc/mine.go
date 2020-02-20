@@ -1,16 +1,16 @@
 package rpc
 
 import (
-	"github.com/YouDad/blockchain/coin_core"
+	"github.com/YouDad/blockchain/core"
 )
 
-func mining(address string, utxoSet *coin_core.UTXOSet) {
+func mining(address string, utxoSet *core.UTXOSet) {
 	if address == "" {
 		return
 	}
 
 	for {
-		txs := []*coin_core.Transaction{coin_core.NewCoinbaseTX(address, "")}
+		txs := []*core.Transaction{core.NewCoinbaseTX(address, "")}
 		nowHeight := utxoSet.GetBestHeight()
 		nowSize := getMempoolSize()
 		txs = append(txs, getTransactions()...)

@@ -4,19 +4,18 @@ import (
 	"bytes"
 	"log"
 
-	"github.com/YouDad/blockchain/coin_core"
 	"github.com/YouDad/blockchain/core"
 )
 
 type NET struct {
-	u *coin_core.UTXOSet
+	u *core.UTXOSet
 }
 
 /*
  * NET's gossip function
  * Local function {SendTransaction} can call this function
  */
-type SendTransactionArgs = coin_core.Transaction
+type SendTransactionArgs = core.Transaction
 type SendTransactionReply = byte
 
 func (net *NET) SendTransaction(args *SendTransactionArgs, reply *SendTransactionReply) error {

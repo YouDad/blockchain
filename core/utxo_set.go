@@ -1,10 +1,9 @@
-package coin_core
+package core
 
 import (
 	"encoding/hex"
 	"log"
 
-	"github.com/YouDad/blockchain/core"
 	"github.com/YouDad/blockchain/wallet"
 )
 
@@ -22,7 +21,7 @@ func (u *UTXOSet) NewUTXOTransaction(from, to string, amount int) *Transaction {
 	var inputs []TXInput
 	var outputs []TXOutput
 
-	wallets, err := wallet.NewWallets(core.CoreConfig.WalletFile)
+	wallets, err := wallet.NewWallets(CoreConfig.WalletFile)
 	if err != nil {
 		log.Panic(err)
 	}
@@ -128,8 +127,8 @@ func (u UTXOSet) Reindex() {
 
 // Update updates the UTXO set with transactions from the Block
 // The Block is considered to be the tip of a blockchain
-func (u UTXOSet) Update(block *core.Block) {
-	txs := block.App.(*CoinApp)
+func (u UTXOSet) Update(block *Block) {
+	txs := block.App
 
 	for _, tx := range txs.Transactions {
 		if tx.IsCoinbase() == false {

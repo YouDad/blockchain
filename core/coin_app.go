@@ -1,12 +1,9 @@
-package coin_core
+package core
 
 import (
 	"bytes"
 	"encoding/gob"
 	"fmt"
-
-	"github.com/YouDad/blockchain/app"
-	"github.com/YouDad/blockchain/core"
 )
 
 type CoinApp struct {
@@ -19,9 +16,9 @@ func Init() {
 			&Transaction{},
 		},
 	})
-	core.InitCore(core.Config{
-		GetAppdata: func() app.App {
-			return GetCoinApp(nil)
+	InitCore(Config{
+		GetAppdata: func() CoinApp {
+			return *GetCoinApp(nil)
 		},
 	})
 }

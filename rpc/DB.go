@@ -4,14 +4,13 @@ import (
 	"errors"
 	"log"
 
-	"github.com/YouDad/blockchain/coin_core"
 	"github.com/YouDad/blockchain/core"
 	"github.com/YouDad/blockchain/utils"
 	"github.com/YouDad/blockchain/wallet"
 )
 
 type DB struct {
-	u *coin_core.UTXOSet
+	u *core.UTXOSet
 }
 
 /*
@@ -79,7 +78,7 @@ func (db *DB) GetBalance(args *GetBalanceArgs, reply *GetBalanceReply) error {
  * Local function {GetTransactions} can call this function
  */
 type GetTransactionsArgs = NIL
-type GetTransactionsReply = []*coin_core.Transaction
+type GetTransactionsReply = []*core.Transaction
 
 func (db *DB) GetTransactions(args *GetTransactionsArgs, reply *GetTransactionsReply) error {
 	*reply = getTransactions()

@@ -1,4 +1,4 @@
-package coin_core
+package core
 
 import (
 	"bytes"
@@ -6,43 +6,36 @@ import (
 	"encoding/hex"
 	"errors"
 	"log"
-
-	"github.com/YouDad/blockchain/app"
-	"github.com/YouDad/blockchain/core"
 )
 
 type CoinBlockchain struct {
-	*core.Blockchain
+	*Blockchain
 }
 
 const genesisBlockData = "The Times 03/Jan/2009 Chancellor on brink of second bailout for banks"
 
 func NewBlockchain() *CoinBlockchain {
-	return &CoinBlockchain{core.NewBlockchain()}
+	return &CoinBlockchain{NewBlockchai()}
 }
 
 func CreateBlockchain(address string) {
-	core.InitCore(core.Config{
-		GetGenesis: func() app.App {
-			return GetCoinApp([]*Transaction{
+	InitCore(Config{
+		GetGenesis: func() CoinApp {
+			return *GetCoinApp([]*Transaction{
 				NewCoinbaseTX(address, genesisBlockData),
 			})
 		},
 	})
-	core.CreateBlockchain().Close()
+	CreateBlockchai().Close()
 }
 
-func NewProofOfWork(b *core.Block) *core.ProofOfWork {
-	return core.NewProofOfWork(b)
-}
-
-func (bc *CoinBlockchain) MineBlock(Transactions []*Transaction) *core.Block {
+func (bc *CoinBlockchain) MineBlock(Transactions []*Transaction) *Block {
 	for _, tx := range Transactions {
 		if !bc.VerifyTransaction(tx) {
 			log.Panic("ERROR: Invalid transaction")
 		}
 	}
-	return bc.Blockchain.MineBlock(GetCoinApp(Transactions))
+	return bc.Blockchain.MineBlock(*GetCoinApp(Transactions))
 }
 
 // FindUTXO finds and returns all unspent transaction outputs
@@ -57,7 +50,7 @@ func (bc *CoinBlockchain) FindUTXO() map[string]TXOutputs {
 			break
 		}
 
-		txs := block.App.(*CoinApp)
+		txs := block.App
 
 		for _, tx := range txs.Transactions {
 			txID := hex.EncodeToString(tx.ID)
@@ -104,7 +97,7 @@ func (bc *CoinBlockchain) FindTransaction(ID []byte) (Transaction, error) {
 			break
 		}
 
-		txs := block.App.(*CoinApp)
+		txs := block.App
 
 		for _, tx := range txs.Transactions {
 			if bytes.Compare(tx.ID, ID) == 0 {

@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"log"
 	"time"
-
-	"github.com/YouDad/blockchain/app"
 )
 
 type Block struct {
@@ -16,10 +14,10 @@ type Block struct {
 	Hash          []byte
 	Nonce         int64
 	Height        int
-	App           app.App
+	App           CoinApp
 }
 
-func NewBlock(data app.App, prevBlockHash []byte, height int) *Block {
+func NewBlock(data CoinApp, prevBlockHash []byte, height int) *Block {
 	block := &Block{
 		Timestamp:     time.Now().Unix(),
 		PrevBlockHash: prevBlockHash,

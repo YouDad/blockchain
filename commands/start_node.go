@@ -6,7 +6,6 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/YouDad/blockchain/coin_core"
 	"github.com/YouDad/blockchain/core"
 	"github.com/YouDad/blockchain/rpc"
 	"github.com/YouDad/blockchain/wallet"
@@ -46,9 +45,9 @@ var StartNodeCmd = &cobra.Command{
 			}
 			bc = core.CreateBlockchainFromGenesis(genesis)
 		} else {
-			bc = core.NewBlockchain()
+			bc = core.NewBlockchai()
 		}
-		utxo_set := coin_core.NewUTXOSet()
+		utxo_set := core.NewUTXOSet()
 
 		go func() {
 			<-rpc.ServerReady

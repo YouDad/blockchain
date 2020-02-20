@@ -8,7 +8,6 @@ import (
 	"net/rpc"
 	"runtime/debug"
 
-	"github.com/YouDad/blockchain/coin_core"
 	"github.com/YouDad/blockchain/core"
 	"github.com/YouDad/blockchain/utils"
 )
@@ -60,7 +59,7 @@ func GetVersion(port string) (Version, error) {
 }
 
 // Send New Transaction To Known Node
-func SendTransaction(tx *coin_core.Transaction) {
+func SendTransaction(tx *core.Transaction) {
 	BOOL := true
 	GossipCall("NET.SendTransaction", tx, &BOOL)
 }
@@ -144,7 +143,7 @@ func GetBlocks(from, to int) []*core.Block {
 
 // From Known Node Get Lastest Transactions
 func GetTransactions() {
-	var txs []*coin_core.Transaction
+	var txs []*core.Transaction
 	BOOL := true
 	err := Call("DB.GetTransactions", &BOOL, &txs)
 	if err != nil {

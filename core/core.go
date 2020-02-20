@@ -1,12 +1,8 @@
 package core
 
-import (
-	"github.com/YouDad/blockchain/app"
-)
-
 type Config struct {
-	GetAppdata   func() app.App
-	GetGenesis   func() app.App
+	GetAppdata   func() CoinApp
+	GetGenesis   func() CoinApp
 	DatabaseFile string
 	WalletFile   string
 }

@@ -1,4 +1,4 @@
-package coin_core
+package core
 
 import (
 	"crypto/sha256"
