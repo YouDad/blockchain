@@ -19,12 +19,15 @@ var (
 	ServerReady = make(chan interface{}, 1)
 )
 
-func StartServer(port, minerAddress string) {
+func Init(port string) {
+	addKnownNode("39.107.64.93:9999")
 	externIP := getExternIP()
 	addKnownNode(fmt.Sprintf("%s:%s", externIP, port))
-	addKnownNode("223.104.175.242:9999")
 	updateSortedNodes()
+}
 
+func StartServer(port, minerAddress string) {
+	Port = port
 	utxoSet := coin_core.NewUTXOSet()
 	go mining(minerAddress, utxoSet)
 	go knownNodeUpdating()

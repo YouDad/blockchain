@@ -6,9 +6,11 @@ import (
 	"fmt"
 	"log"
 	"net/rpc"
+	"runtime/debug"
 
 	coin_core "github.com/YouDad/blockchain/app/coin/core"
 	"github.com/YouDad/blockchain/core"
+	"github.com/YouDad/blockchain/utils"
 )
 
 type NIL = bool
@@ -19,15 +21,20 @@ func call(node, method string, args interface{}, reply interface{}) error {
 		return err
 	}
 
+	if utils.InterfaceIsNil(args) || utils.InterfaceIsNil(reply) {
+		log.Fatalln("args", args, "reply", reply)
+		debug.PrintStack()
+	}
 	return client.Call(method, args, reply)
 }
 
 func Call(method string, args interface{}, reply interface{}) error {
 	log.Println("Call", method)
-	for node, _ := range knownNodes {
-		err := call(node, method, args, reply)
+	// for node, _ := range knownNodes {
+	for _, node := range sortedNodes {
+		err := call(node.Address, method, args, reply)
 		if err != nil {
-			log.Println(node, err)
+			log.Println("Failed:", node.Address, err)
 			continue
 		}
 		return nil
@@ -61,14 +68,17 @@ func SendTransaction(tx *coin_core.Transaction) {
 // Send New Block To Known Node
 func SendBlock(block *core.Block) {
 	BOOL := true
+	log.Printf("{TMP} NET.SendBlock block=%+v\n", block)
 	GossipCall("NET.SendBlock", block, &BOOL)
 }
 
 // Get Other Nodes From Known Node
 func GetKnownNodes() error {
-	var knownNodeAddresses *[]string
-	BOOL := true
-	err := Call("NET.GetKnownNodes", &BOOL, knownNodeAddresses)
+	knownNodeAddresses := new([]string)
+	myAddress := ""
+	myAddress = getExternIP() + ":" + Port
+	err := Call("NET.GetKnownNodes", &myAddress, knownNodeAddresses)
+	log.Printf("GetKnownNodes [%s] get:%+v", myAddress, *knownNodeAddresses)
 	if err == nil {
 		for _, knownNodeAddress := range *knownNodeAddresses {
 			addKnownNode(knownNodeAddress)
@@ -111,6 +121,9 @@ func GetGenesis() (*core.Block, error) {
 	var genesisBlock GetGenesisReply
 	BOOL := true
 	err := Call("DB.GetGenesis", &BOOL, &genesisBlock)
+	if err != nil {
+		return nil, err
+	}
 	return core.DeserializeBlock(genesisBlock), err
 }
 
@@ -135,7 +148,7 @@ func GetTransactions() {
 	BOOL := true
 	err := Call("DB.GetTransactions", &BOOL, &txs)
 	if err != nil {
-		log.Println(err)
+		log.Println("Failed:", err)
 	} else {
 		for _, tx := range txs {
 			addTransactionToMempool(tx)
@@ -146,4 +159,17 @@ func GetTransactions() {
 func HeartBeat(address string) {
 	BOOL := true
 	call(address, "NET.HeartBeat", &BOOL, &BOOL)
+}
+
+func MyGetKnownNodes() {
+	var nodes MyGetKnwonNodesReply
+	BOOL := true
+	err := CallMySelf("9999", "NET.MyGetKnownNodes", &BOOL, &nodes)
+	if err != nil {
+		log.Println("Failed:", err)
+	} else {
+		for _, node := range nodes {
+			log.Printf("%+v\n", node)
+		}
+	}
 }

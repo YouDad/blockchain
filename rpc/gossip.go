@@ -11,21 +11,22 @@ type position struct {
 	Address  string
 	Distance int
 }
-type positionSlice []position
+type PositionSlice []position
 
-func (p positionSlice) Len() int {
+func (p PositionSlice) Len() int {
 	return len(p)
 }
-func (p positionSlice) Swap(i, j int) {
+func (p PositionSlice) Swap(i, j int) {
 	p[i], p[j] = p[j], p[i]
 }
-func (p positionSlice) Less(i, j int) bool {
+func (p PositionSlice) Less(i, j int) bool {
 	return p[i].Distance < p[j].Distance
 }
 
 var (
 	knownNodes  = make(map[string][6]int)
-	sortedNodes positionSlice
+	sortedNodes PositionSlice
+	Port        = "9999"
 )
 
 func updateSortedNodes() {
@@ -45,7 +46,10 @@ func updateSortedNodes() {
 }
 
 func addKnownNode(node string) {
-	knownNodes[node] = [6]int{0, 0, 0, 0, 0, 0}
+	_, ok := knownNodes[node]
+	if !ok {
+		knownNodes[node] = [6]int{0, 0, 0, 0, 0, 0}
+	}
 }
 
 func updateKnownNode(node string, nano int64) {
@@ -61,6 +65,7 @@ func delKnownNode(node string) {
 
 func knownNodeUpdating() {
 	for {
+		time.Sleep(40 * time.Second)
 		GetKnownNodes()
 		for nodeAddress, _ := range knownNodes {
 			address := nodeAddress
@@ -73,7 +78,7 @@ func knownNodeUpdating() {
 		}
 		time.Sleep(20 * time.Second)
 		updateSortedNodes()
-		time.Sleep(40 * time.Second)
+		log.Printf("Sorted %+v\n", sortedNodes)
 	}
 }
 

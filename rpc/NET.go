@@ -32,14 +32,20 @@ func (net *NET) SendTransaction(args *SendTransactionArgs, reply *SendTransactio
  * NET's remote function
  * Local function {GetKnownNodes} can call this function
  */
+type GetKnownNodesArgs = string
 type GetKnownNodesReply = []string
 
-func (net *NET) GetKnownNodes(args *NIL, reply *GetKnownNodesReply) error {
-	log.Println("GetKnownNodes")
-	*reply = make(GetKnownNodesReply, 0)
-	for node, _ := range knownNodes {
-		*reply = append(*reply, node)
+func (net *NET) GetKnownNodes(args *GetBalanceArgs, reply *GetKnownNodesReply) error {
+	log.Println("GetKnownNodes", *args)
+	if *args != "" {
+		addKnownNode(*args)
 	}
+	var nodes []string
+	for node, _ := range knownNodes {
+		nodes = append(nodes, node)
+	}
+	*reply = nodes
+	log.Println("GetKnownNodes return", *reply)
 	return nil
 }
 
@@ -106,12 +112,12 @@ func (net *NET) SendBlock(args *SendBlockArgs, reply *SendBlockReply) error {
 		bestHeight, err := SendVersion(height, genesisBlock.Hash)
 		if err == RootHashDifferentError {
 			// TODO
-			log.Println(err)
+			log.Println("Failed:", err)
 		} else if err == VersionDifferentError {
 			// TODO
-			log.Println(err)
+			log.Println("Failed:", err)
 		} else if err != nil {
-			log.Println(err)
+			log.Println("Failed:", err)
 		} else {
 			if bestHeight > height {
 				blocks := GetBlocks(bestHeight+1, height)
@@ -133,5 +139,13 @@ type HeartBeatArgs = NIL
 type HeartBeatReply = NIL
 
 func (net *NET) HeartBeat(args *HeartBeatArgs, reply *HeartBeatReply) error {
+	return nil
+}
+
+type MyGetKnownNodesArgs = NIL
+type MyGetKnwonNodesReply = PositionSlice
+
+func (net *NET) MyGetKnownNodes(args *MyGetKnownNodesArgs, reply *MyGetKnwonNodesReply) error {
+	*reply = sortedNodes
 	return nil
 }

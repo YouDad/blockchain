@@ -36,6 +36,7 @@ var StartNodeCmd = &cobra.Command{
 				log.Panic("Wrong miner address!")
 			}
 		}
+		rpc.Init(Port)
 
 		var bc *core.Blockchain
 		if !core.IsBlockchainExists() {
@@ -49,36 +50,39 @@ var StartNodeCmd = &cobra.Command{
 		}
 		utxo_set := coin_core.NewUTXOSet()
 
-		err := rpc.GetKnownNodes()
-		if err != nil {
-			log.Println(err)
-		}
-
-		genesisBlock := core.DeserializeBlock(bc.GetGenesis())
-		bestHeight := bc.GetBestHeight()
-		height, err := rpc.SendVersion(bestHeight, genesisBlock.Hash)
-		if err == rpc.RootHashDifferentError {
-			// TODO
-			log.Println(err)
-		} else if err == rpc.VersionDifferentError {
-			// TODO
-			log.Println(err)
-		} else if err != nil {
-			log.Println(err)
-		}
-
-		if height > bestHeight {
-			blocks := rpc.GetBlocks(bestHeight+1, height)
-			for _, block := range blocks {
-				bc.AddBlock(block)
+		go func() {
+			<-rpc.ServerReady
+			err := rpc.GetKnownNodes()
+			if err != nil {
+				log.Println("Failed:", err)
 			}
-			utxo_set.Reindex()
-		}
 
-		rpc.GetTransactions()
+			genesisBlock := core.DeserializeBlock(bc.GetGenesis())
+			bestHeight := bc.GetBestHeight()
+			height, err := rpc.SendVersion(bestHeight, genesisBlock.Hash)
+			if err == rpc.RootHashDifferentError {
+				// TODO
+				log.Println("Failed:", err)
+			} else if err == rpc.VersionDifferentError {
+				// TODO
+				log.Println("Failed:", err)
+			} else if err != nil {
+				log.Println("Failed:", err)
+			}
 
-		bc.Close()
-		utxo_set.Close()
+			if height > bestHeight {
+				blocks := rpc.GetBlocks(bestHeight+1, height)
+				for _, block := range blocks {
+					bc.AddBlock(block)
+				}
+				utxo_set.Reindex()
+			}
+
+			rpc.GetTransactions()
+
+			bc.Close()
+			utxo_set.Close()
+		}()
 
 		rpc.StartServer(Port, startNodeAddress)
 	},

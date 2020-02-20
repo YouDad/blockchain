@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"fmt"
+	"log"
 	"math"
 	"math/big"
 
@@ -46,7 +47,9 @@ func (pow *ProofOfWork) Run() (int64, []byte) {
 	for nonce < math.MaxInt64 {
 		data := pow.prepareData(nonce)
 		hash = sha256.Sum256(data)
-		fmt.Printf("\r Dig into mine  %x", hash)
+		if nonce%(1<<16) == 0 {
+			log.Printf("Dig into mine [%d] %x\n", nonce, hash)
+		}
 
 		hashInt.SetBytes(hash[:])
 		if hashInt.Cmp(pow.target) == -1 {

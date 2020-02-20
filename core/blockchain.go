@@ -18,7 +18,7 @@ type BlockchainIterator struct {
 }
 
 func (bc *Blockchain) Begin() (iter *BlockchainIterator) {
-	lastBlock := DeserializeBlock(bc.GetLastest())
+	lastBlock := DeserializeBlock(bc.Blocks().GetLastest())
 	return &BlockchainIterator{bc, lastBlock.Hash}
 }
 
@@ -42,6 +42,9 @@ func (bc *Blockchain) MineBlock(data app.App) *Block {
 }
 
 func (bc *Blockchain) AddBlock(block *Block) {
+	if block == nil {
+		return
+	}
 	if bc.Blocks().Get(block.Hash) != nil {
 		return
 	}
