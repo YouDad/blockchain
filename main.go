@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 
 	cmd "github.com/YouDad/blockchain/commands"
@@ -23,6 +24,7 @@ func main() {
 	)
 
 	if err := rootCmd.Execute(); err != nil {
-		log.Panic(err)
+		fmt.Println("Error:", err)
+		return
 	}
 }
