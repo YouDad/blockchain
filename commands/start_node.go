@@ -1,8 +1,8 @@
 package commands
 
 import (
-	"fmt"
 	"log"
+	"os"
 
 	"github.com/spf13/cobra"
 
@@ -13,41 +13,41 @@ import (
 
 var (
 	startNodeAddress string
-	startNodeIP      string
 )
 
 func init() {
-	StartNodeCmd.Flags().StringVar(&startNodeAddress, "address", "",
-		"node's coin address")
-	StartNodeCmd.Flags().StringVar(&startNodeIP, "ip", "",
-		"node's ip")
+	StartNodeCmd.Flags().StringVar(&startNodeAddress, "address", "", "node's coin address")
 }
 
 var StartNodeCmd = &cobra.Command{
 	Use:   "start_node",
 	Short: "Start a node with ID specified in port.",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Printf("Starting node %s\n", Port)
+		log.Println("Starting node", Port)
+
 		if len(startNodeAddress) > 0 {
 			if wallet.ValidateAddress(startNodeAddress) {
-				fmt.Println("Mining is on. Address to receive rewards: ", startNodeAddress)
+				log.Println("Mining is on. Address to receive rewards:", startNodeAddress)
 			} else {
-				log.Panic("Wrong miner address!")
+				log.Println("Wrong miner address!")
+				os.Exit(1)
 			}
 		}
+
 		rpc.Init(Port)
 
 		var bc *core.Blockchain
 		if !core.IsBlockchainExists() {
 			genesis, err := rpc.GetGenesis()
 			if err != nil {
-				log.Panic(err)
+				log.Println(err)
+				os.Exit(1)
 			}
 			bc = core.CreateBlockchainFromGenesis(genesis)
 		} else {
 			bc = core.NewBlockchain()
 		}
-		utxo_set := core.NewUTXOSet()
+		utxoSet := core.NewUTXOSet()
 
 		go func() {
 			<-rpc.ServerReady
@@ -74,13 +74,13 @@ var StartNodeCmd = &cobra.Command{
 				for _, block := range blocks {
 					bc.AddBlock(block)
 				}
-				utxo_set.Reindex()
+				utxoSet.Reindex()
 			}
 
 			rpc.GetTransactions()
 
 			bc.Close()
-			utxo_set.Close()
+			utxoSet.Close()
 		}()
 
 		rpc.StartServer(Port, startNodeAddress)
