@@ -110,21 +110,6 @@ func (u UTXOSet) FindUTXO(pubKeyHash []byte) []TXOutput {
 	return UTXOs
 }
 
-// CountTransactions returns the number of transactions in the UTXO set
-func (u UTXOSet) CountTransactions() int {
-	counter := 0
-
-	err := u.UTXOSet().Foreach(func(k, v []byte) (isContinue bool) {
-		counter++
-		return true
-	})
-	if err != nil {
-		log.Panic(err)
-	}
-
-	return counter
-}
-
 // Reindex rebuilds the UTXO set
 func (u UTXOSet) Reindex() {
 	u.UTXOSet().Clear()
