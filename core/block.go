@@ -50,7 +50,6 @@ func DeserializeBlock(d []byte) *Block {
 		return nil
 	}
 	var block Block
-	block.App = CoreConfig.GetAppdata()
 
 	err := gob.NewDecoder(bytes.NewReader(d)).Decode(&block)
 	if err != nil {

@@ -4,12 +4,7 @@ import (
 	"log"
 
 	cmd "github.com/YouDad/blockchain/commands"
-	"github.com/YouDad/blockchain/core"
 )
-
-func init() {
-	core.Init()
-}
 
 // Run parses command line arguments and processes commands
 func main() {

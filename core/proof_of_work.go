@@ -25,10 +25,17 @@ func NewProofOfWork(b *Block) *ProofOfWork {
 }
 
 func (pow *ProofOfWork) prepareData(nonce int64) []byte {
+	var txs [][]byte
+
+	for _, tx := range pow.block.App.Transactions {
+		txs = append(txs, tx.Serialize())
+	}
+	mTree := NewMerkleTree(txs)
+
 	return bytes.Join(
 		[][]byte{
 			pow.block.PrevBlockHash,
-			pow.block.App.HashPart(),
+			mTree.RootNode.Data,
 			utils.IntToHex(pow.block.Timestamp),
 			utils.IntToHex(int64(targetBits)),
 			utils.IntToHex(int64(nonce)),

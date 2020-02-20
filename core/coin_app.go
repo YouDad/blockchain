@@ -10,34 +10,6 @@ type CoinApp struct {
 	Transactions []*Transaction
 }
 
-func Init() {
-	gob.Register(CoinApp{
-		Transactions: []*Transaction{
-			&Transaction{},
-		},
-	})
-	InitCore(Config{
-		GetAppdata: func() CoinApp {
-			return *GetCoinApp(nil)
-		},
-	})
-}
-
-func GetCoinApp(txs []*Transaction) *CoinApp {
-	return &CoinApp{Transactions: txs}
-}
-
-func (app *CoinApp) HashPart() []byte {
-	var txs [][]byte
-
-	for _, tx := range app.Transactions {
-		txs = append(txs, tx.Serialize())
-	}
-	mTree := NewMerkleTree(txs)
-
-	return mTree.RootNode.Data
-}
-
 func (app *CoinApp) ToString() string {
 	ret := "\n"
 	for i, tx := range app.Transactions {

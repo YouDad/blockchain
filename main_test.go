@@ -17,11 +17,6 @@ func TestPrintChain(t *testing.T) {
 		DatabaseFile: fmt.Sprintf("blockchain_%s.db", "9999"),
 		WalletFile:   fmt.Sprintf("wallet_%s.dat", "9999"),
 	})
-	core.InitCore(core.Config{
-		GetAppdata: func() core.CoinApp {
-			return *core.GetCoinApp(nil)
-		},
-	})
 	set := core.NewUTXOSet()
 	set.Blocks().Foreach(func(k, v []byte) (isContinue bool) {
 		if v == nil {

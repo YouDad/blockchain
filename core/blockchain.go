@@ -112,20 +112,13 @@ func (bc *Blockchain) GetBlockHashes() (hashes [][]byte) {
 const genesisBlockData = "The Times 03/Jan/2009 Chancellor on brink of second bailout for banks"
 
 func CreateBlockchain(address string) {
-	InitCore(Config{
-		GetGenesis: func() CoinApp {
-			return *GetCoinApp([]*Transaction{
-				NewCoinbaseTX(address, genesisBlockData),
-			})
-		},
-	})
 	if utils.IsDatabaseExists(CoreConfig.DatabaseFile) {
 		log.Panicln("Blockchain existed, Create failed.")
 	}
 
 	db := utils.OpenDatabase(CoreConfig.DatabaseFile)
 	db.Blocks().Clear()
-	genesis := NewBlock(CoreConfig.GetGenesis(), make([]byte, 32), 1)
+	genesis := NewBlock(CoinApp{[]*Transaction{NewCoinbaseTX(address, genesisBlockData)}}, make([]byte, 32), 1)
 	db.SetGenesis(genesis.Hash, genesis.Serialize())
 	db.SetByInt(genesis.Height, genesis.Serialize())
 	db.Close()
@@ -137,7 +130,7 @@ func (bc *Blockchain) MineBlock(Transactions []*Transaction) *Block {
 			log.Panic("ERROR: Invalid transaction")
 		}
 	}
-	return bc.mineBlock(*GetCoinApp(Transactions))
+	return bc.mineBlock(CoinApp{Transactions})
 }
 
 // FindUTXO finds and returns all unspent transaction outputs
