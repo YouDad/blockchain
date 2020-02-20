@@ -27,6 +27,7 @@ func (u *UTXOSet) NewUTXOTransaction(from, to string, amount int) *Transaction {
 		log.Panic(err)
 	}
 
+	// FIXME: Wallet have no from condition
 	srcWallet := wallets.GetWallet(from)
 	pubKeyHash := wallet.HashPubKey(srcWallet.PublicKey)
 	acc, validOutputs := u.FindSpendableOutputs(pubKeyHash, amount)

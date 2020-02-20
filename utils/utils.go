@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"log"
+	"reflect"
 )
 
 // IntToHex converts an int64 to a byte array
@@ -41,4 +42,12 @@ func intToByte(num int) []byte {
 	}
 	bytes[3] = byte(num >> 24)
 	return bytes[:4]
+}
+
+func InterfaceIsNil(i interface{}) bool {
+	defer func() {
+		recover()
+	}()
+	vi := reflect.ValueOf(i)
+	return vi.IsNil()
 }

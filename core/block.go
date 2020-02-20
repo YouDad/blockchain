@@ -3,6 +3,7 @@ package core
 import (
 	"bytes"
 	"encoding/gob"
+	"fmt"
 	"log"
 	"time"
 
@@ -46,6 +47,10 @@ func (b *Block) Serialize() []byte {
 }
 
 func DeserializeBlock(d []byte) *Block {
+	if d == nil {
+		log.Println("Failed: input is nil")
+		return nil
+	}
 	var block Block
 	block.App = CoreConfig.GetAppdata()
 
@@ -55,4 +60,13 @@ func DeserializeBlock(d []byte) *Block {
 	}
 
 	return &block
+}
+
+func (block *Block) String() string {
+	ret := ""
+	ret += fmt.Sprintf("Height: %d\n", block.Height)
+	ret += fmt.Sprintf("Prev: %x\n", block.PrevBlockHash)
+	ret += fmt.Sprintf("Hash: %x\n", block.Hash)
+	ret += fmt.Sprintf("Txs : %s\n\n", block.App.ToString())
+	return ret
 }

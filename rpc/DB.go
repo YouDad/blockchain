@@ -38,9 +38,13 @@ type GetBlocksArgs struct {
 type GetBlocksReply = [][]byte
 
 func (db *DB) GetBlocks(args *GetBlocksArgs, reply *GetBlocksReply) error {
-	log.Println("GetBlocks")
+	log.Printf("GetBlocks args=%+v\n", args)
 	for i := args.From; i <= args.To; i++ {
-		*reply = append(*reply, db.u.GetByInt(i))
+		data := db.u.GetByInt(i)
+		if data == nil {
+			break
+		}
+		*reply = append(*reply, data)
 	}
 	return nil
 }
