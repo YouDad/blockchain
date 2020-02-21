@@ -1,12 +1,10 @@
 package commands
 
 import (
-	"log"
-	"os"
-
 	"github.com/spf13/cobra"
 
 	"github.com/YouDad/blockchain/core"
+	"github.com/YouDad/blockchain/log"
 	"github.com/YouDad/blockchain/rpc"
 	"github.com/YouDad/blockchain/wallet"
 )
@@ -23,14 +21,14 @@ var StartNodeCmd = &cobra.Command{
 	Use:   "start_node",
 	Short: "Start a node with ID specified in port.",
 	Run: func(cmd *cobra.Command, args []string) {
-		log.Println("Starting node", Port)
+		log.Infoln("Starting node", Port)
 
+		// 是否挖矿，检验钱包
 		if len(startNodeAddress) > 0 {
 			if wallet.ValidateAddress(startNodeAddress) {
-				log.Println("Mining is on. Address to receive rewards:", startNodeAddress)
+				log.Infoln("Mining is on. Address to receive rewards:", startNodeAddress)
 			} else {
-				log.Println("Wrong miner address!")
-				os.Exit(1)
+				log.Errln("Wrong miner address!")
 			}
 		}
 
@@ -40,8 +38,7 @@ var StartNodeCmd = &cobra.Command{
 		if !core.IsBlockchainExists() {
 			genesis, err := rpc.GetGenesis()
 			if err != nil {
-				log.Println(err)
-				os.Exit(1)
+				log.Errln(err)
 			}
 			bc = core.CreateBlockchainFromGenesis(genesis)
 		} else {
@@ -53,7 +50,7 @@ var StartNodeCmd = &cobra.Command{
 			<-rpc.ServerReady
 			err := rpc.GetKnownNodes()
 			if err != nil {
-				log.Println("Failed:", err)
+				log.Warnln(err)
 			}
 
 			genesisBlock := core.DeserializeBlock(bc.GetGenesis())
@@ -61,12 +58,12 @@ var StartNodeCmd = &cobra.Command{
 			height, err := rpc.SendVersion(bestHeight, genesisBlock.Hash)
 			if err == rpc.RootHashDifferentError {
 				// TODO
-				log.Println("Failed:", err)
+				log.Warnln(err)
 			} else if err == rpc.VersionDifferentError {
 				// TODO
-				log.Println("Failed:", err)
+				log.Warnln(err)
 			} else if err != nil {
-				log.Println("Failed:", err)
+				log.Warnln(err)
 			}
 
 			if height > bestHeight {
