@@ -46,9 +46,10 @@ func Base58Decode(input []byte) []byte {
 	zeroBytes := 0
 
 	for _, b := range input {
-		if b == 0x00 {
-			zeroBytes++
+		if b != b58Alphabet[0] {
+			break
 		}
+		zeroBytes++
 	}
 
 	payload := input[zeroBytes:]
