@@ -1,10 +1,15 @@
 package core
 
 import (
+	"encoding/hex"
+
 	"github.com/YouDad/blockchain/log"
+	"github.com/YouDad/blockchain/utils"
 )
 
-type UTXOSet struct{}
+type UTXOSet struct {
+	*Blockchain
+}
 
 func (set *UTXOSet) GetGenesis() Block {
 	log.Errln("NotImplement")
@@ -12,8 +17,7 @@ func (set *UTXOSet) GetGenesis() Block {
 }
 
 func NewUTXOSet() *UTXOSet {
-	log.Errln("NotImplement")
-	return nil
+	return &UTXOSet{GetBlockchain()}
 }
 
 func (set *UTXOSet) Update(b *Block) {
@@ -22,8 +26,14 @@ func (set *UTXOSet) Update(b *Block) {
 }
 
 func (set *UTXOSet) Reindex() {
-	log.Errln("NotImplement")
+	set.SetTable("UTXOSet").Clear()
+	UTXO := set.FindUTXO()
 
+	for txnHash, outs := range UTXO {
+		hash, err := hex.DecodeString(txnHash)
+		log.Err(err)
+		set.Set(hash, utils.Encode(outs))
+	}
 }
 
 func (set *UTXOSet) NewUTXOTransaction(from, to string, amount int) *Transaction {

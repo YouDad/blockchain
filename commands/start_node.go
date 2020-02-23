@@ -1,15 +1,12 @@
 package commands
 
 import (
-	"fmt"
-
 	"github.com/spf13/cobra"
 
 	"github.com/YouDad/blockchain/api"
 	"github.com/YouDad/blockchain/core"
 	"github.com/YouDad/blockchain/log"
 	"github.com/YouDad/blockchain/p2p"
-	"github.com/YouDad/blockchain/storage"
 )
 
 var (
@@ -26,7 +23,6 @@ var StartNodeCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		log.Infoln("Starting node", Port)
 		p2p.Register(Port)
-		storage.RegisterDatabase(fmt.Sprintf("blockchain%s.db", Port))
 		go func() {
 			<-p2p.ServerReady
 			err := p2p.GetKnownNodes()

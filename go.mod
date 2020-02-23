@@ -1,6 +1,6 @@
 module github.com/YouDad/blockchain
 
-go 1.11
+go 1.13
 
 require (
 	github.com/boltdb/bolt v1.3.1
