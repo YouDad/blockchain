@@ -6,7 +6,7 @@ import (
 	"github.com/YouDad/blockchain/api"
 	"github.com/YouDad/blockchain/core"
 	"github.com/YouDad/blockchain/log"
-	"github.com/YouDad/blockchain/p2p"
+	"github.com/YouDad/blockchain/network"
 )
 
 var (
@@ -22,10 +22,13 @@ var StartNodeCmd = &cobra.Command{
 	Short: "Start a node with ID specified in port.",
 	Run: func(cmd *cobra.Command, args []string) {
 		log.Infoln("Starting node", Port)
-		p2p.Register(Port)
+		network.Register(Port)
 		go func() {
-			<-p2p.ServerReady
-			err := p2p.GetKnownNodes()
+			//TODO: mining
+		}()
+		go func() {
+			<-network.ServerReady
+			err := network.GetKnownNodes()
 			if err != nil {
 				log.Warnln(err)
 			}
@@ -40,7 +43,7 @@ var StartNodeCmd = &cobra.Command{
 			} else {
 				bc = core.GetBlockchain()
 			}
-			utxoSet := core.NewUTXOSet()
+			utxoSet := core.GetUTXOSet()
 
 			genesis := bc.GetGenesis()
 			nowHeight := bc.GetHeight()
@@ -63,6 +66,6 @@ var StartNodeCmd = &cobra.Command{
 				utxoSet.Reindex()
 			}
 		}()
-		p2p.StartServer(startNodeAddress)
+		network.StartServer()
 	},
 }

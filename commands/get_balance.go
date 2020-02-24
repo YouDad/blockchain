@@ -3,7 +3,7 @@ package commands
 import (
 	"github.com/YouDad/blockchain/api"
 	"github.com/YouDad/blockchain/log"
-	"github.com/YouDad/blockchain/p2p"
+	"github.com/YouDad/blockchain/network"
 	"github.com/spf13/cobra"
 )
 
@@ -22,9 +22,9 @@ var GetBalanceCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		balance, err := api.GetBalance(getBalanceAddress)
 		if err != nil {
-			p2p.Register(Port)
-			go p2p.StartServer("")
-			<-p2p.ServerReady
+			network.Register(Port)
+			go network.StartServer()
+			<-network.ServerReady
 			balance, err = api.GetBalance(getBalanceAddress)
 			if err != nil {
 				log.Errln(err)

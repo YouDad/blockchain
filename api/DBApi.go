@@ -6,7 +6,7 @@ import (
 	"github.com/YouDad/blockchain/apicb"
 	"github.com/YouDad/blockchain/core"
 	"github.com/YouDad/blockchain/log"
-	"github.com/YouDad/blockchain/rpc"
+	"github.com/YouDad/blockchain/network"
 	"github.com/YouDad/blockchain/types"
 )
 
@@ -17,14 +17,14 @@ var (
 )
 
 func SendVersion(nowHeight int, genesisHash types.HashValue) (height int, err error) {
-	log.Errln("NotImplement")
+	log.NotImplement()
 	return 0, nil
 }
 
 func GetGenesis() (*core.Block, error) {
-	log.Errln("NotImplement")
+	log.NotImplement()
 	var genesisBlock apicb.GetGenesisReply
-	err := rpc.Call("DBApi.GetGenesis", &NULL, &genesisBlock)
+	err := network.Call("DBApi.GetGenesis", &NULL, &genesisBlock)
 	if err != nil {
 		return nil, err
 	}
@@ -32,21 +32,21 @@ func GetGenesis() (*core.Block, error) {
 }
 
 func GetBlocks(start, end int) []*core.Block {
-	log.Errln("NotImplement")
+	log.NotImplement()
 	return nil
 }
 
-func GetBalance(address string) (int, error) {
-	log.Errln("NotImplement")
-	return 0, nil
+func GetBalance(address string) (balance apicb.GetBalanceReply, err error) {
+	err = network.CallMySelf("DBApi.GetBalance", &address, &balance)
+	return balance, err
 }
 
 func GetVersion() (types.Version, error) {
-	log.Errln("NotImplement")
+	log.NotImplement()
 	return types.Version{}, nil
 }
 
 func SendTransaction(txn *core.Transaction) {
-	log.Errln("NotImplement")
+	log.NotImplement()
 
 }

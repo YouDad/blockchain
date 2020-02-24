@@ -1,4 +1,4 @@
-package rpc
+package network
 
 import (
 	"errors"
@@ -6,12 +6,7 @@ import (
 	"runtime/debug"
 
 	"github.com/YouDad/blockchain/log"
-	"github.com/YouDad/blockchain/p2p"
 	"github.com/YouDad/blockchain/utils"
-)
-
-const (
-	protocol = "tcp"
 )
 
 func call(node, method string, args interface{}, reply interface{}) error {
@@ -29,8 +24,7 @@ func call(node, method string, args interface{}, reply interface{}) error {
 
 func Call(method string, args interface{}, reply interface{}) error {
 	log.Infoln("Call", method)
-	// for node, _ := range knownNodes {
-	for _, node := range p2p.GetSortedNodes() {
+	for _, node := range GetSortedNodes() {
 		err := call(node.Address, method, args, reply)
 		if err != nil {
 			log.Warnln(node.Address, err)
@@ -39,4 +33,9 @@ func Call(method string, args interface{}, reply interface{}) error {
 		return nil
 	}
 	return errors.New("None of the nodes responded!")
+}
+
+func CallMySelf(method string, args interface{}, reply interface{}) error {
+	log.Infoln("CallMySelf", method)
+	return call("127.0.0.1:"+Port, method, args, reply)
 }

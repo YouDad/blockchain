@@ -10,10 +10,12 @@ import (
 
 var (
 	callLevel = 2
+	logLevel  int
 )
 
-func init() {
+func Register(level int) {
 	log.SetFlags(log.Lmicroseconds | log.Ltime)
+	logLevel = level
 }
 
 func setPrefix(level string) {
@@ -26,13 +28,34 @@ func SetCallerLevel(level int) {
 	callLevel = level + 2
 }
 
+func Debugf(format string, v ...interface{}) {
+	if logLevel < 3 {
+		return
+	}
+	setPrefix("DEBUG")
+	log.Printf(format, v...)
+}
+
+func Debugln(v ...interface{}) {
+	if logLevel < 3 {
+		return
+	}
+	setPrefix("DEBUG")
+	log.Println(v...)
+}
+
 func Infof(format string, v ...interface{}) {
+	if logLevel < 2 {
+		return
+	}
 	setPrefix("INFO")
-	log.SetPrefix("[INFO]: ")
 	log.Printf(format, v...)
 }
 
 func Infoln(v ...interface{}) {
+	if logLevel < 2 {
+		return
+	}
 	setPrefix("INFO")
 	log.Println(v...)
 }
@@ -46,11 +69,17 @@ func Warn(err error) {
 }
 
 func Warnf(format string, v ...interface{}) {
+	if logLevel < 1 {
+		return
+	}
 	setPrefix("WARN")
 	log.Printf(format, v...)
 }
 
 func Warnln(v ...interface{}) {
+	if logLevel < 1 {
+		return
+	}
 	setPrefix("WARN")
 	log.Println(v...)
 }
@@ -63,18 +92,38 @@ func Err(err error) {
 }
 
 func Errf(format string, v ...interface{}) {
+	if logLevel < 0 {
+		return
+	}
 	setPrefix("ERROR")
 	log.Printf(format, v...)
 	os.Exit(1)
 }
 
 func Errln(v ...interface{}) {
+	if logLevel < 0 {
+		return
+	}
 	setPrefix("ERROR")
 	log.Println(v...)
 	os.Exit(1)
 }
 
+func PrintStack() {
+	log.SetPrefix("")
+	log.SetFlags(0)
+	log.Println("")
+	log.SetPrefix("[STACK]")
+	for i := 0; i < 5; i++ {
+		pc, file, line, _ := runtime.Caller(2 + i)
+		function := runtime.FuncForPC(pc)
+		file = file[strings.Index(file, "blockchain")+len("blockchain")+1:]
+		log.Printf("{ %s %d } [ %s ]", file, line, function.Name())
+	}
+}
+
 func NotImplement() {
+	PrintStack()
 	SetCallerLevel(1)
 	Errln("NotImplement")
 }

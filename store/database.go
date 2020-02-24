@@ -1,7 +1,9 @@
 package store
 
 import (
+	"encoding/hex"
 	"errors"
+	"fmt"
 	"os"
 
 	"github.com/YouDad/blockchain/log"
@@ -15,6 +17,7 @@ type Database interface {
 	Clear()
 	Get(key interface{}) (value []byte)
 	Set(key interface{}, value []byte)
+	Foreach(func(k, v []byte) bool)
 }
 
 var (
@@ -44,6 +47,7 @@ func GetDatabase() Database {
 		if err != nil {
 			log.Errln(err)
 		}
+		opened = true
 	}
 	return globalDB
 }
@@ -90,6 +94,21 @@ func (db *BoltDB) Clear() {
 	}
 }
 
+func InterfaceToString(key interface{}) string {
+	var keyString string
+	switch v := key.(type) {
+	case types.HashValue:
+		keyString = hex.EncodeToString(v)
+	case string:
+		keyString = v
+	case int:
+		keyString = fmt.Sprint(v)
+	case nil:
+		return "nil"
+	}
+	return keyString
+}
+
 func InterfaceToBytes(key interface{}) []byte {
 	keyBytes := []byte{}
 	switch v := key.(type) {
@@ -116,6 +135,9 @@ func InterfaceToBytes(key interface{}) []byte {
 func (db BoltDB) Get(key interface{}) (value []byte) {
 	err := db.View(func(tx *bolt.Tx) error {
 		value = tx.Bucket(db.CurrentBucket).Get(InterfaceToBytes(key))
+		log.SetCallerLevel(3)
+		log.Debugln("Get", string(db.CurrentBucket), InterfaceToString(key), len(value))
+		log.SetCallerLevel(0)
 		return nil
 	})
 	if err != nil {
@@ -126,9 +148,26 @@ func (db BoltDB) Get(key interface{}) (value []byte) {
 
 func (db BoltDB) Set(key interface{}, value []byte) {
 	err := db.Update(func(tx *bolt.Tx) error {
+		log.SetCallerLevel(3)
+		log.Debugln("Set", string(db.CurrentBucket), InterfaceToString(key), len(value))
+		log.SetCallerLevel(0)
 		return tx.Bucket(db.CurrentBucket).Put(InterfaceToBytes(key), value)
 	})
 	if err != nil {
 		log.Errln(err)
 	}
+}
+
+func (db BoltDB) Foreach(fn func(k, v []byte) bool) {
+	db.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket(db.CurrentBucket)
+		cursor := b.Cursor()
+
+		for k, v := cursor.First(); k != nil; k, v = cursor.Next() {
+			if !fn(k, v) {
+				break
+			}
+		}
+		return nil
+	})
 }

@@ -31,11 +31,6 @@ func InterfaceIsNil(i interface{}) bool {
 	return vi.IsNil()
 }
 
-type SHA256Arg interface {
-	GobEncode() ([]byte, error)
-	GobDecode(bytes []byte) error
-}
-
 func Encode(arg interface{}) []byte {
 	var result bytes.Buffer
 	err := gob.NewEncoder(&result).Encode(arg)

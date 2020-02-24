@@ -38,7 +38,7 @@ var SendCmd = &cobra.Command{
 		}
 
 		bc := core.GetBlockchain()
-		utxoSet := core.NewUTXOSet()
+		utxoSet := core.GetUTXOSet()
 
 		tx := utxoSet.NewUTXOTransaction(sendFrom, sendTo, sendAmount)
 

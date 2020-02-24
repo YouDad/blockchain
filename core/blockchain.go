@@ -79,7 +79,7 @@ func (iter *BlockchainIterator) Next() (nextBlock *Block) {
 }
 
 func (bc *Blockchain) FindUTXO() map[string][]TxnOutput {
-	utxo := map[string][]TxnOutput{}
+	utxos := map[string][]TxnOutput{}
 	// spent transaction outputs
 	stxos := map[string]map[int]bool{}
 	iter := bc.Begin()
@@ -100,7 +100,7 @@ func (bc *Blockchain) FindUTXO() map[string][]TxnOutput {
 					}
 				}
 
-				utxo[hash] = append(utxo[hash], out)
+				utxos[hash] = append(utxos[hash], out)
 			}
 
 			if !txn.IsCoinbase() {
@@ -115,5 +115,5 @@ func (bc *Blockchain) FindUTXO() map[string][]TxnOutput {
 			break
 		}
 	}
-	return utxo
+	return utxos
 }

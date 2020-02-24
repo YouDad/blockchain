@@ -25,7 +25,7 @@ var CreateBlockchainCmd = &cobra.Command{
 			log.Errln("Address is not valid", createBlockchainAddress)
 		}
 		core.CreateBlockchain(createBlockchainAddress)
-		core.NewUTXOSet().Reindex()
+		core.GetUTXOSet().Reindex()
 		log.Infoln("Done!")
 	},
 }

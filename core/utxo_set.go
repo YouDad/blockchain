@@ -12,31 +12,48 @@ type UTXOSet struct {
 }
 
 func (set *UTXOSet) GetGenesis() Block {
-	log.Errln("NotImplement")
+	log.NotImplement()
 	return Block{}
 }
 
-func NewUTXOSet() *UTXOSet {
+func GetUTXOSet() *UTXOSet {
 	return &UTXOSet{GetBlockchain()}
 }
 
 func (set *UTXOSet) Update(b *Block) {
-	log.Errln("NotImplement")
+	log.NotImplement()
 
 }
 
 func (set *UTXOSet) Reindex() {
+	hashedUtxos := set.FindUTXO()
 	set.SetTable("UTXOSet").Clear()
-	UTXO := set.FindUTXO()
 
-	for txnHash, outs := range UTXO {
+	for txnHash, utxos := range hashedUtxos {
 		hash, err := hex.DecodeString(txnHash)
 		log.Err(err)
-		set.Set(hash, utils.Encode(outs))
+		set.Set(hash, utils.Encode(utxos))
 	}
 }
 
 func (set *UTXOSet) NewUTXOTransaction(from, to string, amount int) *Transaction {
-	log.Errln("NotImplement")
+	log.NotImplement()
 	return nil
+}
+
+func (set *UTXOSet) FindUTXOByHash(pubKeyHash []byte) []TxnOutput {
+	utxos := []TxnOutput{}
+
+	set.SetTable("UTXOSet").Foreach(func(k, v []byte) bool {
+		outs := BytesToTxnOutput(v)
+
+		for _, out := range outs {
+			if out.IsLockedWithKey(pubKeyHash) {
+				utxos = append(utxos, out)
+			}
+		}
+		return true
+	})
+
+	return utxos
 }
