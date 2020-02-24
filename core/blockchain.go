@@ -40,13 +40,13 @@ func GetBlockchain() *Blockchain {
 }
 
 func (bc *Blockchain) GetGenesis() *Block {
-	log.NotImplement()
-	return nil
+	bc.SetTable("Blocks")
+	return BytesToBlock(bc.Get("genesis"))
 }
 
 func (bc *Blockchain) GetHeight() int {
-	log.NotImplement()
-	return 0
+	bc.SetTable("Blocks")
+	return BytesToBlock(bc.Get("genesis")).Height
 }
 
 func (bc *Blockchain) AddBlock(b *Block) {

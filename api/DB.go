@@ -1,4 +1,4 @@
-package apicb
+package api
 
 import (
 	"errors"
@@ -9,17 +9,13 @@ import (
 	"github.com/YouDad/blockchain/wallet"
 )
 
-type DBApi struct {
+type DB struct {
 	set *core.UTXOSet
 }
 
-func GetDBApi() *DBApi {
-	return &DBApi{core.GetUTXOSet()}
-}
+type GetGenesisReply = *core.Block
 
-type GetGenesisReply = core.Block
-
-func (api *DBApi) GetGenesis(args *NIL, reply *GetGenesisReply) error {
+func (api *DB) GetGenesis(args *NIL, reply *GetGenesisReply) error {
 	log.NotImplement()
 	log.Infoln("GetGenesis")
 	genesis := api.set.GetGenesis()
@@ -30,7 +26,7 @@ func (api *DBApi) GetGenesis(args *NIL, reply *GetGenesisReply) error {
 type GetBalanceArgs = string
 type GetBalanceReply = int64
 
-func (api *DBApi) GetBalance(args *GetBalanceArgs, reply *GetBalanceReply) error {
+func (api *DB) GetBalance(args *GetBalanceArgs, reply *GetBalanceReply) error {
 	if !wallet.ValidateAddress(*args) {
 		return errors.New("Address is not valid")
 	}

@@ -11,11 +11,6 @@ type UTXOSet struct {
 	*Blockchain
 }
 
-func (set *UTXOSet) GetGenesis() Block {
-	log.NotImplement()
-	return Block{}
-}
-
 func GetUTXOSet() *UTXOSet {
 	return &UTXOSet{GetBlockchain()}
 }

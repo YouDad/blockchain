@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"net/rpc"
 
-	"github.com/YouDad/blockchain/apicb"
 	"github.com/YouDad/blockchain/log"
 	"github.com/YouDad/blockchain/utils"
 )
@@ -28,10 +27,6 @@ func Register(port string) {
 
 func StartServer() {
 	go knownNodeUpdating()
-	err := rpc.Register(apicb.GetDBApi())
-	log.Err(err)
-	err = rpc.Register(apicb.GetNETApi())
-	log.Err(err)
 	rpc.HandleHTTP()
 	l, err := net.Listen(protocol, fmt.Sprintf("0.0.0.0:%s", Port))
 	log.Err(err)

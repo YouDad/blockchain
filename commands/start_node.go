@@ -23,6 +23,7 @@ var StartNodeCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		log.Infoln("Starting node", Port)
 		network.Register(Port)
+		api.Register()
 		go func() {
 			//TODO: mining
 		}()

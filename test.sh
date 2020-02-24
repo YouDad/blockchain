@@ -1,42 +1,50 @@
-FLAG="--port 10000 -v3"
+function RunTest() {
+	subCommand=$1
+	parameter=$2
+	regularExpr=$3
 
-echo -e "\n[TEST]: blockchain create_wallet $FLAG 2>&1"
-res=`blockchain create_wallet $FLAG 2>&1`
-if [[ "$?" == "0" ]]; then
-	echo [PASS]: blockchain create_wallet $FLAG 2>&1
-	address=`echo -n $res | sed 's/.*: \(.*\)/\1/g'`
-else
-	echo [FAIL]: blockchain create_wallet $FLAG 2>&1
-	if [[ "$1" == "debug" ]]; then
-		echo r create_wallet $FLAG
-		dlv debug main.go
+	if [[ "$_TestCount" == "" ]]; then
+		_TestCount=0
 	fi
-	exit 1
-fi
+	(( _TestCount++ ))
 
-echo -e "\n[TEST]: blockchain create_blockchain $FLAG 2>&1"
-FLAG="${FLAG} --address ${address}"
-blockchain create_blockchain $FLAG 2>&1
-if [[ "$?" == "0" ]]; then
-	echo [PASS]: blockchain create_blockchain $FLAG 2>&1
-else
-	echo [FAIL]: blockchain create_blockchain $FLAG 2>&1
-	if [[ "$1" == "debug" ]]; then
-		echo r create_blockchain $FLAG
-		dlv debug main.go
+	command="blockchain $subCommand $parameter"
+	echo -e "\n====={ TEST$_TestCount }====="
+	echo -e "[TEST]: $command 2>&1"
+	res=$($command 2>&1)
+	rescode="$?"
+	echo "$res"
+	if [[ "$rescode" == "0" ]]; then
+		echo [PASS]: $command
+		if [[ "$regularExpr" != "" ]]; then
+			TestRegMatch=$(echo -n "$res" | sed "$regularExpr")
+			if [[ "$?" != "0" ]]; then
+				echo "RE:{$regularExpr}"
+			fi
+		fi
+	else
+		echo [FAIL]: $command
+		if [[ "$1" == "debug" ]]; then
+			echo r $subCommand $parameter
+			dlv debug main.go
+		fi
+		exit 1
 	fi
-	exit 1
-fi
+}
 
-echo -e "\n[TEST]: blockchain get_balance $FLAG 2>&1"
-blockchain get_balance $FLAG 2>&1
-if [[ "$?" == "0" ]]; then
-	echo [PASS]: blockchain get_balance $FLAG 2>&1
-else
-	echo [FAIL]: blockchain get_balance $FLAG 2>&1
-	if [[ "$1" == "debug" ]]; then
-		echo r get_balance $FLAG
-		dlv debug main.go
-	fi
-	exit 1
-fi
+VPort="-v3 --port 10000"
+
+RunTest get_version "${VPort}"
+
+RunTest create_wallet "${VPort}" 's#.*: \(.*\)#\1#g'
+FromAddress="${TestRegMatch}"
+
+RunTest create_wallet "${VPort}" 's#.*: \(.*\)#\1#g'
+ToAddress="${TestRegMatch}"
+
+RunTest list_address "${VPort}"
+
+RunTest create_blockchain "${VPort} --address ${FromAddress}"
+
+RunTest get_balance "${VPort} --address ${FromAddress}"
+
