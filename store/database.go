@@ -17,6 +17,7 @@ type Database interface {
 	Clear()
 	Get(key interface{}) (value []byte)
 	Set(key interface{}, value []byte)
+	Delete(key interface{})
 	Foreach(func(k, v []byte) bool)
 }
 
@@ -156,6 +157,15 @@ func (db BoltDB) Set(key interface{}, value []byte) {
 	if err != nil {
 		log.Errln(err)
 	}
+}
+
+func (db *BoltDB) Delete(key interface{}) {
+	log.Err(db.Update(func(tx *bolt.Tx) error {
+		log.SetCallerLevel(3)
+		log.Debugln("Delete", string(db.CurrentBucket), InterfaceToString(key))
+		log.SetCallerLevel(0)
+		return tx.Bucket(db.CurrentBucket).Delete(InterfaceToBytes(key))
+	}))
 }
 
 func (db BoltDB) Foreach(fn func(k, v []byte) bool) {
