@@ -113,11 +113,17 @@ func PrintStack() {
 	log.SetPrefix("")
 	log.SetFlags(0)
 	log.Println("")
-	log.SetPrefix("[STACK]")
+	log.SetPrefix("[STACK]: ")
 	for i := 0; i < 5; i++ {
-		pc, file, line, _ := runtime.Caller(2 + i)
+		pc, file, line, _ := runtime.Caller(2 + 4 - i)
 		function := runtime.FuncForPC(pc)
-		file = file[strings.Index(file, "blockchain")+len("blockchain")+1:]
+		keyword := "blockchain"
+		index := strings.Index(file, keyword)
+		if index == -1 {
+			keyword = "github.com"
+			index = strings.Index(file, keyword)
+		}
+		file = file[index+len(keyword)+1:]
 		log.Printf("{ %s %d } [ %s ]", file, line, function.Name())
 	}
 }
