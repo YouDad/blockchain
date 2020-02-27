@@ -67,8 +67,9 @@ func (ws *Wallets) GetAddresses() []string {
 }
 
 // GetWallet returns a Wallet by its address
-func (ws Wallets) GetWallet(address string) Wallet {
-	return *ws.Wallets[address]
+func (ws Wallets) GetWallet(address string) (*Wallet, bool) {
+	wallet, ok := ws.Wallets[address]
+	return wallet, ok
 }
 
 // SaveToFile saves wallets to a file

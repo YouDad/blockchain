@@ -45,9 +45,7 @@ func GetDatabase() Database {
 	if !opened {
 		var err error
 		globalDB.DB, err = bolt.Open(databaseName, 0600, nil)
-		if err != nil {
-			log.Errln(err)
-		}
+		log.Err(err)
 		opened = true
 	}
 	return globalDB
@@ -61,9 +59,7 @@ func CreateDatabase() Database {
 
 	var err error
 	globalDB.DB, err = bolt.Open(databaseName, 0600, nil)
-	if err != nil {
-		log.Errln(err)
-	}
+	log.Err(err)
 	opened = true
 	return globalDB
 }
@@ -79,7 +75,7 @@ func (db *BoltDB) SetTable(table string) Database {
 }
 
 func (db *BoltDB) Clear() {
-	err := db.Update(func(tx *bolt.Tx) error {
+	log.Err(db.Update(func(tx *bolt.Tx) error {
 		err := tx.DeleteBucket(db.CurrentBucket)
 		if err == bolt.ErrBucketNotFound {
 			err = nil
@@ -89,10 +85,7 @@ func (db *BoltDB) Clear() {
 		}
 		_, err = tx.CreateBucket(db.CurrentBucket)
 		return err
-	})
-	if err != nil {
-		log.Errln(err)
-	}
+	}))
 }
 
 func InterfaceToString(key interface{}) string {
@@ -134,29 +127,23 @@ func InterfaceToBytes(key interface{}) []byte {
 }
 
 func (db BoltDB) Get(key interface{}) (value []byte) {
-	err := db.View(func(tx *bolt.Tx) error {
+	log.Err(db.View(func(tx *bolt.Tx) error {
 		value = tx.Bucket(db.CurrentBucket).Get(InterfaceToBytes(key))
 		log.SetCallerLevel(3)
 		log.Debugln("Get", string(db.CurrentBucket), InterfaceToString(key), len(value))
 		log.SetCallerLevel(0)
 		return nil
-	})
-	if err != nil {
-		log.Errln(err)
-	}
+	}))
 	return value
 }
 
 func (db BoltDB) Set(key interface{}, value []byte) {
-	err := db.Update(func(tx *bolt.Tx) error {
+	log.Err(db.Update(func(tx *bolt.Tx) error {
 		log.SetCallerLevel(3)
 		log.Debugln("Set", string(db.CurrentBucket), InterfaceToString(key), len(value))
 		log.SetCallerLevel(0)
 		return tx.Bucket(db.CurrentBucket).Put(InterfaceToBytes(key), value)
-	})
-	if err != nil {
-		log.Errln(err)
-	}
+	}))
 }
 
 func (db *BoltDB) Delete(key interface{}) {

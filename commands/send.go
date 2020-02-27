@@ -11,14 +11,14 @@ import (
 var (
 	sendFrom   string
 	sendTo     string
-	sendAmount int
+	sendAmount int64
 	sendMine   bool
 )
 
 func init() {
 	SendCmd.Flags().StringVar(&sendFrom, "from", "", "Source wallet address")
 	SendCmd.Flags().StringVar(&sendTo, "to", "", "Destination wallet address")
-	SendCmd.Flags().IntVar(&sendAmount, "amount", -1, "Amount to send")
+	SendCmd.Flags().Int64Var(&sendAmount, "amount", 0, "Amount to send")
 	SendCmd.Flags().BoolVar(&sendMine, "mine", false, "")
 	SendCmd.MarkFlagRequired("from")
 	SendCmd.MarkFlagRequired("to")
@@ -47,6 +47,7 @@ var SendCmd = &cobra.Command{
 			txs := []*core.Transaction{cbTx, tx}
 
 			newBlocks := bc.MineBlock(txs)
+			bc.AddBlock(newBlocks)
 			utxoSet.Update(newBlocks)
 		} else {
 			api.SendTransaction(tx)

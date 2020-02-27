@@ -23,7 +23,7 @@ func (out *TxnOutput) IsLockedWithKey(pubKeyHash []byte) bool {
 	return bytes.Compare(out.PubKeyHash, pubKeyHash) == 0
 }
 
-func BytesToTxnOutput(bytes []byte) []TxnOutput {
+func BytesToTxnOutputs(bytes []byte) []TxnOutput {
 	txnOutputs := []TxnOutput{}
 	log.Err(utils.GetDecoder(bytes).Decode(&txnOutputs))
 
