@@ -3,6 +3,7 @@ package core
 import (
 	"encoding/hex"
 
+	"github.com/YouDad/blockchain/conf"
 	"github.com/YouDad/blockchain/log"
 	"github.com/YouDad/blockchain/store"
 	"github.com/YouDad/blockchain/types"
@@ -15,7 +16,7 @@ type Blockchain struct {
 
 func CreateBlockchain(minerAddress string) Blockchain {
 	bc := Blockchain{store.CreateDatabase()}
-	bc.SetTable("Blocks").Clear()
+	bc.SetTable(conf.BLOCKS).Clear()
 	genesis := NewBlock(nil, 1, []*Transaction{NewCoinbaseTxn(minerAddress)})
 	bytes := utils.Encode(genesis)
 	bc.Set(genesis.Hash(), bytes)
@@ -40,12 +41,12 @@ func GetBlockchain() *Blockchain {
 }
 
 func (bc *Blockchain) GetGenesis() *Block {
-	bc.SetTable("Blocks")
+	bc.SetTable(conf.BLOCKS)
 	return BytesToBlock(bc.Get("genesis"))
 }
 
 func (bc *Blockchain) GetHeight() int {
-	bc.SetTable("Blocks")
+	bc.SetTable(conf.BLOCKS)
 	return BytesToBlock(bc.Get("genesis")).Height
 }
 
