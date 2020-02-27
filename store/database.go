@@ -11,9 +11,9 @@ import (
 	"github.com/boltdb/bolt"
 )
 
-type Database interface {
+type IDatabase interface {
 	IsExists() bool
-	SetTable(table string) Database
+	SetTable(table string) IDatabase
 	Clear()
 	Get(key interface{}) (value []byte)
 	Set(key interface{}, value []byte)
@@ -36,7 +36,7 @@ func RegisterDatabase(dbName string) {
 	databaseName = dbName
 }
 
-func GetDatabase() Database {
+func GetDatabase() IDatabase {
 	if !globalDB.IsExists() {
 		log.Errln(errors.New("No existing blockchain found, create one to continue."))
 		return nil
@@ -51,7 +51,7 @@ func GetDatabase() Database {
 	return globalDB
 }
 
-func CreateDatabase() Database {
+func CreateDatabase() IDatabase {
 	if globalDB.IsExists() {
 		log.Errln(errors.New("Blockchain existed, Create failed."))
 		return nil
@@ -69,7 +69,7 @@ func (db *BoltDB) IsExists() bool {
 	return !os.IsNotExist(err)
 }
 
-func (db *BoltDB) SetTable(table string) Database {
+func (db *BoltDB) SetTable(table string) IDatabase {
 	db.CurrentBucket = []byte(table)
 	return db
 }

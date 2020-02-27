@@ -12,7 +12,7 @@ import (
 )
 
 type Blockchain struct {
-	store.Database
+	store.IDatabase
 }
 
 type BlockchainIterator struct {
