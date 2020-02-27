@@ -1,3 +1,9 @@
+if [[ "$1" == "debug" ]]; then
+	NeedDebug=1
+else
+	NeedDebug=0
+fi
+
 function RunTest() {
 	subCommand=$1
 	parameter=$2
@@ -24,7 +30,7 @@ function RunTest() {
 		fi
 	else
 		echo [FAIL]: $command
-		if [[ "$1" == "debug" ]]; then
+		if [[ "$NeedDebug" == "1" ]]; then
 			echo r $subCommand $parameter
 			dlv debug main.go
 		fi
@@ -34,17 +40,18 @@ function RunTest() {
 
 VPort="-v3 --port 10000"
 
-RunTest get_version "${VPort}"
-
 RunTest create_wallet "${VPort}" 's#.*: \(.*\)#\1#g'
 FromAddress="${TestRegMatch}"
 
 RunTest create_wallet "${VPort}" 's#.*: \(.*\)#\1#g'
 ToAddress="${TestRegMatch}"
 
-RunTest list_address "${VPort}"
+# RunTest list_address "${VPort}"
 
 RunTest create_blockchain "${VPort} --address ${FromAddress}"
 
-RunTest get_balance "${VPort} --address ${FromAddress}"
+# RunTest get_version "${VPort}"
 
+# RunTest get_balance "${VPort} --address ${FromAddress}"
+
+RunTest send "${VPort} --amount 1 --from ${FromAddress} --to ${ToAddress} --mine"

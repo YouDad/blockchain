@@ -24,13 +24,13 @@ test_echo:
 
 test_body:
 	@-./test.sh 2>&1 |\
-		ack --flush --passthru --color --color-match "underline bold red" "\[(ERROR|FAIL)\]" |\
-		ack --flush --passthru --color --color-match "underline bold cyan" "\[(INFO)\]" |\
-		ack --flush --passthru --color --color-match "underline bold black" "\[(DEBUG)\]" |\
-		ack --flush --passthru --color --color-match "underline bold blue" "\[(TEST)\]" |\
-		ack --flush --passthru --color --color-match "underline bold yellow" "\[(WARN)\]" |\
-		ack --flush --passthru --color --color-match "underline bold red" "(NotImplement)" |\
-		ack --flush --passthru --color --color-match "underline bold green" "\[(PASS)\]"
+		ack --flush --passthru --color --color-match "underline bold red" "\[(ERROR|FAIL)\].*" |\
+		ack --flush --passthru --color --color-match "bold cyan" "\[(INFO)\].*" |\
+		ack --flush --passthru --color --color-match "bold black" "\[(DEBUG)\].*" |\
+		ack --flush --passthru --color --color-match "bold blue" "\[(TEST)\].*" |\
+		ack --flush --passthru --color --color-match "bold yellow" "\[(WARN)\].*" |\
+		ack --flush --passthru --color --color-match "underline bold red" "(NotImplement).*" |\
+		ack --flush --passthru --color --color-match "bold green" "\[(PASS)\].*"
 
 debug: debug_echo clean debug_body
 	@echo [debug] finish
