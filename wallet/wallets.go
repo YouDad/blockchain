@@ -10,8 +10,13 @@ import (
 	"os"
 )
 
-func init() {
+var (
+	walletFilename string
+)
+
+func Register(port string) {
 	gob.Register(elliptic.P256())
+	walletFilename = fmt.Sprintf("wallet%s.dat", port)
 }
 
 // Wallets stores a collection of wallets
@@ -20,16 +25,15 @@ type Wallets struct {
 }
 
 // NewWallets creates Wallets and fills it from a file if it exists
-func NewWallets(walletFile string) (*Wallets, error) {
+func NewWallets() (*Wallets, error) {
 	wallets := Wallets{Wallets: make(map[string]*Wallet)}
-	walletFile = fmt.Sprintf("wallet%s.dat", walletFile)
 
-	_, err := os.Stat(walletFile)
+	_, err := os.Stat(walletFilename)
 	if os.IsNotExist(err) {
 		return &wallets, err
 	}
 
-	fileContent, err := ioutil.ReadFile(walletFile)
+	fileContent, err := ioutil.ReadFile(walletFilename)
 	if err != nil {
 		return &wallets, err
 	}

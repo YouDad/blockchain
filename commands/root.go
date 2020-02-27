@@ -5,6 +5,7 @@ import (
 
 	"github.com/YouDad/blockchain/log"
 	"github.com/YouDad/blockchain/store"
+	"github.com/YouDad/blockchain/wallet"
 	"github.com/spf13/cobra"
 )
 
@@ -26,6 +27,7 @@ var RootCmd = &cobra.Command{
 	Short: "Blockchain coin Application",
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		store.RegisterDatabase(fmt.Sprintf("blockchain%s.db", Port))
+		wallet.Register(Port)
 		if LogLevel < 0 {
 			LogLevel = 0
 		}
