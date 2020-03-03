@@ -31,6 +31,6 @@ var RootCmd = &cobra.Command{
 		if LogLevel < 0 {
 			LogLevel = 0
 		}
-		log.Register(LogLevel)
+		log.Register(LogLevel, Port)
 	},
 }

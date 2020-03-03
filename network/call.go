@@ -10,6 +10,7 @@ import (
 )
 
 func call(node, method string, args interface{}, reply interface{}) error {
+	log.Infoln("Request", method, node)
 	client, err := rpc.DialHTTP(protocol, node)
 	if err != nil {
 		return err

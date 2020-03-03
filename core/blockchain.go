@@ -26,16 +26,18 @@ func (bc *Blockchain) Begin() *BlockchainIterator {
 }
 
 func (iter *BlockchainIterator) Next() (nextBlock *Block) {
-	iter.SetTable(conf.BLOCKS)
 	if iter.next == nil {
 		return nil
 	}
+	iter.SetTable(conf.BLOCKS)
 	nextBlock = BytesToBlock(iter.Get(iter.next))
-	iter.next = nextBlock.PrevHash
+	if nextBlock != nil {
+		iter.next = nextBlock.PrevHash
+	}
 	return nextBlock
 }
 
-func CreateBlockchain(minerAddress string) Blockchain {
+func CreateBlockchain(minerAddress string) *Blockchain {
 	bc := Blockchain{store.CreateDatabase()}
 	bc.SetTable(conf.BLOCKS).Clear()
 	genesis := NewBlock(nil, 1, []*Transaction{NewCoinbaseTxn(minerAddress)})
@@ -44,12 +46,18 @@ func CreateBlockchain(minerAddress string) Blockchain {
 	bc.Set(genesis.Height, bytes)
 	bc.Set("genesis", bytes)
 	bc.Set("lastest", bytes)
-	return bc
+	return &bc
 }
 
 func CreateBlockchainFromGenesis(b *Block) *Blockchain {
-	log.NotImplement()
-	return nil
+	bc := Blockchain{store.CreateDatabase()}
+	bc.SetTable(conf.BLOCKS).Clear()
+	bytes := utils.Encode(b)
+	bc.Set(b.Hash(), bytes)
+	bc.Set(b.Height, bytes)
+	bc.Set("genesis", bytes)
+	bc.Set("lastest", bytes)
+	return &bc
 }
 
 func IsExists() bool {
@@ -66,13 +74,26 @@ func (bc *Blockchain) GetGenesis() *Block {
 	return BytesToBlock(bc.Get("genesis"))
 }
 
-func (bc *Blockchain) GetHeight() int {
+func (bc *Blockchain) GetHeight() int32 {
 	bc.SetTable(conf.BLOCKS)
 	return BytesToBlock(bc.Get("genesis")).Height
 }
 
 func (bc *Blockchain) AddBlock(b *Block) {
-	log.NotImplement()
+	if b == nil {
+		return
+	}
+	if bc.SetTable(conf.BLOCKS).Get(b.Hash) != nil {
+		return
+	}
+
+	lastestBlockBytes := bc.SetTable(conf.BLOCKS).Get("lastest")
+	lastestBlock := BytesToBlock(lastestBlockBytes)
+	if lastestBlock.Height < b.Height {
+		bc.Set("lastest", lastestBlockBytes)
+		bc.Set(lastestBlock.Hash(), lastestBlockBytes)
+		bc.Set(lastestBlock.Height, lastestBlockBytes)
+	}
 }
 
 func (bc *Blockchain) MineBlock(txns []*Transaction) *Block {

@@ -9,24 +9,23 @@ import (
 	"github.com/YouDad/blockchain/utils"
 )
 
-type BlockHead struct {
+type Block struct {
 	Timestamp  int64
 	PrevHash   types.HashValue
 	Nonce      int64
-	Height     int
+	Height     int32
 	MerkleRoot types.HashValue
+	Txns       []*Transaction
 }
 
-func (bh *BlockHead) Hash() types.HashValue {
-	return utils.SHA256(*bh)
+func (b Block) Hash() types.HashValue {
+	// TODO: hash diff
+	hashString := fmt.Sprintf("%d%d%d", b.Timestamp, b.Nonce, b.Height)
+	hashString += fmt.Sprintf("%x%x", b.PrevHash, b.MerkleRoot)
+	return utils.SHA256(hashString)
 }
 
-type Block struct {
-	BlockHead
-	Txns []*Transaction
-}
-
-func (b *Block) String() string {
+func (b Block) String() string {
 	ret := fmt.Sprintf("Height: %d\n", b.Height)
 	ret += fmt.Sprintf("Prev: %x\n", b.PrevHash)
 	ret += fmt.Sprintf("Hash: %x\n", b.Hash())
@@ -38,15 +37,20 @@ func (b *Block) String() string {
 	return ret
 }
 
-func NewBlock(prev types.HashValue, height int, txns []*Transaction) *Block {
+func NewBlock(prev types.HashValue, height int32, txns []*Transaction) *Block {
 	block := &Block{
-		BlockHead: BlockHead{
-			Timestamp: time.Now().Unix(),
-			PrevHash:  prev,
-			Height:    height,
-		},
-		Txns: txns,
+		Timestamp: time.Now().Unix(),
+		PrevHash:  prev,
+		Height:    height,
+		Txns:      txns,
 	}
+	var txs [][]byte
+
+	for _, tx := range block.Txns {
+		txs = append(txs, utils.Encode(tx))
+	}
+	mTree := NewMerkleTree(txs)
+	block.MerkleRoot = mTree.RootNode.Data
 
 	pow := NewPOW(block)
 	nonce, _ := pow.Run()

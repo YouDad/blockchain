@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/YouDad/blockchain/log"
+	"github.com/YouDad/blockchain/utils"
 )
 
 var (
@@ -61,13 +62,19 @@ func updateSortedNodes() {
 }
 
 func GetKnownNodes() error {
-	log.NotImplement()
-	return nil
+	knownNodeAddresses := []string{}
+	myAddress := utils.GetExternIP() + ":" + Port
+	err := getKnownNodes(myAddress, &knownNodeAddresses)
+	if err == nil {
+		for _, address := range knownNodeAddresses {
+			addKnownNode(address)
+		}
+	}
+	return err
 }
 
 func GetSortedNodes() PositionSlice {
-	log.NotImplement()
-	return nil
+	return sortedNodes
 }
 
 func knownNodeUpdating() {
@@ -78,8 +85,7 @@ func knownNodeUpdating() {
 			address := nodeAddress
 			go func() {
 				start := time.Now().UnixNano()
-				BOOL := true
-				call(address, "NET.HeartBeat", &BOOL, &BOOL)
+				heartBeat(address)
 				end := time.Now().UnixNano()
 				updateKnownNode(address, end-start)
 			}()

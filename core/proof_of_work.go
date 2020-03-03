@@ -27,17 +27,10 @@ func NewPOW(b *Block) *ProofOfWork {
 }
 
 func (pow *ProofOfWork) prepareData(nonce int64) []byte {
-	var txs [][]byte
-
-	for _, tx := range pow.block.Txns {
-		txs = append(txs, utils.Encode(tx))
-	}
-	mTree := NewMerkleTree(txs)
-
 	return bytes.Join(
 		[][]byte{
 			pow.block.PrevHash[:],
-			mTree.RootNode.Data,
+			pow.block.MerkleRoot,
 			utils.IntToBytes(pow.block.Timestamp),
 			utils.IntToBytes(targetBits),
 			utils.IntToBytes(nonce),

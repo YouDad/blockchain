@@ -7,6 +7,7 @@ import (
 	"github.com/YouDad/blockchain/core"
 	"github.com/YouDad/blockchain/log"
 	"github.com/YouDad/blockchain/network"
+	"github.com/YouDad/blockchain/store"
 )
 
 var (
@@ -23,7 +24,6 @@ var StartNodeCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		log.Infoln("Starting node", Port)
 		network.Register(Port)
-		api.Register()
 		go func() {
 			//TODO: mining
 		}()
@@ -35,7 +35,7 @@ var StartNodeCmd = &cobra.Command{
 			}
 
 			var bc *core.Blockchain
-			if !bc.IsExists() {
+			if !store.IsDatabaseExists() {
 				genesis, err := api.GetGenesis()
 				if err != nil {
 					log.Errln(err)
@@ -50,10 +50,8 @@ var StartNodeCmd = &cobra.Command{
 			nowHeight := bc.GetHeight()
 			height, err := api.SendVersion(nowHeight, genesis.Hash())
 			if err == api.RootHashDifferentError {
-				// TODO
 				log.Warnln(err)
 			} else if err == api.VersionDifferentError {
-				// TODO
 				log.Warnln(err)
 			} else if err != nil {
 				log.Warnln(err)

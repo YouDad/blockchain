@@ -7,7 +7,6 @@ import (
 
 // Run parses command line arguments and processes commands
 func main() {
-
 	rootCmd := cmd.RootCmd
 	rootCmd.AddCommand(
 		cmd.GetBalanceCmd,

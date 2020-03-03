@@ -33,11 +33,12 @@ func InterfaceIsNil(i interface{}) bool {
 
 func Encode(arg interface{}) []byte {
 	var result bytes.Buffer
-	err := gob.NewEncoder(&result).Encode(arg)
-	if err != nil {
-		log.Errln(err)
-	}
-	return result.Bytes()
+	log.Err(gob.NewEncoder(&result).Encode(arg))
+	ret := result.Bytes()
+	// log.SetCallerLevel(2)
+	// log.Debugf("Encode %x", ret)
+	// log.SetCallerLevel(0)
+	return ret
 }
 
 func SHA256(arg interface{}) types.HashValue {

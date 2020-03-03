@@ -12,7 +12,6 @@ import (
 )
 
 type IDatabase interface {
-	IsExists() bool
 	SetTable(table string) IDatabase
 	Clear()
 	Get(key interface{}) (value []byte)
@@ -37,7 +36,7 @@ func RegisterDatabase(dbName string) {
 }
 
 func GetDatabase() IDatabase {
-	if !globalDB.IsExists() {
+	if !IsDatabaseExists() {
 		log.Errln(errors.New("No existing blockchain found, create one to continue."))
 		return nil
 	}
@@ -52,7 +51,7 @@ func GetDatabase() IDatabase {
 }
 
 func CreateDatabase() IDatabase {
-	if globalDB.IsExists() {
+	if IsDatabaseExists() {
 		log.Errln(errors.New("Blockchain existed, Create failed."))
 		return nil
 	}
@@ -64,7 +63,7 @@ func CreateDatabase() IDatabase {
 	return globalDB
 }
 
-func (db *BoltDB) IsExists() bool {
+func IsDatabaseExists() bool {
 	_, err := os.Stat(databaseName)
 	return !os.IsNotExist(err)
 }
@@ -110,7 +109,7 @@ func InterfaceToBytes(key interface{}) []byte {
 		keyBytes = v
 	case string:
 		keyBytes = []byte(v)
-	case int:
+	case int32:
 		bytes := [4]byte{}
 		for i := 0; i < 4; i++ {
 			bytes[i] = byte(v >> (i * 8))
