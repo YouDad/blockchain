@@ -76,7 +76,7 @@ func (bc *Blockchain) GetGenesis() *Block {
 
 func (bc *Blockchain) GetHeight() int32 {
 	bc.SetTable(conf.BLOCKS)
-	return BytesToBlock(bc.Get("genesis")).Height
+	return BytesToBlock(bc.Get("lastest")).Height
 }
 
 func (bc *Blockchain) AddBlock(b *Block) {
