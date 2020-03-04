@@ -89,10 +89,11 @@ func (bc *Blockchain) AddBlock(b *Block) {
 
 	lastestBlockBytes := bc.SetTable(conf.BLOCKS).Get("lastest")
 	lastestBlock := BytesToBlock(lastestBlockBytes)
+	bytes := utils.Encode(b)
 	if lastestBlock.Height < b.Height {
-		bc.Set("lastest", lastestBlockBytes)
-		bc.Set(lastestBlock.Hash(), lastestBlockBytes)
-		bc.Set(lastestBlock.Height, lastestBlockBytes)
+		bc.Set("lastest", bytes)
+		bc.Set(b.Hash, bytes)
+		bc.Set(b.Height, bytes)
 	}
 }
 
