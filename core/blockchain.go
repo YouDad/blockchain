@@ -155,14 +155,10 @@ func (bc *Blockchain) FindUTXO() map[string][]TxnOutput {
 }
 
 func (bc *Blockchain) FindTxn(hash types.HashValue) Transaction {
+	var block *Block
 	iter := bc.Begin()
 
-	for {
-		block := iter.Next()
-		if block == nil {
-			break
-		}
-
+	for block = iter.Next(); block != nil; block = iter.Next() {
 		for _, txn := range block.Txns {
 			if bytes.Compare(txn.Hash, hash) == 0 {
 				return *txn
@@ -170,7 +166,7 @@ func (bc *Blockchain) FindTxn(hash types.HashValue) Transaction {
 		}
 	}
 
-	log.Errln("Transaction is not found")
+	log.Errln("Transaction is not found", hash)
 	return Transaction{}
 }
 

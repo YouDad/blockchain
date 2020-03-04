@@ -20,16 +20,6 @@ type Transaction struct {
 	Vout []TxnOutput
 }
 
-// func (txn *Transaction) GobEncode() ([]byte, error) {
-//     result := bytes.Buffer{}
-//     err := gob.NewEncoder(&result).Encode(*txn)
-//     return result.Bytes(), err
-// }
-//
-// func (txn *Transaction) GobDecode(b []byte) error {
-//     return gob.NewDecoder(bytes.NewReader(b)).Decode(txn)
-// }
-//
 func NewCoinbaseTxn(from string) *Transaction {
 	txn := Transaction{}
 
