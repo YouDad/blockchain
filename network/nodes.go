@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/YouDad/blockchain/log"
-	"github.com/YouDad/blockchain/utils"
 )
 
 var (
@@ -63,7 +62,7 @@ func updateSortedNodes() {
 
 func GetKnownNodes() error {
 	knownNodeAddresses := []string{}
-	myAddress := utils.GetExternIP() + ":" + Port
+	myAddress := "127.0.0.1:" + Port
 	err := getKnownNodes(myAddress, &knownNodeAddresses)
 	if err == nil {
 		for _, address := range knownNodeAddresses {

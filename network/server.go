@@ -7,7 +7,6 @@ import (
 	"net/rpc"
 
 	"github.com/YouDad/blockchain/log"
-	"github.com/YouDad/blockchain/utils"
 )
 
 var (
@@ -17,20 +16,20 @@ var (
 )
 
 func Register(port string) {
-	Port = port
-	addKnownNode("127.0.0.1:9999")
-	externIP := utils.GetExternIP()
-	addKnownNode(fmt.Sprintf("%s:%s", externIP, port))
-	addKnownNode(fmt.Sprintf("127.0.0.1:%s", port))
-	updateSortedNodes()
+	if Port == "" {
+		Port = port
+		addKnownNode("127.0.0.1:9999")
+		updateSortedNodes()
+	}
 }
 
 func StartServer() {
+	address := fmt.Sprintf("0.0.0.0:%s", Port)
 	go knownNodeUpdating()
 	rpc.HandleHTTP()
-	l, err := net.Listen(protocol, fmt.Sprintf("0.0.0.0:%s", Port))
+	l, err := net.Listen(protocol, address)
 	log.Err(err)
 	go func() { ServerReady <- 0 }()
-	log.Infoln("Server Listen 0.0.0.0:" + Port)
+	log.Infoln("Server Listen", address)
 	http.Serve(l, nil)
 }

@@ -10,10 +10,11 @@ import (
 	"time"
 
 	"github.com/YouDad/blockchain/log"
+	"github.com/YouDad/blockchain/types"
 	"github.com/YouDad/blockchain/utils"
 )
 
-const targetBits int64 = 12
+const targetBits int64 = 16
 
 type ProofOfWork struct {
 	block  *Block
@@ -40,39 +41,35 @@ func (pow *ProofOfWork) prepareData(nonce int64) []byte {
 }
 
 func (pow *ProofOfWork) Run() (int64, []byte) {
-	var hashInt big.Int
-	var hash [32]byte
+	var hash []byte
+	var ok bool
 	rand.Seed(time.Now().UnixNano())
 	var nonce int64 = rand.Int63()
 
-	log.Infof("Mining a new block %s\n", pow.block.String())
-
 	for nonce < math.MaxInt64 {
-		data := pow.prepareData(nonce)
-		hash = sha256.Sum256(data)
-		if nonce%(1<<16) == 0 {
-			log.Infof("Dig into mine [%d] %x\n", nonce, hash)
-		}
-
-		hashInt.SetBytes(hash[:])
-		if hashInt.Cmp(pow.target) == -1 {
+		ok, hash = pow.Validate(nonce)
+		if ok {
 			break
 		} else {
 			nonce++
 		}
 	}
 	fmt.Print("\n\n")
-	return nonce, hash[:]
+	return nonce, hash
 }
 
-func (pow *ProofOfWork) Validate() bool {
+func (pow *ProofOfWork) Validate(nonce int64) (bool, types.HashValue) {
 	var hashInt big.Int
 
-	data := pow.prepareData(pow.block.Nonce)
+	data := pow.prepareData(nonce)
 	hash := sha256.Sum256(data)
 	hashInt.SetBytes(hash[:])
 
 	isValid := hashInt.Cmp(pow.target) == -1
 
-	return isValid
+	if nonce%(1<<16) == 0 {
+		log.Infof("Dig into mine [%d] %x\n", nonce, hash)
+	}
+
+	return isValid, hash[:]
 }

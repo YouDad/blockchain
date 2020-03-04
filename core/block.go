@@ -1,6 +1,7 @@
 package core
 
 import (
+	"bytes"
 	"fmt"
 	"time"
 
@@ -12,23 +13,17 @@ import (
 type Block struct {
 	Timestamp  int64
 	PrevHash   types.HashValue
+	Hash       types.HashValue
 	Nonce      int64
 	Height     int32
 	MerkleRoot types.HashValue
 	Txns       []*Transaction
 }
 
-func (b Block) Hash() types.HashValue {
-	// TODO: hash diff
-	hashString := fmt.Sprintf("%d%d%d", b.Timestamp, b.Nonce, b.Height)
-	hashString += fmt.Sprintf("%x%x", b.PrevHash, b.MerkleRoot)
-	return utils.SHA256(hashString)
-}
-
 func (b Block) String() string {
 	ret := fmt.Sprintf("Height: %d\n", b.Height)
 	ret += fmt.Sprintf("Prev: %x\n", b.PrevHash)
-	ret += fmt.Sprintf("Hash: %x\n", b.Hash())
+	ret += fmt.Sprintf("Hash: %x\n", b.Hash)
 	ret += fmt.Sprintf("Txns:\n")
 	for i, txn := range b.Txns {
 		ret += fmt.Sprintf("\tTxns[%d]:\n%s", i, txn.String())
@@ -53,8 +48,22 @@ func NewBlock(prev types.HashValue, height int32, txns []*Transaction) *Block {
 	block.MerkleRoot = mTree.RootNode.Data
 
 	pow := NewPOW(block)
-	nonce, _ := pow.Run()
+	log.Infof("Mining %s\n", block.String())
+	nonce, hash := pow.Run()
+	a := utils.SHA256(bytes.Join(
+		[][]byte{
+			pow.block.PrevHash[:],
+			pow.block.MerkleRoot,
+			utils.IntToBytes(pow.block.Timestamp),
+			utils.IntToBytes(targetBits),
+			utils.IntToBytes(nonce),
+		},
+		[]byte{},
+	))
+	log.Infoln(a, hash)
 	block.Nonce = nonce
+	block.Hash = hash
+	log.Infof("Mined %s\n", block.String())
 	return block
 }
 

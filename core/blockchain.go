@@ -22,7 +22,7 @@ type BlockchainIterator struct {
 
 func (bc *Blockchain) Begin() *BlockchainIterator {
 	lastestBlock := BytesToBlock(bc.SetTable(conf.BLOCKS).Get("lastest"))
-	return &BlockchainIterator{bc, lastestBlock.Hash()}
+	return &BlockchainIterator{bc, lastestBlock.Hash}
 }
 
 func (iter *BlockchainIterator) Next() (nextBlock *Block) {
@@ -42,7 +42,7 @@ func CreateBlockchain(minerAddress string) *Blockchain {
 	bc.SetTable(conf.BLOCKS).Clear()
 	genesis := NewBlock(nil, 1, []*Transaction{NewCoinbaseTxn(minerAddress)})
 	bytes := utils.Encode(genesis)
-	bc.Set(genesis.Hash(), bytes)
+	bc.Set(genesis.Hash, bytes)
 	bc.Set(genesis.Height, bytes)
 	bc.Set("genesis", bytes)
 	bc.Set("lastest", bytes)
@@ -53,7 +53,7 @@ func CreateBlockchainFromGenesis(b *Block) *Blockchain {
 	bc := Blockchain{store.CreateDatabase()}
 	bc.SetTable(conf.BLOCKS).Clear()
 	bytes := utils.Encode(b)
-	bc.Set(b.Hash(), bytes)
+	bc.Set(b.Hash, bytes)
 	bc.Set(b.Height, bytes)
 	bc.Set("genesis", bytes)
 	bc.Set("lastest", bytes)
@@ -104,11 +104,11 @@ func (bc *Blockchain) MineBlock(txns []*Transaction) *Block {
 	}
 
 	lastestBlock := BytesToBlock(bc.SetTable(conf.BLOCKS).Get("lastest"))
-	newBlock := NewBlock(lastestBlock.Hash(), lastestBlock.Height+1, txns)
+	newBlock := NewBlock(lastestBlock.Hash, lastestBlock.Height+1, txns)
 	newBlockBytes := utils.Encode(newBlock)
 	bc.SetTable(conf.BLOCKS)
 	bc.Set("lastest", newBlockBytes)
-	bc.Set(newBlock.Hash(), newBlockBytes)
+	bc.Set(newBlock.Hash, newBlockBytes)
 	bc.Set(newBlock.Height, newBlockBytes)
 	return newBlock
 }

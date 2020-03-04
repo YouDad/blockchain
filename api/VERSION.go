@@ -63,10 +63,10 @@ func (ver *VERSION) SendVersion(args *SendVersionArgs, reply *SendVersionReply) 
 	*reply = types.Version{
 		Version:  conf.Version,
 		Height:   height,
-		RootHash: genesis.Hash(),
+		RootHash: genesis.Hash,
 	}
 
-	if bytes.Compare(args.RootHash, genesis.Hash()) == 0 {
+	if bytes.Compare(args.RootHash, genesis.Hash) == 0 {
 		if args.Version != conf.Version {
 			log.Infof("GetVersion: %d, WeVersion: %d\n", args.Version, conf.Version)
 			log.Warnln("Version Update") // TODO
