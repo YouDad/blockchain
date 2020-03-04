@@ -21,9 +21,14 @@ type Transaction struct {
 }
 
 func NewCoinbaseTxn(from string) *Transaction {
+	randData := make([]byte, 20)
+	_, err := rand.Read(randData)
+	log.Err(err)
+	data := fmt.Sprintf("%x", randData)
+
 	txn := Transaction{}
 
-	txn.Vin = []TxnInput{TxnInput{VoutIndex: -1}}
+	txn.Vin = []TxnInput{TxnInput{VoutIndex: -1, PubKeyHash: []byte(data)}}
 	// Send $from 50BTC
 	txn.Vout = []TxnOutput{*NewTxnOutput(from, 50_000_000)}
 
@@ -34,7 +39,7 @@ func NewCoinbaseTxn(from string) *Transaction {
 func (txn Transaction) String() string {
 	lines := []string{}
 
-	lines = append(lines, fmt.Sprintf("\t\tTxnHash %x:", utils.SHA256(txn)))
+	lines = append(lines, fmt.Sprintf("\t\tTxnHash %x:", txn.Hash))
 
 	for i, input := range txn.Vin {
 
@@ -50,6 +55,8 @@ func (txn Transaction) String() string {
 		lines = append(lines, fmt.Sprintf("\t\t  - Value:      %d", output.Value))
 		lines = append(lines, fmt.Sprintf("\t\t  - PubKeyHash: %x", output.PubKeyHash))
 	}
+
+	lines = append(lines, "")
 
 	return strings.Join(lines, "\n")
 }
