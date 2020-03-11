@@ -52,6 +52,9 @@ func updateSortedNodes() {
 		for i := 0; i < 5; i++ {
 			time += times[i]
 		}
+		if address == "127.0.0.1:9999" {
+			time += 100
+		}
 		sortedNodes = append(sortedNodes, Position{
 			Address:  address,
 			Distance: time / 5,

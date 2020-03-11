@@ -94,7 +94,7 @@ func InterfaceToString(key interface{}) string {
 		keyString = hex.EncodeToString(v)
 	case string:
 		keyString = v
-	case int:
+	case int32:
 		keyString = fmt.Sprint(v)
 	case nil:
 		return "nil"

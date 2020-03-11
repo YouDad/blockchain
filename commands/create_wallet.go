@@ -1,8 +1,7 @@
 package commands
 
 import (
-	"fmt"
-
+	"github.com/YouDad/blockchain/log"
 	"github.com/YouDad/blockchain/wallet"
 	"github.com/spf13/cobra"
 )
@@ -15,6 +14,6 @@ var CreateWalletCmd = &cobra.Command{
 		address := wallets.CreateWallet()
 		wallets.SaveToFile(Port)
 
-		fmt.Printf("Your new address: %s\n", address)
+		log.Infof("Your new address: %s\n", address)
 	},
 }

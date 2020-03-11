@@ -6,8 +6,9 @@ import (
 	"encoding/gob"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
+
+	"github.com/YouDad/blockchain/log"
 )
 
 var (
@@ -78,13 +79,9 @@ func (ws Wallets) SaveToFile(walletFile string) {
 
 	encoder := gob.NewEncoder(&content)
 	err := encoder.Encode(ws)
-	if err != nil {
-		log.Panic(err)
-	}
+	log.Err(err)
 
 	walletFile = fmt.Sprintf("wallet%s.dat", walletFile)
 	err = ioutil.WriteFile(walletFile, content.Bytes(), 0644)
-	if err != nil {
-		log.Panic(err)
-	}
+	log.Err(err)
 }

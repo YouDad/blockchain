@@ -55,6 +55,15 @@ func IntToBytes(num int64) []byte {
 	return buff.Bytes()
 }
 
+func FloatToBytes(num float64) []byte {
+	buff := new(bytes.Buffer)
+	err := binary.Write(buff, binary.BigEndian, num)
+	if err != nil {
+		log.Errln(err)
+	}
+	return buff.Bytes()
+}
+
 func GetDecoder(b []byte) *gob.Decoder {
 	reader := bytes.NewReader(b)
 	return gob.NewDecoder(reader)

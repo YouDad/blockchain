@@ -15,8 +15,9 @@ func main() {
 		cmd.GetVersionCmd,
 		cmd.ListAddressCmd,
 		cmd.CreateWalletCmd,
-		cmd.StartNodeCmd,
+		cmd.MiningCmd,
 		cmd.SyncCmd,
+		cmd.AllCmd,
 	)
 
 	if err := rootCmd.Execute(); err != nil {

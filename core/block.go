@@ -1,7 +1,6 @@
 package core
 
 import (
-	"bytes"
 	"fmt"
 	"time"
 
@@ -14,6 +13,7 @@ type Block struct {
 	Timestamp  int64
 	PrevHash   types.HashValue
 	Hash       types.HashValue
+	Difficulty float64
 	Nonce      int64
 	Height     int32
 	MerkleRoot types.HashValue
@@ -32,12 +32,13 @@ func (b Block) String() string {
 	return ret
 }
 
-func NewBlock(prev types.HashValue, height int32, txns []*Transaction) *Block {
+func NewBlock(prev types.HashValue, diff float64, height int32, txns []*Transaction) *Block {
 	block := &Block{
-		Timestamp: time.Now().Unix(),
-		PrevHash:  prev,
-		Height:    height,
-		Txns:      txns,
+		Timestamp:  time.Now().UnixNano(),
+		PrevHash:   prev,
+		Difficulty: diff,
+		Height:     height,
+		Txns:       txns,
 	}
 	var txs [][]byte
 
@@ -48,22 +49,10 @@ func NewBlock(prev types.HashValue, height int32, txns []*Transaction) *Block {
 	block.MerkleRoot = mTree.RootNode.Data
 
 	pow := NewPOW(block)
-	log.Infof("Mining %s\n", block.String())
 	nonce, hash := pow.Run()
-	a := utils.SHA256(bytes.Join(
-		[][]byte{
-			pow.block.PrevHash[:],
-			pow.block.MerkleRoot,
-			utils.IntToBytes(pow.block.Timestamp),
-			utils.IntToBytes(targetBits),
-			utils.IntToBytes(nonce),
-		},
-		[]byte{},
-	))
-	log.Infoln(a, hash)
 	block.Nonce = nonce
 	block.Hash = hash
-	log.Infof("Mined %s\n", block.String())
+	log.Debugf("Mined %s\n", block.String())
 	return block
 }
 

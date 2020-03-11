@@ -3,6 +3,7 @@ package core
 import (
 	"bytes"
 	"encoding/hex"
+	"time"
 
 	"github.com/YouDad/blockchain/conf"
 	"github.com/YouDad/blockchain/log"
@@ -40,7 +41,7 @@ func (iter *BlockchainIterator) Next() (nextBlock *Block) {
 func CreateBlockchain(minerAddress string) *Blockchain {
 	bc := Blockchain{store.CreateDatabase()}
 	bc.SetTable(conf.BLOCKS).Clear()
-	genesis := NewBlock(nil, 1, []*Transaction{NewCoinbaseTxn(minerAddress)})
+	genesis := NewBlock(nil, 1, 0, []*Transaction{NewCoinbaseTxn(minerAddress)})
 	bytes := utils.Encode(genesis)
 	bc.Set(genesis.Hash, bytes)
 	bc.Set(genesis.Height, bytes)
@@ -74,6 +75,11 @@ func (bc *Blockchain) GetGenesis() *Block {
 	return BytesToBlock(bc.Get("genesis"))
 }
 
+func (bc *Blockchain) GetLastest() *Block {
+	bc.SetTable(conf.BLOCKS)
+	return BytesToBlock(bc.Get("lastest"))
+}
+
 func (bc *Blockchain) GetHeight() int32 {
 	bc.SetTable(conf.BLOCKS)
 	return BytesToBlock(bc.Get("lastest")).Height
@@ -104,8 +110,16 @@ func (bc *Blockchain) MineBlock(txns []*Transaction) *Block {
 		}
 	}
 
-	lastestBlock := BytesToBlock(bc.SetTable(conf.BLOCKS).Get("lastest"))
-	newBlock := NewBlock(lastestBlock.Hash, lastestBlock.Height+1, txns)
+	lastest := BytesToBlock(bc.SetTable(conf.BLOCKS).Get("lastest"))
+	difficulty := lastest.Difficulty
+	height := lastest.Height + 1
+	if height%60 == 0 {
+		lastDiff := BytesToBlock(bc.SetTable(conf.BLOCKS).Get(height - 60))
+		difficulty *= 3600.0 * 1e9 / float64(time.Now().UnixNano()-lastDiff.Timestamp)
+	}
+
+	newBlock := NewBlock(lastest.Hash, difficulty, height, txns)
+	log.Infoln("NewBlock", lastest.Hash, difficulty, height)
 	newBlockBytes := utils.Encode(newBlock)
 	bc.SetTable(conf.BLOCKS)
 	bc.Set("lastest", newBlockBytes)

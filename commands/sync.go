@@ -1,6 +1,8 @@
 package commands
 
 import (
+	"bytes"
+
 	"github.com/YouDad/blockchain/api"
 	"github.com/YouDad/blockchain/core"
 	"github.com/YouDad/blockchain/log"
@@ -14,19 +16,14 @@ var SyncCmd = &cobra.Command{
 	Short: "sync information from other node",
 	Run: func(cmd *cobra.Command, args []string) {
 		log.Infoln("Syncing", Port)
-		err := network.GetKnownNodes()
 		network.Register(Port)
-		if err != nil {
-			log.Warnln(err)
-		}
+		log.Warn(network.GetKnownNodes())
 
 		var bc *core.Blockchain
 		var utxoSet *core.UTXOSet
 		if !store.IsDatabaseExists() {
 			genesis, err := api.GetGenesis()
-			if err != nil {
-				log.Errln(err)
-			}
+			log.Err(err)
 			bc = core.CreateBlockchainFromGenesis(genesis)
 			utxoSet = core.GetUTXOSet()
 			utxoSet.Reindex()
@@ -36,8 +33,10 @@ var SyncCmd = &cobra.Command{
 		}
 
 		genesis := bc.GetGenesis()
-		nowHeight := bc.GetHeight()
-		height, err := api.SendVersion(nowHeight, genesis.Hash)
+		lastest := bc.GetLastest()
+		lastestHeight := lastest.Height
+		lastestHash := lastest.Hash
+		height, err := api.SendVersion(lastestHeight, genesis.Hash)
 		if err == api.RootHashDifferentError {
 			log.Warnln(err)
 		} else if err == api.VersionDifferentError {
@@ -46,11 +45,14 @@ var SyncCmd = &cobra.Command{
 			log.Warnln(err)
 		}
 
-		if height > nowHeight {
-			blocks := api.GetBlocks(nowHeight+1, height)
+		if height > lastestHeight {
+			blocks := api.GetBlocks(lastestHeight+1, height, lastest.Hash)
 			for _, block := range blocks {
-				bc.AddBlock(block)
-				utxoSet.Update(block)
+				if bytes.Compare(block.PrevHash, lastestHash) == 0 {
+					bc.AddBlock(block)
+					utxoSet.Update(block)
+					lastestHash = block.Hash
+				}
 			}
 		}
 	},

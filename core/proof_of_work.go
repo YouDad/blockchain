@@ -3,7 +3,6 @@ package core
 import (
 	"bytes"
 	"crypto/sha256"
-	"fmt"
 	"math"
 	"math/big"
 	"math/rand"
@@ -14,7 +13,11 @@ import (
 	"github.com/YouDad/blockchain/utils"
 )
 
-const targetBits int64 = 16
+var hashSpeed uint = 100
+
+func Register(speed uint) {
+	hashSpeed = speed
+}
 
 type ProofOfWork struct {
 	block  *Block
@@ -23,7 +26,11 @@ type ProofOfWork struct {
 
 func NewPOW(b *Block) *ProofOfWork {
 	target := big.NewInt(1)
-	target.Lsh(target, uint(256-targetBits))
+	target.Lsh(target, 256)
+	diff := big.NewInt(0)
+	big.NewFloat(b.Difficulty).Int(diff)
+	target.Div(target, diff)
+	log.Warnln(target, diff)
 	return &ProofOfWork{b, target}
 }
 
@@ -33,7 +40,7 @@ func (pow *ProofOfWork) prepareData(nonce int64) []byte {
 			pow.block.PrevHash[:],
 			pow.block.MerkleRoot,
 			utils.IntToBytes(pow.block.Timestamp),
-			utils.IntToBytes(targetBits),
+			utils.FloatToBytes(pow.block.Difficulty),
 			utils.IntToBytes(nonce),
 		},
 		[]byte{},
@@ -45,6 +52,7 @@ func (pow *ProofOfWork) Run() (int64, []byte) {
 	var ok bool
 	rand.Seed(time.Now().UnixNano())
 	var nonce int64 = rand.Int63()
+	start := nonce
 
 	for nonce < math.MaxInt64 {
 		ok, hash = pow.Validate(nonce)
@@ -53,8 +61,13 @@ func (pow *ProofOfWork) Run() (int64, []byte) {
 		} else {
 			nonce++
 		}
+
+		if (nonce-start)%int64(hashSpeed*1e4) == 0 {
+			if hashSpeed < 100 {
+				time.Sleep(time.Duration(1e7 * (100 - hashSpeed)))
+			}
+		}
 	}
-	fmt.Print("\n\n")
 	return nonce, hash
 }
 
@@ -67,7 +80,7 @@ func (pow *ProofOfWork) Validate(nonce int64) (bool, types.HashValue) {
 
 	isValid := hashInt.Cmp(pow.target) == -1
 
-	if nonce%(1<<16) == 0 {
+	if nonce%(1<<20) == 0 {
 		log.Infof("Dig into mine [%d] %x\n", nonce, hash)
 	}
 

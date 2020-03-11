@@ -59,10 +59,12 @@ func (ver *VERSION) SendVersion(args *SendVersionArgs, reply *SendVersionReply) 
 	set := core.GetUTXOSet()
 	log.Infoln("SendVersion")
 	genesis := set.GetGenesis()
-	height := set.GetHeight()
+	lastest := set.GetLastest()
+	lastestHeight := lastest.Height
+	lastestHash := lastest.Hash
 	*reply = types.Version{
 		Version:  conf.Version,
-		Height:   height,
+		Height:   lastestHeight,
 		RootHash: genesis.Hash,
 	}
 
@@ -72,12 +74,17 @@ func (ver *VERSION) SendVersion(args *SendVersionArgs, reply *SendVersionReply) 
 			log.Warnln("Version Update") // TODO
 		}
 
-		if args.Height > height {
-			log.Infof("GetHeight: %d, WeHeight: %d\n", args.Height, height)
-			blocks := GetBlocks(height+1, args.Height)
+		if args.Height > lastestHeight {
+			log.Infof("GetHeight: %d, WeHeight: %d\n", args.Height, lastestHeight)
+			blocks := GetBlocks(lastestHeight+1, args.Height, lastestHash)
 			for _, block := range blocks {
-				set.AddBlock(block)
-				set.Update(block)
+				if bytes.Compare(block.PrevHash, lastestHash) == 0 {
+					set.AddBlock(block)
+					set.Update(block)
+					lastestHash = block.Hash
+				} else {
+					break
+				}
 			}
 		}
 	}

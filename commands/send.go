@@ -4,6 +4,7 @@ import (
 	"github.com/YouDad/blockchain/api"
 	"github.com/YouDad/blockchain/core"
 	"github.com/YouDad/blockchain/log"
+	"github.com/YouDad/blockchain/network"
 	"github.com/YouDad/blockchain/wallet"
 	"github.com/spf13/cobra"
 )
@@ -50,6 +51,9 @@ var SendCmd = &cobra.Command{
 			bc.AddBlock(newBlocks)
 			utxoSet.Update(newBlocks)
 		} else {
+			network.Register(Port)
+			log.Err(network.GetKnownNodes())
+
 			api.SendTransaction(tx)
 		}
 		log.Infoln("Success!")

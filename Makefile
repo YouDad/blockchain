@@ -13,22 +13,19 @@ clean:
 	@echo [clean]
 	rm -f blockchain*.db
 	rm -f wallet*.dat
+	rm -f *.log
 
-test: cc install test_echo clean test_body
+test_main: cc install
+	@-./test.sh test/main.sh
+
+test: cc install test_echo clean test_body sedlog
 	@echo [test] finish
 
 test_echo:
 	@echo [test] start
 
 test_body:
-	@-./test.sh 2>&1 |\
-		ack --flush --passthru --color --color-match "underline bold red" "\[(ERROR|FAIL)\].*" |\
-		ack --flush --passthru --color --color-match "underline bold red" "(NotImplement).*" |\
-		ack --flush --passthru --color --color-match "bold cyan" "\[(INFO)\].*" |\
-		ack --flush --passthru --color --color-match "bold black" "\[(DEBUG)\].*" |\
-		ack --flush --passthru --color --color-match "bold blue" "\[(TEST)\].*" |\
-		ack --flush --passthru --color --color-match "bold yellow" "\[(WARN)\].*" |\
-		ack --flush --passthru --color --color-match "bold green" "\[(PASS)\].*"
+	@-./test.sh test/test*.sh
 
 debug: debug_echo clean debug_body
 	@echo [debug] finish
@@ -37,4 +34,8 @@ debug_echo:
 	@echo [debug] start
 
 debug_body:
-	@-./test.sh debug
+	@-./debug.sh test/test*.sh
+
+sedlog:
+	@echo [log]
+	sed -e "s/[\x1b][[0-9;]*[mK]//g" last.color.log > last.log
