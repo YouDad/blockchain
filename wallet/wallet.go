@@ -57,6 +57,9 @@ func HashPubKey(pubKey types.PublicKey) []byte {
 func ValidateAddress(address string) bool {
 	pubKeyHash := utils.Base58Decode([]byte(address))
 
+	if len(pubKeyHash) < 5 {
+		return false
+	}
 	version := pubKeyHash[0:1]
 	actualChecksum := pubKeyHash[len(pubKeyHash)-addressChecksumLen:]
 	pubKeyHash = pubKeyHash[1 : len(pubKeyHash)-addressChecksumLen]

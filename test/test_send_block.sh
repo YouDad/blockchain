@@ -19,7 +19,7 @@ sleep 1
 RunTest sync "${VPortB}"
 
 killall_blockchain() {
-	sleep 10
+	sleep 3
 	killall blockchain
 }
 killall_blockchain &

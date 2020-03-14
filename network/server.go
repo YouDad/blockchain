@@ -2,11 +2,11 @@ package network
 
 import (
 	"fmt"
-	"net"
-	"net/http"
-	"net/rpc"
+	"time"
 
+	"github.com/YouDad/blockchain/global"
 	"github.com/YouDad/blockchain/log"
+	"github.com/astaxie/beego"
 )
 
 var (
@@ -18,7 +18,7 @@ var (
 func Register(port string) {
 	if Port == "" {
 		Port = port
-		addKnownNode("127.0.0.1:9999")
+		global.GetKnownNodes().AddNode("127.0.0.1:9999")
 		updateSortedNodes()
 	}
 }
@@ -26,10 +26,10 @@ func Register(port string) {
 func StartServer() {
 	address := fmt.Sprintf("0.0.0.0:%s", Port)
 	go knownNodeUpdating()
-	rpc.HandleHTTP()
-	listener, err := net.Listen(protocol, address)
-	log.Err(err)
-	go func() { ServerReady <- 0 }()
 	log.Infoln("Server Listen", address)
-	http.Serve(listener, nil)
+	go func() {
+		time.Sleep(time.Millisecond * 500)
+		ServerReady <- 0
+	}()
+	beego.Run(address)
 }

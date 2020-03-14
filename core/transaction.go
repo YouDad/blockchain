@@ -5,6 +5,7 @@ import (
 	"crypto/elliptic"
 	"crypto/rand"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"math/big"
 	"strings"
@@ -63,7 +64,11 @@ func (txn Transaction) String() string {
 
 func BytesToTransaction(bytes []byte) *Transaction {
 	txn := Transaction{}
-	log.Err(utils.GetDecoder(bytes).Decode(&txn))
+	err := json.Unmarshal(bytes, &txn)
+	if err != nil {
+		log.Tracef("%s\n", bytes)
+		log.PrintStack()
+	}
 	return &txn
 }
 
@@ -71,11 +76,11 @@ func (txn Transaction) IsCoinbase() bool {
 	return len(txn.Vin) == 1 && txn.Vin[0].VoutIndex == -1
 }
 
-func (tx *Transaction) TrimmedCopy() Transaction {
+func (txn Transaction) TrimmedCopy() Transaction {
 	var inputs []TxnInput
 	var outputs []TxnOutput
 
-	for _, vin := range tx.Vin {
+	for _, vin := range txn.Vin {
 		inputs = append(inputs, TxnInput{
 			VoutHash:   vin.VoutHash,
 			VoutIndex:  vin.VoutIndex,
@@ -84,7 +89,7 @@ func (tx *Transaction) TrimmedCopy() Transaction {
 		})
 	}
 
-	for _, vout := range tx.Vout {
+	for _, vout := range txn.Vout {
 		outputs = append(outputs, TxnOutput{
 			Value:      vout.Value,
 			PubKeyHash: vout.PubKeyHash,
@@ -92,7 +97,7 @@ func (tx *Transaction) TrimmedCopy() Transaction {
 	}
 
 	txCopy := Transaction{
-		Hash: tx.Hash,
+		Hash: txn.Hash,
 		Vin:  inputs,
 		Vout: outputs,
 	}
@@ -127,7 +132,7 @@ func (txn *Transaction) Sign(sk types.PrivateKey, hashedTxn map[string]Transacti
 	}
 }
 
-func (txn *Transaction) Verify(hashedTxn map[string]Transaction) bool {
+func (txn Transaction) Verify(hashedTxn map[string]Transaction) bool {
 	if txn.IsCoinbase() {
 		return true
 	}

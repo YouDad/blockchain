@@ -3,6 +3,7 @@ package main
 import (
 	cmd "github.com/YouDad/blockchain/commands"
 	"github.com/YouDad/blockchain/log"
+	_ "github.com/YouDad/blockchain/routers"
 )
 
 // Run parses command line arguments and processes commands

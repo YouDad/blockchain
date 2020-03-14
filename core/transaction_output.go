@@ -2,6 +2,7 @@ package core
 
 import (
 	"bytes"
+	"encoding/json"
 
 	"github.com/YouDad/blockchain/log"
 	"github.com/YouDad/blockchain/utils"
@@ -25,7 +26,11 @@ func (out *TxnOutput) IsLockedWithKey(pubKeyHash []byte) bool {
 
 func BytesToTxnOutputs(bytes []byte) []TxnOutput {
 	txnOutputs := []TxnOutput{}
-	log.Err(utils.GetDecoder(bytes).Decode(&txnOutputs))
+	err := json.Unmarshal(bytes, &txnOutputs)
+	if err != nil {
+		log.Tracef("%s\n", bytes)
+		log.PrintStack()
+	}
 
 	return txnOutputs
 }

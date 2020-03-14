@@ -55,7 +55,7 @@ func (set *UTXOSet) Reindex() {
 	for txnHash, utxos := range hashedUtxos {
 		hash, err := hex.DecodeString(txnHash)
 		log.Err(err)
-		set.Set(hash, utils.Encode(utxos))
+		set.SetTable(conf.BLOCKS).Set(hash, utils.Encode(utxos))
 	}
 }
 

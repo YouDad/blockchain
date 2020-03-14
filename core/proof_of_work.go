@@ -30,7 +30,7 @@ func NewPOW(b *Block) *ProofOfWork {
 	diff := big.NewInt(0)
 	big.NewFloat(b.Difficulty).Int(diff)
 	target.Div(target, diff)
-	log.Warnln(target, diff)
+	log.Debugln(target, diff)
 	return &ProofOfWork{b, target}
 }
 
@@ -81,7 +81,7 @@ func (pow *ProofOfWork) Validate(nonce int64) (bool, types.HashValue) {
 	isValid := hashInt.Cmp(pow.target) == -1
 
 	if nonce%(1<<20) == 0 {
-		log.Infof("Dig into mine [%d] %x\n", nonce, hash)
+		log.Debugf("Dig into mine [%d] %x\n", nonce, hash)
 	}
 
 	return isValid, hash[:]

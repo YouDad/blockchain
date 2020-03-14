@@ -1,6 +1,7 @@
 package core
 
 import (
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -65,7 +66,12 @@ func BytesToBlock(bytes []byte) *Block {
 	}
 
 	block := Block{}
-	log.Err(utils.GetDecoder(bytes).Decode(&block))
+	err := json.Unmarshal(bytes, &block)
+	if err != nil {
+		log.Tracef("%s\n", bytes)
+		log.PrintStack()
+	}
+	log.Err(err)
 
 	return &block
 }

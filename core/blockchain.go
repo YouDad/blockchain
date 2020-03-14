@@ -30,8 +30,7 @@ func (iter *BlockchainIterator) Next() (nextBlock *Block) {
 	if iter.next == nil {
 		return nil
 	}
-	iter.SetTable(conf.BLOCKS)
-	nextBlock = BytesToBlock(iter.Get(iter.next))
+	nextBlock = BytesToBlock(iter.SetTable(conf.BLOCKS).Get(iter.next))
 	if nextBlock != nil {
 		iter.next = nextBlock.PrevHash
 	}
@@ -43,10 +42,10 @@ func CreateBlockchain(minerAddress string) *Blockchain {
 	bc.SetTable(conf.BLOCKS).Clear()
 	genesis := NewBlock(nil, 1, 0, []*Transaction{NewCoinbaseTxn(minerAddress)})
 	bytes := utils.Encode(genesis)
-	bc.Set(genesis.Hash, bytes)
-	bc.Set(genesis.Height, bytes)
-	bc.Set("genesis", bytes)
-	bc.Set("lastest", bytes)
+	bc.SetTable(conf.BLOCKS).Set(genesis.Hash, bytes)
+	bc.SetTable(conf.BLOCKS).Set(genesis.Height, bytes)
+	bc.SetTable(conf.BLOCKS).Set("genesis", bytes)
+	bc.SetTable(conf.BLOCKS).Set("lastest", bytes)
 	return &bc
 }
 
@@ -54,10 +53,10 @@ func CreateBlockchainFromGenesis(b *Block) *Blockchain {
 	bc := Blockchain{store.CreateDatabase()}
 	bc.SetTable(conf.BLOCKS).Clear()
 	bytes := utils.Encode(b)
-	bc.Set(b.Hash, bytes)
-	bc.Set(b.Height, bytes)
-	bc.Set("genesis", bytes)
-	bc.Set("lastest", bytes)
+	bc.SetTable(conf.BLOCKS).Set(b.Hash, bytes)
+	bc.SetTable(conf.BLOCKS).Set(b.Height, bytes)
+	bc.SetTable(conf.BLOCKS).Set("genesis", bytes)
+	bc.SetTable(conf.BLOCKS).Set("lastest", bytes)
 	return &bc
 }
 
@@ -71,18 +70,15 @@ func GetBlockchain() *Blockchain {
 }
 
 func (bc *Blockchain) GetGenesis() *Block {
-	bc.SetTable(conf.BLOCKS)
-	return BytesToBlock(bc.Get("genesis"))
+	return BytesToBlock(bc.SetTable(conf.BLOCKS).Get("genesis"))
 }
 
 func (bc *Blockchain) GetLastest() *Block {
-	bc.SetTable(conf.BLOCKS)
-	return BytesToBlock(bc.Get("lastest"))
+	return BytesToBlock(bc.SetTable(conf.BLOCKS).Get("lastest"))
 }
 
 func (bc *Blockchain) GetHeight() int32 {
-	bc.SetTable(conf.BLOCKS)
-	return BytesToBlock(bc.Get("lastest")).Height
+	return BytesToBlock(bc.SetTable(conf.BLOCKS).Get("lastest")).Height
 }
 
 func (bc *Blockchain) AddBlock(b *Block) {
@@ -97,15 +93,15 @@ func (bc *Blockchain) AddBlock(b *Block) {
 	lastestBlock := BytesToBlock(lastestBlockBytes)
 	bytes := utils.Encode(b)
 	if lastestBlock.Height < b.Height {
-		bc.Set("lastest", bytes)
-		bc.Set(b.Hash, bytes)
-		bc.Set(b.Height, bytes)
+		bc.SetTable(conf.BLOCKS).Set("lastest", bytes)
+		bc.SetTable(conf.BLOCKS).Set(b.Hash, bytes)
+		bc.SetTable(conf.BLOCKS).Set(b.Height, bytes)
 	}
 }
 
 func (bc *Blockchain) MineBlock(txns []*Transaction) *Block {
 	for _, txn := range txns {
-		if !bc.VerifyTransaction(txn) {
+		if !bc.VerifyTransaction(*txn) {
 			log.Errln("Invalid transaction")
 		}
 	}
@@ -121,10 +117,9 @@ func (bc *Blockchain) MineBlock(txns []*Transaction) *Block {
 	newBlock := NewBlock(lastest.Hash, difficulty, height, txns)
 	log.Infoln("NewBlock", lastest.Hash, difficulty, height)
 	newBlockBytes := utils.Encode(newBlock)
-	bc.SetTable(conf.BLOCKS)
-	bc.Set("lastest", newBlockBytes)
-	bc.Set(newBlock.Hash, newBlockBytes)
-	bc.Set(newBlock.Height, newBlockBytes)
+	bc.SetTable(conf.BLOCKS).Set("lastest", newBlockBytes)
+	bc.SetTable(conf.BLOCKS).Set(newBlock.Hash, newBlockBytes)
+	bc.SetTable(conf.BLOCKS).Set(newBlock.Height, newBlockBytes)
 	return newBlock
 }
 
@@ -195,7 +190,7 @@ func (bc *Blockchain) SignTransaction(txn *Transaction, sk types.PrivateKey) {
 	txn.Sign(sk, hashedTxn)
 }
 
-func (bc *Blockchain) VerifyTransaction(txn *Transaction) bool {
+func (bc *Blockchain) VerifyTransaction(txn Transaction) bool {
 	if txn.IsCoinbase() {
 		return true
 	}

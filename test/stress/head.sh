@@ -1,7 +1,8 @@
 #!/bin/bash
 make
-cd test/stress
-source ../define.sh $0 $1
+source test/define.sh $0 $1
+
+rm -rf *.db *.dat
 
 RunTest create_wallet "-v3 --port 9999" 's#.*: \(.*\)#\1#g'
 Address9999="${TestRegMatch}"

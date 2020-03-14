@@ -3,6 +3,7 @@
 declare -A global
 global['filename']=$1
 global['testcount']=0
+logfile=`tee_log.sh blockchain`
 
 if [[ "$2" == "debug" ]]; then
 	NeedDebug=1
@@ -30,11 +31,12 @@ function RunTest() {
 		return
 	fi
 	$command 2>&1 | tee /tmp/a |\
-		ack --flush --passthru --color --color-match "underline bold red" "(\[ERROR\]|NotImplement|panic).*" |\
+		ack --flush --passthru --color --color-match "underline bold red" "(\[ERROR\]|NotImplement|.*panic).*" |\
 		ack --flush --passthru --color --color-match "bold cyan" "\[(INFO)\].*" |\
 		ack --flush --passthru --color --color-match "bold black" "\[(DEBUG)\].*" |\
 		ack --flush --passthru --color --color-match "bold yellow" "\[(WARN)\].*" |\
-		tee -a last.color.log
+		ack --flush --passthru --color --color-match "underline bold red on_green" "\[(TRACE)\].*" |\
+		tee -a "$logfile"
 	res=`cat /tmp/a`
 	echo -en "$res" | grep "\[ERROR\]" >/dev/null
 	rescode="$?"

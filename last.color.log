@@ -1,0 +1,15 @@
+[1;34m[TEST]: blockchain create_wallet -v3 --port 9999 2>&1[0m[0m[K
+[1;32m[PASS]: blockchain create_wallet -v3 --port 9999[0m[0m[K
+[1;34m[TEST]: blockchain create_wallet -v3 --port 8888 2>&1[0m[0m[K
+[1;32m[PASS]: blockchain create_wallet -v3 --port 8888[0m[0m[K
+[1;34m[TEST]: blockchain create_wallet -v3 --port 7777 2>&1[0m[0m[K
+[1;32m[PASS]: blockchain create_wallet -v3 --port 7777[0m[0m[K
+[1;34m[TEST]: blockchain create_blockchain -v3 --port 9999 --address 12YJPZG9yxyKeks1iiqKCXJwFRYmuEw8kv 2>&1[0m[0m[K
+[1;32m[PASS]: blockchain create_blockchain -v3 --port 9999 --address 12YJPZG9yxyKeks1iiqKCXJwFRYmuEw8kv[0m[0m[K
+[1;34m[TEST]: blockchain all -v3 --port 9999 2>&1[0m[0m[K
+[1;34m[TEST]: blockchain sync -v3 --port 8888 2>&1[0m[0m[K
+[1;32m[PASS]: blockchain sync -v3 --port 8888[0m[0m[K
+[1;34m[TEST]: blockchain sync -v3 --port 7777 2>&1[0m[0m[K
+[1;32m[PASS]: blockchain sync -v3 --port 7777[0m[0m[K
+[1;34m[TEST]: blockchain mining -v3 --port 7777 --address 1Hmw9XCesemPCpeXdVEfbhiaUpBz1CAYTf --speed 1 2>&1[0m[0m[K
+[1;34m[TEST]: blockchain mining -v3 --port 8888 --address 163eghHF2hyZLcxQudLTYRv47PWL7Y88pp --speed 1 2>&1[0m[0m[K

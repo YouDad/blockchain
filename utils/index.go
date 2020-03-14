@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"encoding/binary"
 	"encoding/gob"
+	"encoding/json"
 	"io/ioutil"
 	"net/http"
 	"reflect"
@@ -32,12 +33,11 @@ func InterfaceIsNil(i interface{}) bool {
 }
 
 func Encode(arg interface{}) []byte {
-	var result bytes.Buffer
-	log.Err(gob.NewEncoder(&result).Encode(arg))
-	ret := result.Bytes()
-	// log.SetCallerLevel(2)
-	// log.Debugf("Encode %x", ret)
-	// log.SetCallerLevel(0)
+	ret, err := json.Marshal(arg)
+	log.Err(err)
+	// var result bytes.Buffer
+	// log.Err(gob.NewEncoder(&result).Encode(arg))
+	// ret := result.Bytes()
 	return ret
 }
 

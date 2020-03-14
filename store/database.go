@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"sync"
 
 	"github.com/YouDad/blockchain/log"
 	"github.com/YouDad/blockchain/types"
@@ -24,6 +25,7 @@ var (
 	databaseName string
 	opened       = false
 	globalDB     = &BoltDB{}
+	dbMutex      = sync.Mutex{}
 )
 
 type BoltDB struct {
@@ -63,18 +65,33 @@ func CreateDatabase() IDatabase {
 	return globalDB
 }
 
+func lock() {
+	log.SetCallerLevel(2)
+	log.Debugln("DB Lock")
+	log.SetCallerLevel(0)
+	dbMutex.Lock()
+	// log.PrintStack()
+}
+func unlock() {
+	dbMutex.Unlock()
+	log.Debugln("DB Unlock")
+}
+
 func IsDatabaseExists() bool {
 	_, err := os.Stat(databaseName)
 	return !os.IsNotExist(err)
 }
 
 func (db *BoltDB) SetTable(table string) IDatabase {
+	lock()
 	db.CurrentBucket = []byte(table)
 	return db
 }
 
 func (db *BoltDB) Clear() {
 	log.Err(db.Update(func(tx *bolt.Tx) error {
+		log.Debugf("Clear %s\n", db.CurrentBucket)
+		log.PrintStack()
 		err := tx.DeleteBucket(db.CurrentBucket)
 		if err == bolt.ErrBucketNotFound {
 			err = nil
@@ -82,9 +99,10 @@ func (db *BoltDB) Clear() {
 		if err != nil {
 			return err
 		}
-		_, err = tx.CreateBucket(db.CurrentBucket)
+		_, err = tx.CreateBucketIfNotExists(db.CurrentBucket)
 		return err
 	}))
+	unlock()
 }
 
 func InterfaceToString(key interface{}) string {
@@ -128,21 +146,27 @@ func InterfaceToBytes(key interface{}) []byte {
 func (db BoltDB) Get(key interface{}) (value []byte) {
 	log.Err(db.View(func(tx *bolt.Tx) error {
 		value = tx.Bucket(db.CurrentBucket).Get(InterfaceToBytes(key))
+		k, o := key.(string)
+		if len(value) == 0 && o && k == "lastest" {
+			log.PrintStack()
+		}
 		log.SetCallerLevel(3)
-		log.Debugln("Get", string(db.CurrentBucket), InterfaceToString(key), len(value))
+		log.Debugf("Get %s %s %s\n", string(db.CurrentBucket), InterfaceToString(key), value)
 		log.SetCallerLevel(0)
 		return nil
 	}))
+	unlock()
 	return value
 }
 
 func (db BoltDB) Set(key interface{}, value []byte) {
 	log.Err(db.Update(func(tx *bolt.Tx) error {
 		log.SetCallerLevel(3)
-		log.Debugln("Set", string(db.CurrentBucket), InterfaceToString(key), len(value))
+		log.Debugf("Set %s %s %s\n", string(db.CurrentBucket), InterfaceToString(key), value)
 		log.SetCallerLevel(0)
 		return tx.Bucket(db.CurrentBucket).Put(InterfaceToBytes(key), value)
 	}))
+	unlock()
 }
 
 func (db *BoltDB) Delete(key interface{}) {
@@ -152,6 +176,7 @@ func (db *BoltDB) Delete(key interface{}) {
 		log.SetCallerLevel(0)
 		return tx.Bucket(db.CurrentBucket).Delete(InterfaceToBytes(key))
 	}))
+	unlock()
 }
 
 func (db BoltDB) Foreach(fn func(k, v []byte) bool) {
@@ -166,4 +191,5 @@ func (db BoltDB) Foreach(fn func(k, v []byte) bool) {
 		}
 		return nil
 	})
+	unlock()
 }

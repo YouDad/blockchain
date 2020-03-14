@@ -2,42 +2,58 @@ package network
 
 import (
 	"github.com/YouDad/blockchain/conf"
+	"github.com/YouDad/blockchain/global"
 	"github.com/YouDad/blockchain/log"
 )
 
 type NET struct{}
 
-type HeartBeatArgs string
+type HeartBeatArgs = struct {
+	Address string
+}
 
 func heartBeat(address string) {
-	call(address, "NET.HeartBeat", &address, &conf.NULL)
+	args := HeartBeatArgs{address}
+
+	call(address, "net/HeartBeat", &args, nil)
 }
 
 func (net *NET) HeartBeat(args *HeartBeatArgs, reply *conf.NIL) error {
-	log.Debugln("NET.HeartBeat from", *args)
+	log.Debugln("HeartBeat from", args.Address)
 
 	return nil
 }
 
-type GetKnownNodesArgs = string
-type GetKnownNodesReply = []string
+type GetKnownNodesArgs = struct {
+	Address string
+}
+type GetKnownNodesReply = struct {
+	Addresses []string
+}
 
-func getKnownNodes(myAddress GetKnownNodesArgs, knownNodeAddresses *GetKnownNodesReply) error {
-	return Call("NET.GetKnownNodes", &myAddress, knownNodeAddresses)
+func getKnownNodes(myAddress string, knownNodeAddresses *[]string) error {
+	args := GetKnownNodesArgs{myAddress}
+	var reply GetKnownNodesReply
+
+	err := Call("net/GetKnownNodes", &args, &reply)
+	*knownNodeAddresses = reply.Addresses
+	return err
 }
 
 func (net *NET) GetKnownNodes(args *GetKnownNodesArgs, reply *GetKnownNodesReply) error {
 	log.Infoln("GetKnownNodes", *args)
 
-	if *args != "" {
-		addKnownNode(*args)
+	knownNodes := global.GetKnownNodes()
+	if args.Address != "" {
+		knownNodes.AddNode(args.Address)
 	}
 
 	var nodes []string
-	for node, _ := range knownNodes {
+	defer knownNodes.Release()
+	for node, _ := range knownNodes.Get() {
 		nodes = append(nodes, node)
 	}
-	*reply = nodes
+	reply.Addresses = nodes
 
 	return nil
 }

@@ -6,12 +6,15 @@ import (
 	"os"
 	"runtime"
 	"strings"
+	"sync"
 )
 
 var (
-	callLevel = 2
-	logLevel  int
-	prefix    string
+	callLevel   = 2
+	logLevel    int
+	prefix      string
+	prefixMutex sync.Mutex
+	levelMutex  sync.Mutex
 )
 
 func Register(level int, port string) {
@@ -26,12 +29,38 @@ func LogSetPrefix(prefixString string) {
 
 func setPrefix(level string) {
 	_, file, line, _ := runtime.Caller(callLevel)
-	file = file[strings.Index(file, "blockchain")+len("blockchain")+1:]
+	index := strings.Index(file, "blockchain")
+	if index >= 0 {
+		file = file[index+len("blockchain "):]
+	}
+	prefixMutex.Lock()
 	LogSetPrefix(fmt.Sprintf("[%s]: { %s +%d } ", level, file, line))
 }
 
 func SetCallerLevel(level int) {
+	if level != 0 {
+		levelMutex.Lock()
+	} else {
+		levelMutex.Unlock()
+	}
 	callLevel = level + 2
+}
+
+func Funcname() string {
+	pc, _, _, _ := runtime.Caller(1)
+	return runtime.FuncForPC(pc).Name()
+}
+
+func Tracef(format string, v ...interface{}) {
+	setPrefix("TRACE")
+	log.Printf(format, v...)
+	prefixMutex.Unlock()
+}
+
+func Traceln(v ...interface{}) {
+	setPrefix("TRACE")
+	log.Println(v...)
+	prefixMutex.Unlock()
 }
 
 func Debugf(format string, v ...interface{}) {
@@ -40,6 +69,7 @@ func Debugf(format string, v ...interface{}) {
 	}
 	setPrefix("DEBUG")
 	log.Printf(format, v...)
+	prefixMutex.Unlock()
 }
 
 func Debugln(v ...interface{}) {
@@ -48,6 +78,7 @@ func Debugln(v ...interface{}) {
 	}
 	setPrefix("DEBUG")
 	log.Println(v...)
+	prefixMutex.Unlock()
 }
 
 func Infof(format string, v ...interface{}) {
@@ -56,6 +87,7 @@ func Infof(format string, v ...interface{}) {
 	}
 	setPrefix("INFO")
 	log.Printf(format, v...)
+	prefixMutex.Unlock()
 }
 
 func Infoln(v ...interface{}) {
@@ -64,6 +96,7 @@ func Infoln(v ...interface{}) {
 	}
 	setPrefix("INFO")
 	log.Println(v...)
+	prefixMutex.Unlock()
 }
 
 func Warn(err error) {
@@ -80,6 +113,7 @@ func Warnf(format string, v ...interface{}) {
 	}
 	setPrefix("WARN")
 	log.Printf(format, v...)
+	prefixMutex.Unlock()
 }
 
 func Warnln(v ...interface{}) {
@@ -88,6 +122,7 @@ func Warnln(v ...interface{}) {
 	}
 	setPrefix("WARN")
 	log.Println(v...)
+	prefixMutex.Unlock()
 }
 
 func Err(err error) {
@@ -103,6 +138,7 @@ func Errf(format string, v ...interface{}) {
 	}
 	setPrefix("ERROR")
 	log.Printf(format, v...)
+	prefixMutex.Unlock()
 	os.Exit(1)
 }
 
@@ -112,10 +148,12 @@ func Errln(v ...interface{}) {
 	}
 	setPrefix("ERROR")
 	log.Println(v...)
+	prefixMutex.Unlock()
 	os.Exit(1)
 }
 
 func PrintStack() {
+	levelMutex.Lock()
 	LogSetPrefix("")
 	log.SetFlags(0)
 	log.Println("")
@@ -135,6 +173,8 @@ func PrintStack() {
 		file = file[index+len(keyword)+1:]
 		log.Printf("{ %s +%d } [ %s ]", file, line, function.Name())
 	}
+	log.SetFlags(log.Lmicroseconds | log.Ltime)
+	levelMutex.Unlock()
 }
 
 func NotImplement() {

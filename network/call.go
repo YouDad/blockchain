@@ -1,29 +1,46 @@
 package network
 
 import (
+	"bytes"
+	"encoding/json"
 	"errors"
+	"fmt"
 	"math/rand"
-	"net/rpc"
-	"runtime/debug"
+	"net/http"
 	"time"
 
 	"github.com/YouDad/blockchain/log"
-	"github.com/YouDad/blockchain/utils"
 )
 
 func call(node, method string, args interface{}, reply interface{}) error {
-	log.Infoln("Request", method, node)
-	client, err := rpc.DialHTTP(protocol, node)
+	log.Infoln("Request", method, node, args)
+	b, err := json.Marshal(args)
 	if err != nil {
 		return err
 	}
-	defer client.Close()
-
-	if utils.InterfaceIsNil(args) || utils.InterfaceIsNil(reply) {
-		log.Warnln("args", args, "reply", reply)
-		debug.PrintStack()
+	resp, err := http.Post(fmt.Sprintf("http://%s/v1/%s?address=127.0.0.1:%s", node, method, Port),
+		"application/json;charset=UTF-8", bytes.NewBuffer(b))
+	if err != nil {
+		return err
 	}
-	return client.Call(method, args, reply)
+
+	type SimpleJSONResult struct {
+		Message string
+		Data    interface{}
+	}
+	var ret SimpleJSONResult
+	ret.Data = reply
+
+	json.NewDecoder(resp.Body).Decode(&ret)
+	if ret.Message != "" {
+		log.Warnln(ret.Message)
+	}
+	return nil
+}
+
+func Callback(node, method string, args interface{}, reply interface{}) error {
+	log.Infoln("Callback", method)
+	return call(node, method, args, reply)
 }
 
 func Call(method string, args interface{}, reply interface{}) error {
@@ -50,7 +67,7 @@ func random(min, max int) int {
 }
 
 func GossipCall(method string, args interface{}, reply interface{}) {
-	log.Infof("GossipCall %s\n", method)
+	log.Infoln("GossipCall", method)
 	len := len(sortedNodes)
 	half := len / 2
 	visit := make([]bool, len)
