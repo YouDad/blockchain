@@ -46,8 +46,8 @@ func SetCallerLevel(level int) {
 	callLevel = level + 2
 }
 
-func Funcname() string {
-	pc, _, _, _ := runtime.Caller(1)
+func Funcname(level int) string {
+	pc, _, _, _ := runtime.Caller(level + 1)
 	return runtime.FuncForPC(pc).Name()
 }
 

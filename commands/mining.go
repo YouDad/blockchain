@@ -33,20 +33,18 @@ var MiningCmd = &cobra.Command{
 				log.Errln("Address is not valid")
 			}
 
+			bc := core.GetBlockchain()
 			for {
 				txs := []*core.Transaction{core.NewCoinbaseTxn(nodeAddress)}
-				utxoSet := core.GetUTXOSet()
-				height := utxoSet.GetHeight()
-				size := mempool.GetMempoolSize()
+				set := core.GetUTXOSet()
 				txs = append(txs, mempool.GetTxns()...)
 
 				for {
-					if height != utxoSet.GetHeight() || size != mempool.GetMempoolSize() {
+					newBlocks := bc.MineBlock(txs)
+					if newBlocks == nil {
 						break
 					}
-
-					newBlocks := utxoSet.MineBlock(txs)
-					utxoSet.Update(newBlocks)
+					set.Update(newBlocks)
 					api.SendBlock(newBlocks)
 				}
 			}

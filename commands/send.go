@@ -38,24 +38,27 @@ var SendCmd = &cobra.Command{
 			log.Errln("Recipient address is not valid")
 		}
 
-		bc := core.GetBlockchain()
-		utxoSet := core.GetUTXOSet()
-
-		tx := utxoSet.NewUTXOTransaction(sendFrom, sendTo, sendAmount)
-
+		network.Register(Port)
 		if sendMine {
+			bc := core.GetBlockchain()
+			set := core.GetUTXOSet()
+
+			tx, err := set.NewUTXOTransaction(sendFrom, sendTo, sendAmount)
+			log.Err(err)
 			cbTx := core.NewCoinbaseTxn(sendFrom)
 			txs := []*core.Transaction{cbTx, tx}
 
 			newBlocks := bc.MineBlock(txs)
 			bc.AddBlock(newBlocks)
-			utxoSet.Update(newBlocks)
-		} else {
-			network.Register(Port)
-			log.Err(network.GetKnownNodes())
-
-			api.SendTransaction(tx)
+			set.Update(newBlocks)
+			return
 		}
-		log.Infoln("Success!")
+		err := api.SendCMD(sendFrom, sendTo, sendAmount)
+
+		if err != nil {
+			log.Warnln(err)
+		} else {
+			log.Infoln("Success!")
+		}
 	},
 }

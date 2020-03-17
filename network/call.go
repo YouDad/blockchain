@@ -43,7 +43,7 @@ func Callback(node, method string, args interface{}, reply interface{}) error {
 	return call(node, method, args, reply)
 }
 
-func Call(method string, args interface{}, reply interface{}) error {
+func Call(method string, args interface{}, reply interface{}) (error, string) {
 	log.Infoln("Call", method)
 	for _, node := range GetSortedNodes() {
 		err := call(node.Address, method, args, reply)
@@ -51,9 +51,9 @@ func Call(method string, args interface{}, reply interface{}) error {
 			log.Warnln(node.Address, err)
 			continue
 		}
-		return nil
+		return nil, node.Address
 	}
-	return errors.New("None of the nodes responded!")
+	return errors.New("None of the nodes responded!"), ""
 }
 
 func CallMySelf(method string, args interface{}, reply interface{}) error {
@@ -66,32 +66,20 @@ func random(min, max int) int {
 	return rand.Int()%(max-min) + min
 }
 
-func GossipCall(method string, args interface{}, reply interface{}) {
+func GossipCall(method string, args interface{}, reply interface{}) error {
 	log.Infoln("GossipCall", method)
-	len := len(sortedNodes)
-	half := len / 2
-	visit := make([]bool, len)
+	visit := make([]bool, len(sortedNodes))
+	visited := 0
+	success := 0
 
-	canVisit := func(min, max int) bool {
-		for _, v := range visit[min:max] {
-			if !v {
-				return true
-			}
-		}
-		return false
-	}
-
-	send := func(min, max int) bool {
+	send := func() bool {
 		for {
-			if !canVisit(min, max) {
-				return false
-			}
-
-			visitor := random(min, max)
+			visitor := random(0, len(sortedNodes))
 			if visit[visitor] {
 				continue
 			}
 			visit[visitor] = true
+			visited++
 			err := call(sortedNodes[visitor].Address, method, args, reply)
 			if err != nil {
 				log.Infoln(sortedNodes[visitor].Address, err)
@@ -102,29 +90,16 @@ func GossipCall(method string, args interface{}, reply interface{}) {
 		}
 	}
 
-	visited := 0
-
-	if !send(0, half) {
-		if send(half, len) {
-			visited++
+	for success < 3 && visited < len(sortedNodes) {
+		if send() {
+			success++
 		}
-	} else {
-		visited++
 	}
 
-	if !send(0, half) {
-		if send(half, len) {
-			visited++
-		}
-	} else {
-		visited++
-	}
-
-	if send(half, len) {
-		visited++
-	}
-
-	if visited == 0 {
+	if success == 0 {
 		log.Warnln("None of the nodes responded!")
+		return errors.New("None of the nodes responded!")
 	}
+
+	return nil
 }

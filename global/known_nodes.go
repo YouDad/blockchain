@@ -2,8 +2,7 @@ package global
 
 import (
 	"sync"
-
-	"github.com/YouDad/blockchain/log"
+	// "github.com/YouDad/blockchain/log"
 )
 
 var instance *KnownNodes
@@ -23,14 +22,14 @@ type KnownNodes struct {
 }
 
 func (this *KnownNodes) Get() map[string][6]int {
-	log.Debugln("KN Lock")
+	// log.Debugln("KN Lock")
 	this.mutex.Lock()
 	return this.nodes
 }
 
 func (this *KnownNodes) Release() {
 	this.mutex.Unlock()
-	log.Debugln("KN Unlock")
+	// log.Debugln("KN Unlock")
 }
 
 func (this *KnownNodes) AddNode(address string) {

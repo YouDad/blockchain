@@ -19,6 +19,7 @@ func main() {
 		cmd.MiningCmd,
 		cmd.SyncCmd,
 		cmd.AllCmd,
+		cmd.SendTestCmd,
 	)
 
 	if err := rootCmd.Execute(); err != nil {

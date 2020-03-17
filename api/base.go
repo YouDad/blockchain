@@ -41,6 +41,9 @@ func (c *BaseController) ReturnJson(data SimpleJSONResult) {
 }
 
 func (c *BaseController) ReturnErr(err error) {
+	if err == nil {
+		c.Return(nil)
+	}
 	c.ReturnJson(SimpleJSONResult{err.Error(), nil})
 }
 

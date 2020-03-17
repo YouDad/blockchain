@@ -21,13 +21,12 @@ RunTest get_balance "-v3 ${VPortA} --address ${AddressA}"
 
 RunTest all "${VPortA}" &
 sleep 1
-pid=`get_pid.sh "blockchain"`
-while [[ "$pid" == "" ]]; do
-	pid=`get_pid.sh "blockchain"`
-	echo $pid
-done
+
 RunTest sync "${VPortB}"
+RunTest all "${VPortB}" &
+sleep 1
+
 RunTest get_version "${VPortB}"
 RunTest send "${VPortB} --amount 1 --from ${AddressB} --to ${AddressA}"
 sleep 1
-kill -9 $pid
+killall blockchain

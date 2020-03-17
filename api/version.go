@@ -6,6 +6,7 @@ import (
 
 	"github.com/YouDad/blockchain/conf"
 	"github.com/YouDad/blockchain/core"
+	"github.com/YouDad/blockchain/global"
 	"github.com/YouDad/blockchain/log"
 	"github.com/YouDad/blockchain/network"
 	"github.com/YouDad/blockchain/types"
@@ -23,7 +24,7 @@ var (
 	VersionDifferentError  = errors.New("Version is different.")
 )
 
-func SendVersion(nowHeight int32, rootHash, nowHash types.HashValue) (int32, error) {
+func SendVersion(nowHeight int32, rootHash, nowHash types.HashValue) (int32, error, string) {
 	var reply SendVersionReply
 	args := SendVersionArgs{
 		Version:  conf.Version,
@@ -31,10 +32,10 @@ func SendVersion(nowHeight int32, rootHash, nowHash types.HashValue) (int32, err
 		RootHash: rootHash,
 		NowHash:  nowHash,
 	}
-	err := network.Call("version/SendVersion", &args, &reply)
+	err, address := network.Call("version/SendVersion", &args, &reply)
 
 	if err != nil {
-		return 0, err
+		return 0, err, address
 	}
 
 	if reply.Version != conf.Version {
@@ -45,7 +46,7 @@ func SendVersion(nowHeight int32, rootHash, nowHash types.HashValue) (int32, err
 		err = RootHashDifferentError
 	}
 
-	return reply.Height, err
+	return reply.Height, err, address
 }
 
 func GetVersion() (types.Version, error) {
@@ -60,11 +61,12 @@ func (c *VersionController) SendVersion() {
 	var args SendVersionArgs
 	var reply SendVersionReply
 	c.ParseParameter(&args)
+	log.Debugf("SendVersion %+v\n", args)
 
-	set := core.GetUTXOSet()
-	genesis := set.GetGenesis()
-	lastest := set.GetLastest()
-	lastestHeight := lastest.Height
+	bc := core.GetBlockchain()
+	genesis := bc.GetGenesis()
+	lastest := bc.GetLastest()
+	lastestHeight := global.GetHeight()
 	reply = types.Version{
 		Version:  conf.Version,
 		Height:   lastestHeight,
@@ -86,7 +88,7 @@ func (c *VersionController) SendVersion() {
 		c.ReturnErr(VersionDifferentError)
 	}
 
-	syncBlocks(lastestHeight, c.GetString("address"))
+	SyncBlocks(lastestHeight, c.GetString("address"))
 
 	c.Return(reply)
 }

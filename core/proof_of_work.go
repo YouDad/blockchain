@@ -8,6 +8,7 @@ import (
 	"math/rand"
 	"time"
 
+	"github.com/YouDad/blockchain/global"
 	"github.com/YouDad/blockchain/log"
 	"github.com/YouDad/blockchain/types"
 	"github.com/YouDad/blockchain/utils"
@@ -55,6 +56,9 @@ func (pow *ProofOfWork) Run() (int64, []byte) {
 	start := nonce
 
 	for nonce < math.MaxInt64 {
+		if global.GetHeight() != pow.block.Height-1 {
+			return 0, nil
+		}
 		ok, hash = pow.Validate(nonce)
 		if ok {
 			break
@@ -68,6 +72,7 @@ func (pow *ProofOfWork) Run() (int64, []byte) {
 			}
 		}
 	}
+	global.SyncMutex.Lock()
 	return nonce, hash
 }
 

@@ -40,7 +40,7 @@ func NewCoinbaseTxn(from string) *Transaction {
 func (txn Transaction) String() string {
 	lines := []string{}
 
-	lines = append(lines, fmt.Sprintf("\t\tTxnHash %x:", txn.Hash))
+	lines = append(lines, fmt.Sprintf("\n\t\tTxnHash %x:", txn.Hash))
 
 	for i, input := range txn.Vin {
 
@@ -66,7 +66,7 @@ func BytesToTransaction(bytes []byte) *Transaction {
 	txn := Transaction{}
 	err := json.Unmarshal(bytes, &txn)
 	if err != nil {
-		log.Tracef("%s\n", bytes)
+		log.Warnf("%s\n", bytes)
 		log.PrintStack()
 	}
 	return &txn
@@ -84,6 +84,7 @@ func (txn Transaction) TrimmedCopy() Transaction {
 		inputs = append(inputs, TxnInput{
 			VoutHash:   vin.VoutHash,
 			VoutIndex:  vin.VoutIndex,
+			VoutValue:  vin.VoutValue,
 			Signature:  nil,
 			PubKeyHash: nil,
 		})

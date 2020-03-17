@@ -35,7 +35,7 @@ func getKnownNodes(myAddress string, knownNodeAddresses *[]string) error {
 	args := GetKnownNodesArgs{myAddress}
 	var reply GetKnownNodesReply
 
-	err := Call("net/GetKnownNodes", &args, &reply)
+	err, _ := Call("net/GetKnownNodes", &args, &reply)
 	*knownNodeAddresses = reply.Addresses
 	return err
 }

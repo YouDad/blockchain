@@ -4,12 +4,11 @@ import (
 	"bytes"
 	"errors"
 
-	"github.com/YouDad/blockchain/conf"
 	"github.com/YouDad/blockchain/core"
+	"github.com/YouDad/blockchain/global"
 	"github.com/YouDad/blockchain/log"
 	"github.com/YouDad/blockchain/mempool"
 	"github.com/YouDad/blockchain/network"
-	"github.com/YouDad/blockchain/store"
 	"github.com/YouDad/blockchain/types"
 	"github.com/YouDad/blockchain/utils"
 	"github.com/YouDad/blockchain/wallet"
@@ -28,7 +27,7 @@ var (
 func GetGenesis() (*core.Block, error) {
 	var reply GetGenesisReply
 
-	err := network.Call("db/GetGenesis", nil, &reply)
+	err, _ := network.Call("db/GetGenesis", nil, &reply)
 	if err != nil {
 		return nil, err
 	}
@@ -39,7 +38,7 @@ func GetGenesis() (*core.Block, error) {
 func (c *DBController) GetGenesis() {
 	var reply GetGenesisReply
 
-	if store.IsDatabaseExists() {
+	if global.IsDatabaseExists() {
 		genesis := core.GetBlockchain().GetGenesis()
 		reply = *genesis
 	}
@@ -108,8 +107,8 @@ func CallbackGetBlocks(start, end int32, hash types.HashValue, address string) (
 func GetBlocks(start, end int32, hash types.HashValue) []*core.Block {
 	args := GetBlocksArgs{start, end, hash}
 	var reply GetBlocksReply
-
-	log.Warn(network.Call("db/GetBlocks", &args, &reply))
+	err, _ := network.Call("db/GetBlocks", &args, &reply)
+	log.Warn(err)
 
 	return reply.Blocks
 }
@@ -124,17 +123,21 @@ func (c *DBController) GetBlocks() {
 		c.ReturnErr(errors.New("Height 0 use GetGenesis"))
 	}
 
-	set := core.GetUTXOSet()
-	block := core.BytesToBlock(set.SetTable(conf.BLOCKS).Get(args.From))
+	bc := core.GetBlockchain()
+	block := core.BytesToBlock(bc.Get(args.From))
 	if block == nil {
 		c.ReturnErr(ErrNoBlock)
 	}
 
 	if bytes.Compare(block.PrevHash, args.Hash) != 0 {
+		log.Warnf("%x != %x\n", block.PrevHash, args.Hash)
+		log.Warnln(block)
+		block := core.BytesToBlock(bc.Get(args.From - 1))
+		log.Warnln(block)
 		c.ReturnErr(ErrNoBlock)
 	}
 	for i := args.From; i <= args.To; i++ {
-		data := set.SetTable(conf.BLOCKS).Get(i)
+		data := bc.Get(i)
 		if data == nil {
 			break
 		}
@@ -145,8 +148,8 @@ func (c *DBController) GetBlocks() {
 
 type SendTransactionArgs = core.Transaction
 
-func SendTransaction(txn *core.Transaction) {
-	network.GossipCall("db/SendTransaction", txn, nil)
+func SendTransaction(txn *core.Transaction) error {
+	return network.GossipCall("db/SendTransaction", txn, nil)
 }
 
 // @router /SendTransaction [post]
@@ -168,6 +171,10 @@ func (c *DBController) SendTransaction() {
 
 type SendBlockArgs = core.Block
 
+func CallbackSendBlock(block *core.Block, address string) {
+	network.Callback(address, "db/SendBlock", block, nil)
+}
+
 func SendBlock(block *core.Block) {
 	network.GossipCall("db/SendBlock", block, nil)
 }
@@ -177,19 +184,24 @@ func (c *DBController) SendBlock() {
 	var args SendBlockArgs
 	c.ParseParameter(&args)
 
+	bc := core.GetBlockchain()
 	set := core.GetUTXOSet()
-	lastest := set.GetLastest()
+	lastest := bc.GetLastest()
 	lastestHeight := lastest.Height
 
 	log.Debugf("SendBlock get=%d, lastest=%d\n", args.Height, lastestHeight)
 
+	if args.Height < lastestHeight {
+		CallbackSendBlock(lastest, c.GetString("address"))
+	}
+
 	if args.Height == lastestHeight+1 {
 		if bytes.Compare(args.PrevHash, lastest.Hash) == 0 {
-			set.AddBlock(&args)
+			bc.AddBlock(&args)
 			set.Update(&args)
 		}
 	}
-	syncBlocks(args.Height, c.GetString("address"))
+	SyncBlocks(args.Height, c.GetString("address"))
 
 	c.Return(nil)
 }
@@ -210,20 +222,20 @@ func GetHash(height int32) (types.HashValue, error) {
 	args := GetHashArgs{height}
 	var reply GetHashReply
 
-	err := network.Call("db/GetHash", &args, &reply)
+	err, _ := network.Call("db/GetHash", &args, &reply)
 
 	return reply.Hash, err
 }
 
 // @router /GetHash [post]
 func (c *DBController) GetHash() {
-	log.Infoln(log.Funcname(), c.GetString("address"))
+	log.Infoln(log.Funcname(0), c.GetString("address"))
 	var args GetHashArgs
 	var reply GetHashReply
 	c.ParseParameter(&args)
 
 	bc := core.GetBlockchain()
-	block := core.BytesToBlock(bc.SetTable(conf.BLOCKS).Get(args.Height))
+	block := core.BytesToBlock(bc.Get(args.Height))
 	if block == nil {
 		c.ReturnErr(ErrNoBlock)
 	}

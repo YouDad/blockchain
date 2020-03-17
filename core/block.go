@@ -22,12 +22,12 @@ type Block struct {
 }
 
 func (b Block) String() string {
-	ret := fmt.Sprintf("Height: %d\n", b.Height)
-	ret += fmt.Sprintf("Prev: %x\n", b.PrevHash)
-	ret += fmt.Sprintf("Hash: %x\n", b.Hash)
+	ret := fmt.Sprintf("\nHeight: %d\n", b.Height)
+	ret += fmt.Sprintf("Prev:   %x\n", b.PrevHash)
+	ret += fmt.Sprintf("Hash:   %x\n", b.Hash)
 	ret += fmt.Sprintf("Txns:\n")
 	for i, txn := range b.Txns {
-		ret += fmt.Sprintf("\tTxns[%d]:\n%s", i, txn.String())
+		ret += fmt.Sprintf("\tTxns[%d]:%s", i, txn.String())
 	}
 
 	return ret
@@ -51,6 +51,9 @@ func NewBlock(prev types.HashValue, diff float64, height int32, txns []*Transact
 
 	pow := NewPOW(block)
 	nonce, hash := pow.Run()
+	if hash == nil {
+		return nil
+	}
 	block.Nonce = nonce
 	block.Hash = hash
 	log.Debugf("Mined %s\n", block.String())
@@ -68,7 +71,7 @@ func BytesToBlock(bytes []byte) *Block {
 	block := Block{}
 	err := json.Unmarshal(bytes, &block)
 	if err != nil {
-		log.Tracef("%s\n", bytes)
+		log.Warnf("%s\n", bytes)
 		log.PrintStack()
 	}
 	log.Err(err)

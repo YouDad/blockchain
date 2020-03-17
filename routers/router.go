@@ -22,5 +22,8 @@ func init() {
 			beego.NSRouter("/HeartBeat", new(api.NetController), "post:HeartBeat"),
 			beego.NSRouter("/GetKnownNodes", new(api.NetController), "post:GetKnownNodes"),
 		),
+		beego.NSNamespace("/server",
+			beego.NSRouter("/SendCMD", new(api.ServerController), "post:SendCMD"),
+		),
 	))
 }
