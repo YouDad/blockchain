@@ -5,6 +5,7 @@ import (
 	"github.com/YouDad/blockchain/core"
 	"github.com/YouDad/blockchain/log"
 	"github.com/YouDad/blockchain/network"
+	"github.com/YouDad/blockchain/types"
 	"github.com/YouDad/blockchain/wallet"
 	"github.com/spf13/cobra"
 )
@@ -46,7 +47,7 @@ var SendCmd = &cobra.Command{
 			tx, err := set.NewUTXOTransaction(sendFrom, sendTo, sendAmount)
 			log.Err(err)
 			cbTx := core.NewCoinbaseTxn(sendFrom)
-			txs := []*core.Transaction{cbTx, tx}
+			txs := []*types.Transaction{cbTx, tx}
 
 			newBlocks := bc.MineBlock(txs)
 			bc.AddBlock(newBlocks)

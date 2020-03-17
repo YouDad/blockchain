@@ -13,7 +13,7 @@ func (c *NetController) HeartBeat() {
 	var args network.HeartBeatArgs
 	c.ParseParameter(&args)
 
-	c.net.HeartBeat(&args, nil)
+	c.net.HeartBeat(&args)
 	c.Return(nil)
 }
 

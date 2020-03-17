@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"errors"
 
-	"github.com/YouDad/blockchain/conf"
 	"github.com/YouDad/blockchain/core"
 	"github.com/YouDad/blockchain/global"
 	"github.com/YouDad/blockchain/log"
@@ -19,6 +18,8 @@ type VersionController struct {
 type SendVersionArgs = types.Version
 type SendVersionReply = types.Version
 
+const Version int = 0x00
+
 var (
 	RootHashDifferentError = errors.New("RootHash is different.")
 	VersionDifferentError  = errors.New("Version is different.")
@@ -27,7 +28,7 @@ var (
 func SendVersion(nowHeight int32, rootHash, nowHash types.HashValue) (int32, error, string) {
 	var reply SendVersionReply
 	args := SendVersionArgs{
-		Version:  conf.Version,
+		Version:  Version,
 		Height:   nowHeight,
 		RootHash: rootHash,
 		NowHash:  nowHash,
@@ -38,7 +39,7 @@ func SendVersion(nowHeight int32, rootHash, nowHash types.HashValue) (int32, err
 		return 0, err, address
 	}
 
-	if reply.Version != conf.Version {
+	if reply.Version != Version {
 		err = VersionDifferentError
 	}
 
@@ -68,7 +69,7 @@ func (c *VersionController) SendVersion() {
 	lastest := bc.GetLastest()
 	lastestHeight := global.GetHeight()
 	reply = types.Version{
-		Version:  conf.Version,
+		Version:  Version,
 		Height:   lastestHeight,
 		RootHash: genesis.Hash,
 		NowHash:  lastest.Hash,
@@ -82,8 +83,8 @@ func (c *VersionController) SendVersion() {
 		c.ReturnErr(RootHashDifferentError)
 	}
 
-	if args.Version != conf.Version {
-		log.Infof("GetVersion: %d, WeVersion: %d\n", args.Version, conf.Version)
+	if args.Version != Version {
+		log.Infof("GetVersion: %d, WeVersion: %d\n", args.Version, Version)
 		log.Warnln("Version Update")
 		c.ReturnErr(VersionDifferentError)
 	}

@@ -1,7 +1,6 @@
 package network
 
 import (
-	"github.com/YouDad/blockchain/conf"
 	"github.com/YouDad/blockchain/global"
 	"github.com/YouDad/blockchain/log"
 )
@@ -18,7 +17,7 @@ func heartBeat(address string) {
 	call(address, "net/HeartBeat", &args, nil)
 }
 
-func (net *NET) HeartBeat(args *HeartBeatArgs, reply *conf.NIL) error {
+func (net *NET) HeartBeat(args *HeartBeatArgs) error {
 	log.Debugln("HeartBeat from", args.Address)
 
 	return nil

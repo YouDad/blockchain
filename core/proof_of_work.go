@@ -21,11 +21,11 @@ func Register(speed uint) {
 }
 
 type ProofOfWork struct {
-	block  *Block
+	block  *types.Block
 	target *big.Int
 }
 
-func NewPOW(b *Block) *ProofOfWork {
+func NewPOW(b *types.Block) *ProofOfWork {
 	target := big.NewInt(1)
 	target.Lsh(target, 256)
 	diff := big.NewInt(0)

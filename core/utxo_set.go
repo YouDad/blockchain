@@ -19,11 +19,11 @@ func GetUTXOSet() *UTXOSet {
 	return &UTXOSet{global.GetUTXOSetDB(), GetBlockchain()}
 }
 
-func (set *UTXOSet) Update(b *Block) {
+func (set *UTXOSet) Update(b *types.Block) {
 	for _, txn := range b.Txns {
 		if txn.IsCoinbase() == false {
 			for _, vin := range txn.Vin {
-				updatedOuts := []TxnOutput{}
+				updatedOuts := []types.TxnOutput{}
 				outsBytes := set.Get(vin.VoutHash)
 				outs := BytesToTxnOutputs(outsBytes)
 
@@ -41,7 +41,7 @@ func (set *UTXOSet) Update(b *Block) {
 			}
 		}
 
-		newOutputs := []TxnOutput{}
+		newOutputs := []types.TxnOutput{}
 		for _, out := range txn.Vout {
 			newOutputs = append(newOutputs, out)
 		}
@@ -49,17 +49,20 @@ func (set *UTXOSet) Update(b *Block) {
 	}
 }
 
-func (set *UTXOSet) Reverse(b *Block) {
+func (set *UTXOSet) Reverse(b *types.Block) {
 	for _, txn := range b.Txns {
 		if !txn.IsCoinbase() {
 			set.Delete(txn.Hash)
 			for _, vin := range txn.Vin {
-				var txos []TxnOutput
+				var txos []types.TxnOutput
 				txosBytes := set.Get(vin.VoutHash)
 				if len(txosBytes) != 0 {
 					txos = BytesToTxnOutputs(txosBytes)
 				}
-				txos = append(txos, TxnOutput{vin.VoutValue, vin.PubKeyHash})
+				txos = append(txos, types.TxnOutput{
+					Value:      vin.VoutValue,
+					PubKeyHash: vin.PubKeyHash,
+				})
 				set.Set(vin.VoutHash, utils.Encode(txos))
 			}
 		}
@@ -77,9 +80,9 @@ func (set *UTXOSet) Reindex() {
 	}
 }
 
-func (set *UTXOSet) NewUTXOTransaction(from, to string, amount int64) (*Transaction, error) {
-	var ins []TxnInput
-	var outs []TxnOutput
+func (set *UTXOSet) NewUTXOTransaction(from, to string, amount int64) (*types.Transaction, error) {
+	var ins []types.TxnInput
+	var outs []types.TxnOutput
 
 	wallets, err := wallet.NewWallets()
 	log.Err(err)
@@ -100,8 +103,13 @@ func (set *UTXOSet) NewUTXOTransaction(from, to string, amount int64) (*Transact
 		log.Err(err)
 
 		for i, outIdx := range outIdxs {
-			ins = append(ins, TxnInput{
-				txnHashByte, outIdx, values[txnHash][i], nil, srcWallet.PublicKey})
+			ins = append(ins, types.TxnInput{
+				VoutHash:   txnHashByte,
+				VoutIndex:  outIdx,
+				VoutValue:  values[txnHash][i],
+				Signature:  nil,
+				PubKeyHash: srcWallet.PublicKey,
+			})
 		}
 	}
 
@@ -110,14 +118,18 @@ func (set *UTXOSet) NewUTXOTransaction(from, to string, amount int64) (*Transact
 		outs = append(outs, *NewTxnOutput(from, acc-amount))
 	}
 
-	txn := Transaction{nil, ins, outs}
+	txn := types.Transaction{
+		Hash: nil,
+		Vin:  ins,
+		Vout: outs,
+	}
 	txn.Hash = utils.SHA256(&txn)
 	err = set.bc.SignTransaction(&txn, srcWallet.PrivateKey)
 	return &txn, err
 }
 
-func (set *UTXOSet) FindUTXOByHash(pubKeyHash []byte) []TxnOutput {
-	utxos := []TxnOutput{}
+func (set *UTXOSet) FindUTXOByHash(pubKeyHash []byte) []types.TxnOutput {
+	utxos := []types.TxnOutput{}
 
 	set.Foreach(func(k, v []byte) bool {
 		outs := BytesToTxnOutputs(v)

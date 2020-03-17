@@ -25,7 +25,7 @@ func (bc *Blockchain) Begin() *BlockchainIterator {
 	return &BlockchainIterator{bc, bc.GetLastest().Hash}
 }
 
-func (iter *BlockchainIterator) Next() (nextBlock *Block) {
+func (iter *BlockchainIterator) Next() (nextBlock *types.Block) {
 	if iter.next == nil {
 		return nil
 	}
@@ -41,7 +41,7 @@ func CreateBlockchain(minerAddress string) *Blockchain {
 	bc := GetBlockchain()
 	bc.Clear()
 	global.SetHeight(-1)
-	genesis := NewBlock(nil, 1, 0, []*Transaction{NewCoinbaseTxn(minerAddress)})
+	genesis := NewBlock(nil, 1, 0, []*types.Transaction{NewCoinbaseTxn(minerAddress)})
 	bytes := utils.Encode(genesis)
 	bc.Set(genesis.Hash, bytes)
 	bc.Set(genesis.Height, bytes)
@@ -51,7 +51,7 @@ func CreateBlockchain(minerAddress string) *Blockchain {
 	return bc
 }
 
-func CreateBlockchainFromGenesis(genesis *Block) *Blockchain {
+func CreateBlockchainFromGenesis(genesis *types.Block) *Blockchain {
 	global.CreateDatabase()
 	bc := GetBlockchain()
 	bc.Clear()
@@ -68,11 +68,11 @@ func GetBlockchain() *Blockchain {
 	return &Blockchain{global.GetBlocksDB()}
 }
 
-func (bc *Blockchain) GetGenesis() *Block {
+func (bc *Blockchain) GetGenesis() *types.Block {
 	return BytesToBlock(bc.Get("genesis"))
 }
 
-func (bc *Blockchain) GetLastest() *Block {
+func (bc *Blockchain) GetLastest() *types.Block {
 	lastest := BytesToBlock(bc.Get("lastest"))
 	global.SetHeight(lastest.Height)
 	return lastest
@@ -82,7 +82,7 @@ func (bc *Blockchain) GetHeight() int32 {
 	return bc.GetLastest().Height
 }
 
-func (bc *Blockchain) AddBlock(b *Block) {
+func (bc *Blockchain) AddBlock(b *types.Block) {
 	if b == nil {
 		return
 	}
@@ -100,7 +100,7 @@ func (bc *Blockchain) AddBlock(b *Block) {
 	}
 }
 
-func (bc *Blockchain) MineBlock(txns []*Transaction) *Block {
+func (bc *Blockchain) MineBlock(txns []*types.Transaction) *types.Block {
 	for _, txn := range txns {
 		if !bc.VerifyTransaction(*txn) {
 			log.Errln("Invalid transaction")
@@ -126,8 +126,8 @@ func (bc *Blockchain) MineBlock(txns []*Transaction) *Block {
 	return newBlock
 }
 
-func (bc *Blockchain) FindUTXO() map[string][]TxnOutput {
-	utxos := make(map[string][]TxnOutput)
+func (bc *Blockchain) FindUTXO() map[string][]types.TxnOutput {
+	utxos := make(map[string][]types.TxnOutput)
 	// spent transaction outputs
 	stxos := make(map[string]map[int]bool)
 	iter := bc.Begin()
@@ -170,8 +170,8 @@ func (bc *Blockchain) FindUTXO() map[string][]TxnOutput {
 	return utxos
 }
 
-func (bc *Blockchain) FindTxn(hash types.HashValue) (Transaction, error) {
-	var block *Block
+func (bc *Blockchain) FindTxn(hash types.HashValue) (types.Transaction, error) {
+	var block *types.Block
 	iter := bc.Begin()
 
 	for block = iter.Next(); block != nil; block = iter.Next() {
@@ -182,14 +182,14 @@ func (bc *Blockchain) FindTxn(hash types.HashValue) (Transaction, error) {
 		}
 	}
 
-	return Transaction{}, errors.New(fmt.Sprintf("Transaction is not found, %x", hash))
+	return types.Transaction{}, errors.New(fmt.Sprintf("Transaction is not found, %x", hash))
 }
 
-func (bc *Blockchain) SignTransaction(txn *Transaction, sk types.PrivateKey) error {
-	hashedTxn := make(map[string]Transaction)
+func (bc *Blockchain) SignTransaction(txn *types.Transaction, sk types.PrivateKey) error {
+	hashedTxn := make(map[string]types.Transaction)
 
 	for _, vin := range txn.Vin {
-		var vinTxn Transaction
+		var vinTxn types.Transaction
 		vinTxn, err := bc.FindTxn(vin.VoutHash)
 		if err != nil {
 			return err
@@ -201,12 +201,12 @@ func (bc *Blockchain) SignTransaction(txn *Transaction, sk types.PrivateKey) err
 	return nil
 }
 
-func (bc *Blockchain) VerifyTransaction(txn Transaction) bool {
+func (bc *Blockchain) VerifyTransaction(txn types.Transaction) bool {
 	if txn.IsCoinbase() {
 		return true
 	}
 
-	prevTXs := make(map[string]Transaction)
+	prevTXs := make(map[string]types.Transaction)
 
 	for _, vin := range txn.Vin {
 		prevTX, err := bc.FindTxn(vin.VoutHash)

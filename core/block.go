@@ -2,7 +2,6 @@ package core
 
 import (
 	"encoding/json"
-	"fmt"
 	"time"
 
 	"github.com/YouDad/blockchain/log"
@@ -10,31 +9,8 @@ import (
 	"github.com/YouDad/blockchain/utils"
 )
 
-type Block struct {
-	Timestamp  int64
-	PrevHash   types.HashValue
-	Hash       types.HashValue
-	Difficulty float64
-	Nonce      int64
-	Height     int32
-	MerkleRoot types.HashValue
-	Txns       []*Transaction
-}
-
-func (b Block) String() string {
-	ret := fmt.Sprintf("\nHeight: %d\n", b.Height)
-	ret += fmt.Sprintf("Prev:   %x\n", b.PrevHash)
-	ret += fmt.Sprintf("Hash:   %x\n", b.Hash)
-	ret += fmt.Sprintf("Txns:\n")
-	for i, txn := range b.Txns {
-		ret += fmt.Sprintf("\tTxns[%d]:%s", i, txn.String())
-	}
-
-	return ret
-}
-
-func NewBlock(prev types.HashValue, diff float64, height int32, txns []*Transaction) *Block {
-	block := &Block{
+func NewBlock(prev types.HashValue, diff float64, height int32, txns []*types.Transaction) *types.Block {
+	block := &types.Block{
 		Timestamp:  time.Now().UnixNano(),
 		PrevHash:   prev,
 		Difficulty: diff,
@@ -60,7 +36,7 @@ func NewBlock(prev types.HashValue, diff float64, height int32, txns []*Transact
 	return block
 }
 
-func BytesToBlock(bytes []byte) *Block {
+func BytesToBlock(bytes []byte) *types.Block {
 	if bytes == nil {
 		log.SetCallerLevel(1)
 		log.Warnln("BytesToBlock parameter is nil")
@@ -68,7 +44,7 @@ func BytesToBlock(bytes []byte) *Block {
 		return nil
 	}
 
-	block := Block{}
+	block := types.Block{}
 	err := json.Unmarshal(bytes, &block)
 	if err != nil {
 		log.Warnf("%s\n", bytes)

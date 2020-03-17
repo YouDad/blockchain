@@ -5,9 +5,10 @@ import (
 
 	"github.com/YouDad/blockchain/api"
 	"github.com/YouDad/blockchain/core"
+	"github.com/YouDad/blockchain/global"
 	"github.com/YouDad/blockchain/log"
-	"github.com/YouDad/blockchain/mempool"
 	"github.com/YouDad/blockchain/network"
+	"github.com/YouDad/blockchain/types"
 	"github.com/YouDad/blockchain/wallet"
 )
 
@@ -35,9 +36,9 @@ var MiningCmd = &cobra.Command{
 
 			bc := core.GetBlockchain()
 			for {
-				txs := []*core.Transaction{core.NewCoinbaseTxn(nodeAddress)}
+				txs := []*types.Transaction{core.NewCoinbaseTxn(nodeAddress)}
 				set := core.GetUTXOSet()
-				txs = append(txs, mempool.GetTxns()...)
+				txs = append(txs, global.GetMempool().GetTxns()...)
 
 				for {
 					newBlocks := bc.MineBlock(txs)

@@ -7,7 +7,6 @@ import (
 	"github.com/YouDad/blockchain/core"
 	"github.com/YouDad/blockchain/global"
 	"github.com/YouDad/blockchain/log"
-	"github.com/YouDad/blockchain/mempool"
 	"github.com/YouDad/blockchain/network"
 	"github.com/YouDad/blockchain/types"
 	"github.com/YouDad/blockchain/utils"
@@ -18,13 +17,13 @@ type DBController struct {
 	BaseController
 }
 
-type GetGenesisReply = core.Block
+type GetGenesisReply = types.Block
 
 var (
 	ErrNull = errors.New("null")
 )
 
-func GetGenesis() (*core.Block, error) {
+func GetGenesis() (*types.Block, error) {
 	var reply GetGenesisReply
 
 	err, _ := network.Call("db/GetGenesis", nil, &reply)
@@ -90,12 +89,12 @@ type GetBlocksArgs = struct {
 	Hash types.HashValue
 }
 type GetBlocksReply = struct {
-	Blocks []*core.Block
+	Blocks []*types.Block
 }
 
 var ErrNoBlock = errors.New("No Needed Hash Block")
 
-func CallbackGetBlocks(start, end int32, hash types.HashValue, address string) ([]*core.Block, error) {
+func CallbackGetBlocks(start, end int32, hash types.HashValue, address string) ([]*types.Block, error) {
 	args := GetBlocksArgs{start, end, hash}
 	var reply GetBlocksReply
 
@@ -104,7 +103,7 @@ func CallbackGetBlocks(start, end int32, hash types.HashValue, address string) (
 	return reply.Blocks, err
 }
 
-func GetBlocks(start, end int32, hash types.HashValue) []*core.Block {
+func GetBlocks(start, end int32, hash types.HashValue) []*types.Block {
 	args := GetBlocksArgs{start, end, hash}
 	var reply GetBlocksReply
 	err, _ := network.Call("db/GetBlocks", &args, &reply)
@@ -146,9 +145,9 @@ func (c *DBController) GetBlocks() {
 	c.Return(reply)
 }
 
-type SendTransactionArgs = core.Transaction
+type SendTransactionArgs = types.Transaction
 
-func SendTransaction(txn *core.Transaction) error {
+func SendTransaction(txn *types.Transaction) error {
 	return network.GossipCall("db/SendTransaction", txn, nil)
 }
 
@@ -157,6 +156,7 @@ func (c *DBController) SendTransaction() {
 	var args SendTransactionArgs
 	c.ParseParameter(&args)
 
+	mempool := global.GetMempool()
 	if !mempool.IsTxnExists(args) {
 		bc := core.GetBlockchain()
 		if bc.VerifyTransaction(args) {
@@ -169,13 +169,13 @@ func (c *DBController) SendTransaction() {
 	c.Return(nil)
 }
 
-type SendBlockArgs = core.Block
+type SendBlockArgs = types.Block
 
-func CallbackSendBlock(block *core.Block, address string) {
+func CallbackSendBlock(block *types.Block, address string) {
 	network.Callback(address, "db/SendBlock", block, nil)
 }
 
-func SendBlock(block *core.Block) {
+func SendBlock(block *types.Block) {
 	network.GossipCall("db/SendBlock", block, nil)
 }
 
