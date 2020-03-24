@@ -119,11 +119,9 @@ func (set *UTXOSet) NewUTXOTransaction(from, to string, amount int64) (*types.Tr
 	}
 
 	txn := types.Transaction{
-		Hash: nil,
 		Vin:  ins,
 		Vout: outs,
 	}
-	txn.Hash = utils.SHA256(&txn)
 	err = set.bc.SignTransaction(&txn, srcWallet.PrivateKey)
 	return &txn, err
 }

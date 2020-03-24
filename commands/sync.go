@@ -29,8 +29,8 @@ var SyncCmd = &cobra.Command{
 		genesis := bc.GetGenesis()
 		lastest := bc.GetLastest()
 		lastestHeight := global.GetHeight()
-		lastestHash := lastest.Hash
-		height, err, address := api.SendVersion(lastestHeight, genesis.Hash, lastestHash)
+		lastestHash := lastest.Hash()
+		height, err, address := api.SendVersion(lastestHeight, genesis.Hash(), lastestHash)
 		if err == api.RootHashDifferentError {
 			log.Warnln(err)
 			return

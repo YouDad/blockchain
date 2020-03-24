@@ -22,7 +22,7 @@ type BlockchainIterator struct {
 }
 
 func (bc *Blockchain) Begin() *BlockchainIterator {
-	return &BlockchainIterator{bc, bc.GetLastest().Hash}
+	return &BlockchainIterator{bc, bc.GetLastest().Hash()}
 }
 
 func (iter *BlockchainIterator) Next() (nextBlock *types.Block) {
@@ -116,7 +116,7 @@ func (bc *Blockchain) MineBlock(txns []*types.Transaction) *types.Block {
 		difficulty *= 59 * 60 * 1e9 / float64(thisDiff.Timestamp-lastDiff.Timestamp)
 	}
 
-	newBlock := NewBlock(lastest.Hash, difficulty, height, txns)
+	newBlock := NewBlock(lastest.Hash(), difficulty, height, txns)
 	if newBlock == nil {
 		return nil
 	}
@@ -138,7 +138,7 @@ func (bc *Blockchain) FindUTXO() map[string][]types.TxnOutput {
 		}
 
 		for _, txn := range block.Txns {
-			hash := hex.EncodeToString(txn.Hash[:]) // 交易哈希
+			hash := hex.EncodeToString(txn.Hash()) // 交易哈希
 
 			for i, out := range txn.Vout {
 				if stxos[hash] != nil {
@@ -176,7 +176,7 @@ func (bc *Blockchain) FindTxn(hash types.HashValue) (types.Transaction, error) {
 
 	for block = iter.Next(); block != nil; block = iter.Next() {
 		for _, txn := range block.Txns {
-			if bytes.Compare(txn.Hash, hash) == 0 {
+			if bytes.Compare(txn.Hash(), hash) == 0 {
 				return *txn, nil
 			}
 		}
@@ -194,7 +194,7 @@ func (bc *Blockchain) SignTransaction(txn *types.Transaction, sk types.PrivateKe
 		if err != nil {
 			return err
 		}
-		hashedTxn[hex.EncodeToString(vinTxn.Hash)] = vinTxn
+		hashedTxn[hex.EncodeToString(vinTxn.Hash())] = vinTxn
 	}
 
 	txn.Sign(sk, hashedTxn)
@@ -213,7 +213,7 @@ func (bc *Blockchain) VerifyTransaction(txn types.Transaction) bool {
 		if err != nil {
 			return false
 		}
-		prevTXs[hex.EncodeToString(prevTX.Hash)] = prevTX
+		prevTXs[hex.EncodeToString(prevTX.Hash())] = prevTX
 	}
 
 	return txn.Verify(prevTXs)

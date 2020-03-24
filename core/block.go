@@ -31,7 +31,6 @@ func NewBlock(prev types.HashValue, diff float64, height int32, txns []*types.Tr
 		return nil
 	}
 	block.Nonce = nonce
-	block.Hash = hash
 	log.Debugf("Mined %s\n", block.String())
 	return block
 }

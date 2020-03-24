@@ -36,7 +36,7 @@ func SyncBlocks(newHeight int32, address string) {
 			}
 
 			// log.Tracef("%x === %x\n", hash, block.Hash)
-			if bytes.Compare(hash, block.Hash) == 0 {
+			if bytes.Compare(hash, block.Hash()) == 0 {
 				l = mid + 1
 			} else {
 				r = mid - 1
@@ -52,7 +52,7 @@ func SyncBlocks(newHeight int32, address string) {
 			log.Errln("二分nil")
 		}
 
-		lastestHash := lastest.Hash
+		lastestHash := lastest.Hash()
 		blocks, err := CallbackGetBlocks(l, newHeight, lastestHash, address)
 		if err != nil {
 			log.Warn(err)
@@ -69,7 +69,7 @@ func SyncBlocks(newHeight int32, address string) {
 		for _, block := range blocks {
 			if bytes.Compare(block.PrevHash, lastestHash) == 0 {
 				bc.AddBlock(block)
-				lastestHash = block.Hash
+				lastestHash = block.Hash()
 			} else {
 				break
 			}

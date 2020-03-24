@@ -10,18 +10,22 @@ import (
 	"strings"
 
 	"github.com/YouDad/blockchain/log"
+	"github.com/YouDad/blockchain/utils"
 )
 
 type Transaction struct {
-	Hash HashValue
 	Vin  []TxnInput
 	Vout []TxnOutput
+}
+
+func (txn Transaction) Hash() HashValue {
+	return utils.SHA256(txn)
 }
 
 func (txn Transaction) String() string {
 	lines := []string{}
 
-	lines = append(lines, fmt.Sprintf("\n\t\tTxnHash %x:", txn.Hash))
+	lines = append(lines, fmt.Sprintf("\n\t\tTxnHash %x:", txn.Hash()))
 
 	for i, input := range txn.Vin {
 
@@ -69,7 +73,6 @@ func (txn Transaction) TrimmedCopy() Transaction {
 	}
 
 	txCopy := Transaction{
-		Hash: txn.Hash,
 		Vin:  inputs,
 		Vout: outputs,
 	}
@@ -80,12 +83,6 @@ func (txn Transaction) TrimmedCopy() Transaction {
 func (txn *Transaction) Sign(sk PrivateKey, hashedTxn map[string]Transaction) {
 	if txn.IsCoinbase() {
 		return
-	}
-
-	for _, vin := range txn.Vin {
-		if hashedTxn[hex.EncodeToString(vin.VoutHash)].Hash == nil {
-			log.Errln("Prev Hashed Txn is not correct")
-		}
 	}
 
 	txnCopy := txn.TrimmedCopy()
@@ -107,12 +104,6 @@ func (txn *Transaction) Sign(sk PrivateKey, hashedTxn map[string]Transaction) {
 func (txn Transaction) Verify(hashedTxn map[string]Transaction) bool {
 	if txn.IsCoinbase() {
 		return true
-	}
-
-	for _, vin := range txn.Vin {
-		if hashedTxn[hex.EncodeToString(vin.VoutHash)].Hash == nil {
-			log.Errln("Previous transaction is not correct")
-		}
 	}
 
 	txnCopy := txn.TrimmedCopy()

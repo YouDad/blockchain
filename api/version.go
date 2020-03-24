@@ -71,15 +71,15 @@ func (c *VersionController) SendVersion() {
 	reply = types.Version{
 		Version:  Version,
 		Height:   lastestHeight,
-		RootHash: genesis.Hash,
-		NowHash:  lastest.Hash,
+		RootHash: genesis.Hash(),
+		NowHash:  lastest.Hash(),
 	}
 
 	if args.Height == 0 && len(args.RootHash) == 0 {
 		c.Return(reply)
 	}
 
-	if bytes.Compare(args.RootHash, genesis.Hash) != 0 {
+	if bytes.Compare(args.RootHash, genesis.Hash()) != 0 {
 		c.ReturnErr(RootHashDifferentError)
 	}
 

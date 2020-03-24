@@ -7,7 +7,6 @@ import (
 
 	"github.com/YouDad/blockchain/log"
 	"github.com/YouDad/blockchain/types"
-	"github.com/YouDad/blockchain/utils"
 )
 
 func NewCoinbaseTxn(from string) *types.Transaction {
@@ -21,8 +20,6 @@ func NewCoinbaseTxn(from string) *types.Transaction {
 	txn.Vin = []types.TxnInput{types.TxnInput{VoutIndex: -1, PubKeyHash: []byte(data)}}
 	// Send $from 50BTC
 	txn.Vout = []types.TxnOutput{*NewTxnOutput(from, 50_000_000)}
-
-	txn.Hash = utils.SHA256(&txn)
 	return &txn
 }
 

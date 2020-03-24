@@ -196,7 +196,7 @@ func (c *DBController) SendBlock() {
 	}
 
 	if args.Height == lastestHeight+1 {
-		if bytes.Compare(args.PrevHash, lastest.Hash) == 0 {
+		if bytes.Compare(args.PrevHash, lastest.Hash()) == 0 {
 			bc.AddBlock(&args)
 			set.Update(&args)
 		}
@@ -239,7 +239,7 @@ func (c *DBController) GetHash() {
 	if block == nil {
 		c.ReturnErr(ErrNoBlock)
 	}
-	reply.Hash = block.Hash
+	reply.Hash = block.Hash()
 
 	c.Return(reply)
 }

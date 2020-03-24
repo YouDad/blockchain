@@ -11,7 +11,6 @@ import (
 	"reflect"
 
 	"github.com/YouDad/blockchain/log"
-	"github.com/YouDad/blockchain/types"
 )
 
 func GetExternIP() string {
@@ -41,7 +40,7 @@ func Encode(arg interface{}) []byte {
 	return ret
 }
 
-func SHA256(arg interface{}) types.HashValue {
+func SHA256(arg interface{}) []byte {
 	hash := sha256.Sum256(Encode(arg))
 	return hash[:]
 }

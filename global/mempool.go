@@ -23,7 +23,7 @@ func GetMempool() Mempool {
 
 func (m Mempool) IsTxnExists(txn types.Transaction) bool {
 	var key [32]byte
-	copy(key[0:32], txn.Hash)
+	copy(key[0:32], txn.Hash())
 	_, ok := m.pool[key]
 	return ok
 }
@@ -31,7 +31,7 @@ func (m Mempool) IsTxnExists(txn types.Transaction) bool {
 func (m *Mempool) AddTxnToMempool(txn types.Transaction) {
 	log.Infof("AddTxnToMempool %x\n", txn.Hash)
 	var key [32]byte
-	copy(key[0:32], txn.Hash)
+	copy(key[0:32], txn.Hash())
 	m.pool[key] = txn
 }
 
