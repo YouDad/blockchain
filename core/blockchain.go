@@ -43,7 +43,7 @@ func CreateBlockchain(minerAddress string) *Blockchain {
 	global.SetHeight(-1)
 	genesis := NewBlock(nil, 1, 0, []*types.Transaction{NewCoinbaseTxn(minerAddress)})
 	bytes := utils.Encode(genesis)
-	bc.Set(genesis.Hash, bytes)
+	bc.Set(genesis.Hash(), bytes)
 	bc.Set(genesis.Height, bytes)
 	bc.Set("genesis", bytes)
 	bc.Set("lastest", bytes)
@@ -56,7 +56,7 @@ func CreateBlockchainFromGenesis(genesis *types.Block) *Blockchain {
 	bc := GetBlockchain()
 	bc.Clear()
 	bytes := utils.Encode(genesis)
-	bc.Set(genesis.Hash, bytes)
+	bc.Set(genesis.Hash(), bytes)
 	bc.Set(genesis.Height, bytes)
 	bc.Set("genesis", bytes)
 	bc.Set("lastest", bytes)
@@ -87,14 +87,14 @@ func (bc *Blockchain) AddBlock(b *types.Block) {
 		return
 	}
 
-	if bc.Get(b.Hash) != nil {
+	if bc.Get(b.Hash()) != nil {
 		return
 	}
 
 	bytes := utils.Encode(b)
 	if global.GetHeight() < b.Height {
 		bc.Set("lastest", bytes)
-		bc.Set(b.Hash, bytes)
+		bc.Set(b.Hash(), bytes)
 		bc.Set(b.Height, bytes)
 		global.SetHeight(b.Height)
 	}
@@ -120,7 +120,7 @@ func (bc *Blockchain) MineBlock(txns []*types.Transaction) *types.Block {
 	if newBlock == nil {
 		return nil
 	}
-	log.Infoln("New Block", lastest.Hash, difficulty, height)
+	log.Infoln("New Block", lastest.Hash(), difficulty, height)
 	bc.AddBlock(newBlock)
 	global.SyncMutex.Unlock()
 	return newBlock

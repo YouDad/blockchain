@@ -45,14 +45,14 @@ func (set *UTXOSet) Update(b *types.Block) {
 		for _, out := range txn.Vout {
 			newOutputs = append(newOutputs, out)
 		}
-		set.Set(txn.Hash, utils.Encode(newOutputs))
+		set.Set(txn.Hash(), utils.Encode(newOutputs))
 	}
 }
 
 func (set *UTXOSet) Reverse(b *types.Block) {
 	for _, txn := range b.Txns {
 		if !txn.IsCoinbase() {
-			set.Delete(txn.Hash)
+			set.Delete(txn.Hash())
 			for _, vin := range txn.Vin {
 				var txos []types.TxnOutput
 				txosBytes := set.Get(vin.VoutHash)

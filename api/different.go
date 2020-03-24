@@ -19,7 +19,7 @@ func SyncBlocks(newHeight int32, address string) {
 	log.Infoln("SyncBlock Start!")
 	bc := core.GetBlockchain()
 	lastest := bc.GetLastest()
-	originHash := lastest.Hash
+	originHash := lastest.Hash()
 
 	if newHeight > lastestHeight {
 		var l int32 = 0
@@ -69,6 +69,7 @@ func SyncBlocks(newHeight int32, address string) {
 		for _, block := range blocks {
 			if bytes.Compare(block.PrevHash, lastestHash) == 0 {
 				bc.AddBlock(block)
+				set.Update(block)
 				lastestHash = block.Hash()
 			} else {
 				break
