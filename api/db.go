@@ -153,6 +153,7 @@ func GossipTxn(txn *types.Transaction) error {
 
 // @router /GossipTxn [post]
 func (c *DBController) GossipTxn() {
+	// TODO: Check Group
 	var args GossipTxnArgs
 	c.ParseParameter(&args)
 
@@ -181,6 +182,7 @@ func GossipBlock(block *types.Block) {
 
 // @router /GossipBlock [post]
 func (c *DBController) GossipBlock() {
+	// TODO: Check Group
 	var args GossipBlockArgs
 	c.ParseParameter(&args)
 
