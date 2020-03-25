@@ -33,14 +33,18 @@ func updateSortedNodes() {
 	sortedNodes = nil
 	knownNodes := global.GetKnownNodes()
 	defer knownNodes.Release()
-	for address, times := range knownNodes.Get() {
+	for address, node := range knownNodes.Get() {
 		time := 0
-		for i := 0; i < 5; i++ {
-			time += times[i]
+
+		for _, rt := range node.ReactTime.Get() {
+			reactTime := rt.(int)
+			time += reactTime
 		}
+
 		if address == "127.0.0.1:9999" {
 			time += 100
 		}
+
 		sortedNodes = append(sortedNodes, Position{
 			Address:  address,
 			Distance: time / 5,
@@ -50,12 +54,12 @@ func updateSortedNodes() {
 }
 
 func GetKnownNodes() error {
-	knownNodeAddresses := []string{}
+	knownNodes := []GetKnownNodesArgs{}
 	myAddress := "127.0.0.1:" + Port
-	err := getKnownNodes(myAddress, &knownNodeAddresses)
+	err := getKnownNodes(myAddress, &knownNodes)
 	if err == nil {
-		for _, address := range knownNodeAddresses {
-			global.GetKnownNodes().AddNode(address)
+		for _, node := range knownNodes {
+			global.GetKnownNodes().AddNode(node.Address, node.Timestamp, node.Groups)
 		}
 	}
 	return err

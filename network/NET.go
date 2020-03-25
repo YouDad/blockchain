@@ -1,6 +1,8 @@
 package network
 
 import (
+	"time"
+
 	"github.com/YouDad/blockchain/global"
 	"github.com/YouDad/blockchain/log"
 )
@@ -24,14 +26,16 @@ func (net *NET) HeartBeat(args *HeartBeatArgs) error {
 }
 
 type GetKnownNodesArgs = struct {
-	Address string
+	Address   string
+	Timestamp int64
+	Groups    []int
 }
 type GetKnownNodesReply = struct {
-	Addresses []string
+	Addresses []GetKnownNodesArgs
 }
 
-func getKnownNodes(myAddress string, knownNodeAddresses *[]string) error {
-	args := GetKnownNodesArgs{myAddress}
+func getKnownNodes(myAddress string, knownNodeAddresses *[]GetKnownNodesArgs) error {
+	args := GetKnownNodesArgs{myAddress, time.Now().UnixNano(), []int{0}}
 	var reply GetKnownNodesReply
 
 	err, _ := Call("net/GetKnownNodes", &args, &reply)
@@ -44,13 +48,15 @@ func (net *NET) GetKnownNodes(args *GetKnownNodesArgs, reply *GetKnownNodesReply
 
 	knownNodes := global.GetKnownNodes()
 	if args.Address != "" {
-		knownNodes.AddNode(args.Address)
+		knownNodes.AddNode(args.Address, args.Timestamp, args.Groups)
 	}
 
-	var nodes []string
+	var nodes []GetKnownNodesArgs
 	defer knownNodes.Release()
-	for node, _ := range knownNodes.Get() {
-		nodes = append(nodes, node)
+	for address, node := range knownNodes.Get() {
+		nodes = append(nodes, GetKnownNodesArgs{
+			address, node.Timestamp, node.Groups,
+		})
 	}
 	reply.Addresses = nodes
 
