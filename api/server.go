@@ -32,6 +32,6 @@ func (c *ServerController) SendCMD() {
 	if err != nil {
 		c.ReturnErr(err)
 	}
-	err = SendTransaction(txn)
+	err = GossipTxn(txn)
 	c.ReturnErr(err)
 }

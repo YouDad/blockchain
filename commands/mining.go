@@ -46,7 +46,7 @@ var MiningCmd = &cobra.Command{
 						break
 					}
 					set.Update(newBlocks)
-					api.SendBlock(newBlocks)
+					api.GossipBlock(newBlocks)
 				}
 			}
 		}()

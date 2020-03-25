@@ -145,15 +145,15 @@ func (c *DBController) GetBlocks() {
 	c.Return(reply)
 }
 
-type SendTransactionArgs = types.Transaction
+type GossipTxnArgs = types.Transaction
 
-func SendTransaction(txn *types.Transaction) error {
-	return network.GossipCall("db/SendTransaction", txn, nil)
+func GossipTxn(txn *types.Transaction) error {
+	return network.GossipCall("db/GossipTxn", txn, nil)
 }
 
-// @router /SendTransaction [post]
-func (c *DBController) SendTransaction() {
-	var args SendTransactionArgs
+// @router /GossipTxn [post]
+func (c *DBController) GossipTxn() {
+	var args GossipTxnArgs
 	c.ParseParameter(&args)
 
 	mempool := global.GetMempool()
@@ -161,7 +161,7 @@ func (c *DBController) SendTransaction() {
 		bc := core.GetBlockchain()
 		if bc.VerifyTransaction(args) {
 			mempool.AddTxnToMempool(args)
-			go SendTransaction(&args)
+			go GossipTxn(&args)
 		} else {
 			log.Warnf("AddTxnToMempool Verify false %x\n", args.Hash)
 		}
@@ -169,19 +169,19 @@ func (c *DBController) SendTransaction() {
 	c.Return(nil)
 }
 
-type SendBlockArgs = types.Block
+type GossipBlockArgs = types.Block
 
-func CallbackSendBlock(block *types.Block, address string) {
-	network.Callback(address, "db/SendBlock", block, nil)
+func CallbackGossipBlock(block *types.Block, address string) {
+	network.Callback(address, "db/GossipBlock", block, nil)
 }
 
-func SendBlock(block *types.Block) {
-	network.GossipCall("db/SendBlock", block, nil)
+func GossipBlock(block *types.Block) {
+	network.GossipCall("db/GossipBlock", block, nil)
 }
 
-// @router /SendBlock [post]
-func (c *DBController) SendBlock() {
-	var args SendBlockArgs
+// @router /GossipBlock [post]
+func (c *DBController) GossipBlock() {
+	var args GossipBlockArgs
 	c.ParseParameter(&args)
 
 	bc := core.GetBlockchain()
@@ -189,10 +189,10 @@ func (c *DBController) SendBlock() {
 	lastest := bc.GetLastest()
 	lastestHeight := lastest.Height
 
-	log.Debugf("SendBlock get=%d, lastest=%d\n", args.Height, lastestHeight)
+	log.Debugf("GossipBlock get=%d, lastest=%d\n", args.Height, lastestHeight)
 
 	if args.Height < lastestHeight {
-		CallbackSendBlock(lastest, c.GetString("address"))
+		CallbackGossipBlock(lastest, c.GetString("address"))
 	}
 
 	if args.Height == lastestHeight+1 {
