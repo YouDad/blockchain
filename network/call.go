@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/YouDad/blockchain/log"
+	"github.com/YouDad/blockchain/utils"
 )
 
 func call(node, method string, args interface{}, reply interface{}) error {
@@ -38,14 +39,22 @@ func call(node, method string, args interface{}, reply interface{}) error {
 	return nil
 }
 
-func Callback(node, method string, args interface{}, reply interface{}) error {
+func CallBack(node, method string, args interface{}, reply interface{}) error {
 	log.Infoln("Callback", method)
 	return call(node, method, args, reply)
 }
 
-func Call(method string, args interface{}, reply interface{}) (error, string) {
+func CallSelf(method string, args interface{}, reply interface{}) error {
+	log.Infoln("CallMySelf", method)
+	return call("127.0.0.1:"+Port, method, args, reply)
+}
+
+func CallInnerGroup(method string, args interface{}, reply interface{}) (error, string) {
 	log.Infoln("Call", method)
 	for _, node := range GetSortedNodes() {
+		if utils.IntIndexOf(node.Groups, 0) == -1 {
+			continue
+		}
 		err := call(node.Address, method, args, reply)
 		if err != nil {
 			log.Warnln(node.Address, err)
@@ -56,17 +65,12 @@ func Call(method string, args interface{}, reply interface{}) (error, string) {
 	return errors.New("None of the nodes responded!"), ""
 }
 
-func CallMySelf(method string, args interface{}, reply interface{}) error {
-	log.Infoln("CallMySelf", method)
-	return call("127.0.0.1:"+Port, method, args, reply)
-}
-
 func random(min, max int) int {
 	rand.Seed(time.Now().UnixNano())
 	return rand.Int()%(max-min) + min
 }
 
-func GossipCall(method string, args interface{}, reply interface{}) error {
+func gossipCall(method string, args interface{}, reply interface{}, targetGroup int) error {
 	log.Infoln("GossipCall", method)
 	visit := make([]bool, len(sortedNodes))
 	visited := 0
@@ -80,6 +84,9 @@ func GossipCall(method string, args interface{}, reply interface{}) error {
 			}
 			visit[visitor] = true
 			visited++
+			if targetGroup >= 0 && utils.IntIndexOf(sortedNodes[visitor].Groups, targetGroup) < 0 {
+				continue
+			}
 			err := call(sortedNodes[visitor].Address, method, args, reply)
 			if err != nil {
 				log.Infoln(sortedNodes[visitor].Address, err)
@@ -102,4 +109,12 @@ func GossipCall(method string, args interface{}, reply interface{}) error {
 	}
 
 	return nil
+}
+
+func GossipCallInnerGroup(method string, args interface{}, reply interface{}) error {
+	return gossipCall(method, args, reply, 0)
+}
+
+func GossipCallInterGroup(method string, args interface{}, reply interface{}) error {
+	return gossipCall(method, args, reply, -1)
 }

@@ -13,6 +13,7 @@ var sortedNodes PositionSlice
 type Position struct {
 	Address  string
 	Distance int
+	Groups   []int
 }
 
 type PositionSlice []Position
@@ -48,6 +49,7 @@ func updateSortedNodes() {
 		sortedNodes = append(sortedNodes, Position{
 			Address:  address,
 			Distance: time / 5,
+			Groups:   node.Groups,
 		})
 	}
 	sort.Sort(sortedNodes)

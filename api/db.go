@@ -26,7 +26,7 @@ var (
 func GetGenesis() (*types.Block, error) {
 	var reply GetGenesisReply
 
-	err, _ := network.Call("db/GetGenesis", nil, &reply)
+	err, _ := network.CallInnerGroup("db/GetGenesis", nil, &reply)
 	if err != nil {
 		return nil, err
 	}
@@ -56,7 +56,7 @@ func GetBalance(address string) (int64, error) {
 	args := GetBalanceArgs{address}
 	var reply GetBalanceReply
 
-	err := network.CallMySelf("db/GetBalance", &args, &reply)
+	err := network.CallSelf("db/GetBalance", &args, &reply)
 	return reply.Balance, err
 }
 
@@ -98,7 +98,7 @@ func CallbackGetBlocks(start, end int32, hash types.HashValue, address string) (
 	args := GetBlocksArgs{start, end, hash}
 	var reply GetBlocksReply
 
-	err := network.Callback(address, "db/GetBlocks", &args, &reply)
+	err := network.CallBack(address, "db/GetBlocks", &args, &reply)
 
 	return reply.Blocks, err
 }
@@ -106,7 +106,7 @@ func CallbackGetBlocks(start, end int32, hash types.HashValue, address string) (
 func GetBlocks(start, end int32, hash types.HashValue) []*types.Block {
 	args := GetBlocksArgs{start, end, hash}
 	var reply GetBlocksReply
-	err, _ := network.Call("db/GetBlocks", &args, &reply)
+	err, _ := network.CallInnerGroup("db/GetBlocks", &args, &reply)
 	log.Warn(err)
 
 	return reply.Blocks
@@ -148,7 +148,7 @@ func (c *DBController) GetBlocks() {
 type GossipTxnArgs = types.Transaction
 
 func GossipTxn(txn *types.Transaction) error {
-	return network.GossipCall("db/GossipTxn", txn, nil)
+	return network.GossipCallInnerGroup("db/GossipTxn", txn, nil)
 }
 
 // @router /GossipTxn [post]
@@ -172,11 +172,11 @@ func (c *DBController) GossipTxn() {
 type GossipBlockArgs = types.Block
 
 func CallbackGossipBlock(block *types.Block, address string) {
-	network.Callback(address, "db/GossipBlock", block, nil)
+	network.CallBack(address, "db/GossipBlock", block, nil)
 }
 
 func GossipBlock(block *types.Block) {
-	network.GossipCall("db/GossipBlock", block, nil)
+	network.GossipCallInnerGroup("db/GossipBlock", block, nil)
 }
 
 // @router /GossipBlock [post]
@@ -213,7 +213,7 @@ func CallbackGetHash(height int32, address string) (types.HashValue, error) {
 	args := GetHashArgs{height}
 	var reply GetHashReply
 
-	err := network.Callback(address, "db/GetHash", &args, &reply)
+	err := network.CallBack(address, "db/GetHash", &args, &reply)
 
 	return reply.Hash, err
 }
@@ -222,7 +222,7 @@ func GetHash(height int32) (types.HashValue, error) {
 	args := GetHashArgs{height}
 	var reply GetHashReply
 
-	err, _ := network.Call("db/GetHash", &args, &reply)
+	err, _ := network.CallInnerGroup("db/GetHash", &args, &reply)
 
 	return reply.Hash, err
 }

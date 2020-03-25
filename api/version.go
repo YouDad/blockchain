@@ -33,7 +33,7 @@ func SendVersion(nowHeight int32, rootHash, nowHash types.HashValue) (int32, err
 		RootHash: rootHash,
 		NowHash:  nowHash,
 	}
-	err, address := network.Call("version/SendVersion", &args, &reply)
+	err, address := network.CallInnerGroup("version/SendVersion", &args, &reply)
 
 	if err != nil {
 		return 0, err, address
@@ -53,7 +53,7 @@ func SendVersion(nowHeight int32, rootHash, nowHash types.HashValue) (int32, err
 func GetVersion() (types.Version, error) {
 	var reply SendVersionReply
 
-	err := network.CallMySelf("version/SendVersion", &reply, &reply)
+	err := network.CallSelf("version/SendVersion", &reply, &reply)
 	return reply, err
 }
 

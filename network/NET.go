@@ -38,7 +38,7 @@ func getKnownNodes(myAddress string, knownNodeAddresses *[]GetKnownNodesArgs) er
 	args := GetKnownNodesArgs{myAddress, time.Now().UnixNano(), []int{0}}
 	var reply GetKnownNodesReply
 
-	err, _ := Call("net/GetKnownNodes", &args, &reply)
+	err, _ := CallInnerGroup("net/GetKnownNodes", &args, &reply)
 	*knownNodeAddresses = reply.Addresses
 	return err
 }

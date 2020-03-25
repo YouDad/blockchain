@@ -17,7 +17,7 @@ type SendCMDArgs struct {
 
 func SendCMD(from, to string, amount int64) error {
 	args := SendCMDArgs{from, to, amount}
-	return network.CallMySelf("server/SendCMD", &args, nil)
+	return network.CallSelf("server/SendCMD", &args, nil)
 }
 
 func (c *ServerController) SendCMD() {
