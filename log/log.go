@@ -11,13 +11,13 @@ import (
 
 var (
 	callLevel   = 2
-	logLevel    int
+	logLevel    uint
 	prefix      string
 	prefixMutex sync.Mutex
 	levelMutex  sync.Mutex
 )
 
-func Register(level int, port string) {
+func Register(level uint, port string) {
 	log.SetFlags(log.Lmicroseconds | log.Ltime)
 	logLevel = level
 	prefix = fmt.Sprintf("[%s]", port)

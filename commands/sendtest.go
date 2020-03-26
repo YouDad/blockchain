@@ -25,7 +25,7 @@ var SendTestCmd = &cobra.Command{
 			log.Errln("Sender address is not valid")
 		}
 
-		network.Register(Port)
+		network.Register()
 
 		for {
 			sendTestTo := string(wallet.NewWallet().GetAddress())

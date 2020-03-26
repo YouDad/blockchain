@@ -10,15 +10,14 @@ import (
 )
 
 var (
-	Port     string
-	LogLevel int
+	logLevel uint
 )
 
 func init() {
-	RootCmd.PersistentFlags().StringVar(&Port, "port", "",
+	RootCmd.PersistentFlags().StringVar(&global.Port, "port", "",
 		"The port is service's portid at localhost network")
 	RootCmd.MarkPersistentFlagRequired("port")
-	RootCmd.PersistentFlags().IntVarP(&LogLevel, "verbose", "v", 2,
+	RootCmd.PersistentFlags().UintVarP(&logLevel, "verbose", "v", 2,
 		"Verbose information 0~3")
 }
 
@@ -26,11 +25,8 @@ var RootCmd = &cobra.Command{
 	Use:   "blockchain",
 	Short: "Blockchain coin Application",
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
-		global.RegisterDatabase(fmt.Sprintf("blockchain%s.db", Port))
-		wallet.Register(Port)
-		if LogLevel < 0 {
-			LogLevel = 0
-		}
-		log.Register(LogLevel, Port)
+		global.RegisterDatabase(fmt.Sprintf("blockchain%s.db", global.Port))
+		wallet.Register()
+		log.Register(logLevel, global.Port)
 	},
 }

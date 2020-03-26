@@ -57,7 +57,7 @@ func updateSortedNodes() {
 
 func GetKnownNodes() error {
 	knownNodes := []GetKnownNodesArgs{}
-	myAddress := "127.0.0.1:" + Port
+	myAddress := "127.0.0.1:" + global.Port
 	err := getKnownNodes(myAddress, &knownNodes)
 	if err == nil {
 		for _, node := range knownNodes {

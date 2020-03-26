@@ -13,8 +13,8 @@ var SyncCmd = &cobra.Command{
 	Use:   "sync",
 	Short: "sync information from other node",
 	Run: func(cmd *cobra.Command, args []string) {
-		log.Infoln("Syncing", Port)
-		network.Register(Port)
+		log.Infoln("Syncing", global.Port)
+		network.Register()
 		log.Warn(network.GetKnownNodes())
 
 		var bc *core.Blockchain

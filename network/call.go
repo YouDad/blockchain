@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/YouDad/blockchain/global"
 	"github.com/YouDad/blockchain/log"
 	"github.com/YouDad/blockchain/utils"
 )
@@ -19,7 +20,7 @@ func call(node, method string, args interface{}, reply interface{}) error {
 	if err != nil {
 		return err
 	}
-	resp, err := http.Post(fmt.Sprintf("http://%s/v1/%s?address=127.0.0.1:%s", node, method, Port),
+	resp, err := http.Post(fmt.Sprintf("http://%s/v1/%s?address=127.0.0.1:%s", node, method, global.Port),
 		"application/json;charset=UTF-8", bytes.NewBuffer(b))
 	if err != nil {
 		return err
@@ -46,7 +47,7 @@ func CallBack(node, method string, args interface{}, reply interface{}) error {
 
 func CallSelf(method string, args interface{}, reply interface{}) error {
 	log.Infoln("CallMySelf", method)
-	return call("127.0.0.1:"+Port, method, args, reply)
+	return call("127.0.0.1:"+global.Port, method, args, reply)
 }
 
 func CallInnerGroup(method string, args interface{}, reply interface{}) (error, string) {

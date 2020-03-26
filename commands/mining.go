@@ -26,8 +26,8 @@ var MiningCmd = &cobra.Command{
 	Use:   "mining",
 	Short: "Start a mining node with ID specified in port.",
 	Run: func(cmd *cobra.Command, args []string) {
-		log.Infoln("Starting node", Port)
-		network.Register(Port)
+		log.Infoln("Starting node", global.Port)
+		network.Register()
 		core.Register(speed)
 		go func() {
 			if !wallet.ValidateAddress(nodeAddress) {

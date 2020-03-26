@@ -2,6 +2,7 @@ package network
 
 import (
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/YouDad/blockchain/global"
@@ -10,21 +11,20 @@ import (
 )
 
 var (
-	Port        string
-	protocol    = "tcp"
-	ServerReady = make(chan interface{}, 1)
+	protocol     = "tcp"
+	ServerReady  = make(chan interface{}, 1)
+	onceRegister sync.Once
 )
 
-func Register(port string) {
-	if Port == "" {
-		Port = port
+func Register() {
+	onceRegister.Do(func() {
 		global.GetKnownNodes().AddNode("127.0.0.1:9999", 0, []int{GetGroup()})
 		updateSortedNodes()
-	}
+	})
 }
 
 func StartServer() {
-	address := fmt.Sprintf("0.0.0.0:%s", Port)
+	address := fmt.Sprintf("0.0.0.0:%s", global.Port)
 	go knownNodeUpdating()
 	log.Infoln("Server Listen", address)
 	go func() {

@@ -39,7 +39,7 @@ var SendCmd = &cobra.Command{
 			log.Errln("Recipient address is not valid")
 		}
 
-		network.Register(Port)
+		network.Register()
 		if sendMine {
 			bc := core.GetBlockchain()
 			set := core.GetUTXOSet()

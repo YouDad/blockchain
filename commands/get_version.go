@@ -11,10 +11,10 @@ var GetVersionCmd = &cobra.Command{
 	Use:   "get_version",
 	Short: "Print version information the blocks of the blockchain",
 	Run: func(cmd *cobra.Command, args []string) {
-		network.Register(Port)
+		network.Register()
 		version, err := api.GetVersion()
 		if err != nil {
-			network.Register(Port)
+			network.Register()
 			go network.StartServer()
 			<-network.ServerReady
 			version, err = api.GetVersion()

@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"os"
 
+	"github.com/YouDad/blockchain/global"
 	"github.com/YouDad/blockchain/log"
 )
 
@@ -15,9 +16,9 @@ var (
 	walletFilename string
 )
 
-func Register(port string) {
+func Register() {
 	gob.Register(elliptic.P256())
-	walletFilename = fmt.Sprintf("wallet%s.dat", port)
+	walletFilename = fmt.Sprintf("wallet%s.dat", global.Port)
 }
 
 // Wallets stores a collection of wallets
@@ -74,14 +75,14 @@ func (ws Wallets) GetWallet(address string) (*Wallet, bool) {
 }
 
 // SaveToFile saves wallets to a file
-func (ws Wallets) SaveToFile(walletFile string) {
+func (ws Wallets) SaveToFile() {
 	var content bytes.Buffer
 
 	encoder := gob.NewEncoder(&content)
 	err := encoder.Encode(ws)
 	log.Err(err)
 
-	walletFile = fmt.Sprintf("wallet%s.dat", walletFile)
+	walletFile := fmt.Sprintf("wallet%s.dat", global.Port)
 	err = ioutil.WriteFile(walletFile, content.Bytes(), 0644)
 	log.Err(err)
 }

@@ -12,7 +12,7 @@ var CreateWalletCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		wallets, _ := wallet.NewWallets()
 		address := wallets.CreateWallet()
-		wallets.SaveToFile(Port)
+		wallets.SaveToFile()
 
 		log.Infof("Your new address: %s\n", address)
 	},

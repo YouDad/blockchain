@@ -20,10 +20,10 @@ var GetBalanceCmd = &cobra.Command{
 	Use:   "get_balance",
 	Short: "Get balance of ADDRESS",
 	Run: func(cmd *cobra.Command, args []string) {
-		network.Register(Port)
+		network.Register()
 		balance, err := api.GetBalance(getBalanceAddress)
 		if err != nil {
-			network.Register(Port)
+			network.Register()
 			go network.StartServer()
 			<-network.ServerReady
 			balance, err = api.GetBalance(getBalanceAddress)
