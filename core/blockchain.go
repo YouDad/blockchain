@@ -120,7 +120,7 @@ func (bc *Blockchain) MineBlock(txns []*types.Transaction) *types.Block {
 	if newBlock == nil {
 		return nil
 	}
-	log.Infoln("New Block", lastest.Hash(), difficulty, height)
+	log.Infof("NewBlock[%d]{%.2f} %x", height, difficulty, lastest.Hash())
 	bc.AddBlock(newBlock)
 	global.SyncMutex.Unlock()
 	return newBlock

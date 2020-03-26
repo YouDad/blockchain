@@ -18,7 +18,7 @@ var (
 func Register(port string) {
 	if Port == "" {
 		Port = port
-		global.GetKnownNodes().AddNode("127.0.0.1:9999", 0, []int{0})
+		global.GetKnownNodes().AddNode("127.0.0.1:9999", 0, []int{GetGroup()})
 		updateSortedNodes()
 	}
 }

@@ -52,7 +52,8 @@ func CallSelf(method string, args interface{}, reply interface{}) error {
 func CallInnerGroup(method string, args interface{}, reply interface{}) (error, string) {
 	log.Infoln("Call", method)
 	for _, node := range GetSortedNodes() {
-		if utils.IntIndexOf(node.Groups, 0) == -1 {
+		// TODO: use for to check Groups
+		if utils.IntIndexOf(node.Groups, GetGroup()) == -1 {
 			continue
 		}
 		err := call(node.Address, method, args, reply)
@@ -65,11 +66,6 @@ func CallInnerGroup(method string, args interface{}, reply interface{}) (error, 
 	return errors.New("None of the nodes responded!"), ""
 }
 
-func random(min, max int) int {
-	rand.Seed(time.Now().UnixNano())
-	return rand.Int()%(max-min) + min
-}
-
 func gossipCall(method string, args interface{}, reply interface{}, targetGroup int) error {
 	log.Infoln("GossipCall", method)
 	visit := make([]bool, len(sortedNodes))
@@ -77,11 +73,14 @@ func gossipCall(method string, args interface{}, reply interface{}, targetGroup 
 	success := 0
 
 	send := func() bool {
-		for {
-			visitor := random(0, len(sortedNodes))
+		for len(sortedNodes) > visited {
+			rand.Seed(time.Now().UnixNano())
+			visitor := rand.Int() % len(sortedNodes)
+
 			if visit[visitor] {
 				continue
 			}
+
 			visit[visitor] = true
 			visited++
 			if targetGroup >= 0 && utils.IntIndexOf(sortedNodes[visitor].Groups, targetGroup) < 0 {
@@ -95,6 +94,7 @@ func gossipCall(method string, args interface{}, reply interface{}, targetGroup 
 			log.Infoln(sortedNodes[visitor].Address, "success!")
 			return true
 		}
+		return false
 	}
 
 	for success < 3 && visited < len(sortedNodes) {
@@ -112,7 +112,7 @@ func gossipCall(method string, args interface{}, reply interface{}, targetGroup 
 }
 
 func GossipCallInnerGroup(method string, args interface{}, reply interface{}) error {
-	return gossipCall(method, args, reply, 0)
+	return gossipCall(method, args, reply, GetGroup())
 }
 
 func GossipCallInterGroup(method string, args interface{}, reply interface{}) error {

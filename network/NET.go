@@ -35,7 +35,7 @@ type GetKnownNodesReply = struct {
 }
 
 func getKnownNodes(myAddress string, knownNodeAddresses *[]GetKnownNodesArgs) error {
-	args := GetKnownNodesArgs{myAddress, time.Now().UnixNano(), []int{0}}
+	args := GetKnownNodesArgs{myAddress, time.Now().UnixNano(), []int{GetGroup()}}
 	var reply GetKnownNodesReply
 
 	err, _ := CallInnerGroup("net/GetKnownNodes", &args, &reply)

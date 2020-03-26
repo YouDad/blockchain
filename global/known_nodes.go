@@ -56,6 +56,6 @@ func (this *KnownNodes) UpdateNode(address string, nano int64) {
 	if node.ReactTime.Len() == 5 {
 		node.ReactTime.Pop()
 	}
-	node.ReactTime.Push(nano / 1e9)
+	node.ReactTime.Push(int(nano / 1e6))
 	knownNodes[address] = node
 }
