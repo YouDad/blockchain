@@ -3,7 +3,7 @@ source test/define.sh $0 $1
 
 rm -rf *9999*
 VPortA="-v3 --port 9999"
-VPortB="-v3 --port 10003"
+VPortB="-v3 --port 9995"
 
 RunTest create_wallet "${VPortA}" 's#.*: \(.*\)#\1#g'
 AddressA="${TestRegMatch}"
