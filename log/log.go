@@ -34,7 +34,19 @@ func setPrefix(level string) {
 		file = file[index+len("blockchain "):]
 	}
 	prefixMutex.Lock()
-	LogSetPrefix(fmt.Sprintf("[%s]: { %s +%d } ", level, file, line))
+
+	// go routine
+	routineId := make([]byte, 20)
+	runtime.Stack(routineId, false)
+	routineId = routineId[10:]
+	for k, v := range routineId {
+		if v == 0x20 {
+			routineId = routineId[:k]
+			break
+		}
+	}
+
+	LogSetPrefix(fmt.Sprintf("[%s][%s]: { %s +%d } ", string(routineId), level, file, line))
 }
 
 func SetCallerLevel(level int) {
