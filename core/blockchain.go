@@ -39,7 +39,6 @@ func CreateBlockchain(minerAddress string) *Blockchain {
 	global.CreateDatabase()
 	bc := GetBlockchain()
 	bc.Clear()
-	global.SetHeight(-1)
 	genesis := NewBlock(nil, 1, 0, []*types.Transaction{NewCoinbaseTxn(minerAddress)})
 	bytes := utils.Encode(genesis)
 	bc.Set(genesis.Hash(), bytes)
@@ -73,7 +72,6 @@ func (bc *Blockchain) GetGenesis() *types.Block {
 
 func (bc *Blockchain) GetLastest() *types.Block {
 	lastest := BytesToBlock(bc.Get("lastest"))
-	global.SetHeight(lastest.Height)
 	return lastest
 }
 
@@ -91,11 +89,10 @@ func (bc *Blockchain) AddBlock(b *types.Block) {
 	}
 
 	bytes := utils.Encode(b)
-	if global.GetHeight() < b.Height {
+	if GetBlockchain().GetHeight() < b.Height {
 		bc.Set("lastest", bytes)
 		bc.Set(b.Hash(), bytes)
 		bc.Set(b.Height, bytes)
-		global.SetHeight(b.Height)
 	}
 }
 

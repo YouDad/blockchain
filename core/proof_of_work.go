@@ -56,7 +56,7 @@ func (pow *ProofOfWork) Run() (int64, []byte) {
 	start := nonce
 
 	for nonce < math.MaxInt64 {
-		if global.GetHeight() != pow.block.Height-1 {
+		if GetBlockchain().GetHeight() != pow.block.Height-1 {
 			return 0, nil
 		}
 		ok, hash = pow.Validate(nonce)

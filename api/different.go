@@ -9,7 +9,7 @@ import (
 )
 
 func SyncBlocks(newHeight int32, address string) {
-	lastestHeight := global.GetHeight()
+	lastestHeight := core.GetBlockchain().GetHeight()
 	if newHeight <= lastestHeight {
 		return
 	}
@@ -46,7 +46,6 @@ func SyncBlocks(newHeight int32, address string) {
 		// log.Traceln("l", l, "r", r)
 		lastestBytes := bc.Get(r)
 		bc.Set("lastest", lastestBytes)
-		global.SetHeight(lastestHeight)
 		lastest := core.BytesToBlock(lastestBytes)
 		if lastest == nil {
 			log.Errln("二分nil")

@@ -5,7 +5,6 @@ import (
 	"errors"
 
 	"github.com/YouDad/blockchain/core"
-	"github.com/YouDad/blockchain/global"
 	"github.com/YouDad/blockchain/log"
 	"github.com/YouDad/blockchain/network"
 	"github.com/YouDad/blockchain/types"
@@ -67,7 +66,7 @@ func (c *VersionController) SendVersion() {
 	bc := core.GetBlockchain()
 	genesis := bc.GetGenesis()
 	lastest := bc.GetLastest()
-	lastestHeight := global.GetHeight()
+	lastestHeight := lastest.Height
 	reply = types.Version{
 		Version:  Version,
 		Height:   lastestHeight,
