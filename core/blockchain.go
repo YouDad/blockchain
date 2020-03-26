@@ -2,7 +2,6 @@ package core
 
 import (
 	"bytes"
-	"encoding/hex"
 	"errors"
 	"fmt"
 
@@ -120,7 +119,7 @@ func (bc *Blockchain) MineBlock(txns []*types.Transaction) *types.Block {
 	if newBlock == nil {
 		return nil
 	}
-	log.Infof("NewBlock[%d]{%.2f} %x", height, difficulty, lastest.Hash())
+	log.Infof("NewBlock[%d]{%.2f} %s", height, difficulty, lastest.Hash())
 	bc.AddBlock(newBlock)
 	global.SyncMutex.Unlock()
 	return newBlock
@@ -138,7 +137,7 @@ func (bc *Blockchain) FindUTXO() map[string][]types.TxnOutput {
 		}
 
 		for _, txn := range block.Txns {
-			hash := hex.EncodeToString(txn.Hash()) // 交易哈希
+			hash := txn.Hash().String()
 
 			for i, out := range txn.Vout {
 				if stxos[hash] != nil {
@@ -153,7 +152,7 @@ func (bc *Blockchain) FindUTXO() map[string][]types.TxnOutput {
 
 			if !txn.IsCoinbase() {
 				for _, in := range txn.Vin {
-					inHash := hex.EncodeToString(in.VoutHash[:])
+					inHash := in.VoutHash.String()
 					_, ok := stxos[inHash]
 					if !ok {
 						stxos[inHash] = make(map[int]bool)
@@ -182,7 +181,7 @@ func (bc *Blockchain) FindTxn(hash types.HashValue) (types.Transaction, error) {
 		}
 	}
 
-	return types.Transaction{}, errors.New(fmt.Sprintf("Transaction is not found, %x", hash))
+	return types.Transaction{}, errors.New(fmt.Sprintf("Transaction is not found, %s", hash))
 }
 
 func (bc *Blockchain) SignTransaction(txn *types.Transaction, sk types.PrivateKey) error {
@@ -194,7 +193,7 @@ func (bc *Blockchain) SignTransaction(txn *types.Transaction, sk types.PrivateKe
 		if err != nil {
 			return err
 		}
-		hashedTxn[hex.EncodeToString(vinTxn.Hash())] = vinTxn
+		hashedTxn[vinTxn.Hash().String()] = vinTxn
 	}
 
 	txn.Sign(sk, hashedTxn)
@@ -213,7 +212,7 @@ func (bc *Blockchain) VerifyTransaction(txn types.Transaction) bool {
 		if err != nil {
 			return false
 		}
-		prevTXs[hex.EncodeToString(prevTX.Hash())] = prevTX
+		prevTXs[prevTX.Hash().String()] = prevTX
 	}
 
 	return txn.Verify(prevTXs)

@@ -22,8 +22,8 @@ func (b Block) Hash() HashValue {
 
 func (b Block) String() string {
 	ret := fmt.Sprintf("\nHeight: %d\n", b.Height)
-	ret += fmt.Sprintf("Prev:   %x\n", b.PrevHash)
-	ret += fmt.Sprintf("Hash:   %x\n", b.Hash())
+	ret += fmt.Sprintf("Prev:   %s\n", b.PrevHash)
+	ret += fmt.Sprintf("Hash:   %s\n", b.Hash())
 	ret += fmt.Sprintf("Txns:\n")
 	for i, txn := range b.Txns {
 		ret += fmt.Sprintf("\tTxns[%d]:%s", i, txn.String())

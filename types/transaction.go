@@ -4,7 +4,6 @@ import (
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rand"
-	"encoding/hex"
 	"fmt"
 	"math/big"
 	"strings"
@@ -25,12 +24,12 @@ func (txn Transaction) Hash() HashValue {
 func (txn Transaction) String() string {
 	lines := []string{}
 
-	lines = append(lines, fmt.Sprintf("\n\t\tTxnHash %x:", txn.Hash()))
+	lines = append(lines, fmt.Sprintf("\n\t\tTxnHash %s:", txn.Hash()))
 
 	for i, input := range txn.Vin {
 
 		lines = append(lines, fmt.Sprintf("\t\t+ Input %d:", i))
-		lines = append(lines, fmt.Sprintf("\t\t  - VoutHash:   %x", input.VoutHash))
+		lines = append(lines, fmt.Sprintf("\t\t  - VoutHash:   %s", input.VoutHash))
 		lines = append(lines, fmt.Sprintf("\t\t  - VoutIndex:  %d", input.VoutIndex))
 		lines = append(lines, fmt.Sprintf("\t\t  - Signature:  %x", input.Signature))
 		lines = append(lines, fmt.Sprintf("\t\t  - PubKeyHash: %x", input.PubKeyHash))
@@ -88,9 +87,9 @@ func (txn *Transaction) Sign(sk PrivateKey, hashedTxn map[string]Transaction) {
 	txnCopy := txn.TrimmedCopy()
 
 	for inIndex, vin := range txnCopy.Vin {
-		prevTxn := hashedTxn[hex.EncodeToString(vin.VoutHash)]
+		prevTxn := hashedTxn[vin.VoutHash.String()]
 		txnCopy.Vin[inIndex].PubKeyHash = prevTxn.Vout[vin.VoutIndex].PubKeyHash
-		dataToSign := []byte(fmt.Sprintf("%x\n", txnCopy))
+		dataToSign := []byte(fmt.Sprintf("%s\n", txnCopy))
 
 		r, s, err := ecdsa.Sign(rand.Reader, &sk, dataToSign)
 		log.Err(err)
@@ -110,9 +109,9 @@ func (txn Transaction) Verify(hashedTxn map[string]Transaction) bool {
 	curve := elliptic.P256()
 
 	for inIndex, vin := range txn.Vin {
-		prevTxn := hashedTxn[hex.EncodeToString(vin.VoutHash)]
+		prevTxn := hashedTxn[vin.VoutHash.String()]
 		txnCopy.Vin[inIndex].PubKeyHash = prevTxn.Vout[vin.VoutIndex].PubKeyHash
-		dataToVerify := []byte(fmt.Sprintf("%x\n", txnCopy))
+		dataToVerify := []byte(fmt.Sprintf("%s\n", txnCopy))
 
 		r := big.Int{}
 		s := big.Int{}

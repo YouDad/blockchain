@@ -35,7 +35,7 @@ func SyncBlocks(newHeight int32, address string) {
 				return
 			}
 
-			// log.Tracef("%x === %x\n", hash, block.Hash)
+			// log.Tracef("%s === %s\n", hash, block.Hash)
 			if bytes.Compare(hash, block.Hash()) == 0 {
 				l = mid + 1
 			} else {

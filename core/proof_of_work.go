@@ -86,7 +86,7 @@ func (pow *ProofOfWork) Validate(nonce int64) (bool, types.HashValue) {
 	isValid := hashInt.Cmp(pow.target) == -1
 
 	if nonce%(1<<20) == 0 {
-		log.Debugf("Dig into mine [%d] %x\n", nonce, hash)
+		log.Debugf("Dig into mine [%d] %s\n", nonce, hash)
 	}
 
 	return isValid, hash[:]

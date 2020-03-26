@@ -58,8 +58,10 @@ func IsDatabaseExists() bool {
 func interfaceToString(key interface{}) string {
 	var keyString string
 	switch v := key.(type) {
-	case types.HashValue:
+	case []byte:
 		keyString = hex.EncodeToString(v)
+	case types.HashValue:
+		keyString = v.String()
 	case string:
 		keyString = v
 	case int32:
@@ -73,8 +75,10 @@ func interfaceToString(key interface{}) string {
 func interfaceToBytes(key interface{}) []byte {
 	keyBytes := []byte{}
 	switch v := key.(type) {
-	case types.HashValue:
+	case []byte:
 		keyBytes = v
+	case types.HashValue:
+		keyBytes = []byte(v)
 	case string:
 		keyBytes = []byte(v)
 	case int32:

@@ -129,7 +129,7 @@ func (c *DBController) GetBlocks() {
 	}
 
 	if bytes.Compare(block.PrevHash, args.Hash) != 0 {
-		log.Warnf("%x != %x\n", block.PrevHash, args.Hash)
+		log.Warnf("%s != %s\n", block.PrevHash, args.Hash)
 		log.Warnln(block)
 		block := core.BytesToBlock(bc.Get(args.From - 1))
 		log.Warnln(block)
@@ -164,7 +164,7 @@ func (c *DBController) GossipTxn() {
 			mempool.AddTxnToMempool(args)
 			go GossipTxn(&args)
 		} else {
-			log.Warnf("AddTxnToMempool Verify false %x\n", args.Hash)
+			log.Warnf("AddTxnToMempool Verify false %s\n", args.Hash)
 		}
 	}
 	c.Return(nil)

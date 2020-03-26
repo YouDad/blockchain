@@ -22,7 +22,7 @@ var GetVersionCmd = &cobra.Command{
 		}
 		log.Infof("Version :%d\n", version.Version)
 		log.Infof("Height  :%d\n", version.Height)
-		log.Infof("NowHash :%x\n", version.NowHash)
-		log.Infof("RootHash:%x\n", version.RootHash)
+		log.Infof("NowHash :%s\n", version.NowHash)
+		log.Infof("RootHash:%s\n", version.RootHash)
 	},
 }
