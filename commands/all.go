@@ -8,6 +8,10 @@ import (
 	"github.com/YouDad/blockchain/network"
 )
 
+func init() {
+	AllCmd.Flags().UintVar(&global.GroupNum, "group", 1, "process group of number")
+}
+
 var AllCmd = &cobra.Command{
 	Use:   "all",
 	Short: "Start an all node",
