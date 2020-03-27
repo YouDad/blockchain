@@ -1,8 +1,6 @@
 package commands
 
 import (
-	"fmt"
-
 	"github.com/YouDad/blockchain/global"
 	"github.com/YouDad/blockchain/log"
 	"github.com/YouDad/blockchain/wallet"
@@ -25,7 +23,6 @@ var RootCmd = &cobra.Command{
 	Use:   "blockchain",
 	Short: "Blockchain coin Application",
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
-		global.RegisterDatabase(fmt.Sprintf("blockchain%s.db", global.Port))
 		wallet.Register()
 		log.Register(logLevel, global.Port)
 	},

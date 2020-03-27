@@ -3,7 +3,6 @@ package global
 import (
 	"encoding/hex"
 	"fmt"
-	"os"
 	"sync"
 
 	"github.com/YouDad/blockchain/log"
@@ -19,40 +18,20 @@ type IDatabase interface {
 	Foreach(group int, fn func(k, v []byte) bool)
 }
 
-var databaseName string
-var instanceBoltDB *bolt.DB
-var onceBoltDB sync.Once
+var instanceBoltDB = make(map[int]*bolt.DB)
+var onceBoltDB = make(map[int]*sync.Once)
 
-func RegisterDatabase(dbName string) {
-	databaseName = dbName
-}
-
-func getDatabase() *bolt.DB {
-	onceBoltDB.Do(func() {
-		if !IsDatabaseExists() {
-			log.Errln("No existing blockchain found, create one to continue.")
-		}
+func getDatabase(group int) *bolt.DB {
+	// XXX
+	once := onceBoltDB[group]
+	once.Do(func() {
+		databaseName := fmt.Sprintf("blockchain%s-%d.db", Port, group)
 
 		var err error
-		instanceBoltDB, err = bolt.Open(databaseName, 0600, nil)
+		instanceBoltDB[group], err = bolt.Open(databaseName, 0600, nil)
 		log.Err(err)
 	})
-	return instanceBoltDB
-}
-
-func CreateDatabase() {
-	if IsDatabaseExists() {
-		log.Errln("Blockchain existed, Create failed.")
-	}
-
-	db, err := bolt.Open(databaseName, 0600, nil)
-	log.Err(err)
-	db.Close()
-}
-
-func IsDatabaseExists() bool {
-	_, err := os.Stat(databaseName)
-	return !os.IsNotExist(err)
+	return instanceBoltDB[group]
 }
 
 func interfaceToString(key interface{}) string {
