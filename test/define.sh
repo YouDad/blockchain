@@ -36,9 +36,10 @@ function RunTest() {
 		ack --flush --passthru --color --color-match "bold black" "\[(DEBUG)\].*" |\
 		ack --flush --passthru --color --color-match "bold yellow" "\[(WARN)\].*" |\
 		ack --flush --passthru --color --color-match "underline bold red on_green" "\[(TRACE)\].*" |\
+		ack --flush --passthru --color --color-match "underline bold green" "/home/manjaro/go/src/github.com/YouDad/blockchain/" |\
 		tee -a "$logfile"
 	res=`cat /tmp/a`
-	echo -en "$res" | grep "\[ERROR\]" >/dev/null
+	echo -en "$res" | grep "\(\[ERROR\]\|.*panic:\)" >/dev/null
 	rescode="$?"
 	if [[ "$rescode" == "1" ]]; then
 		echo [PASS]: $command |\
@@ -60,7 +61,7 @@ function RunTest() {
 			echo Ctrl+Shift+V to paste
 			dlv debug main.go
 		fi
-		kill -9 $pid > /dev/null 2>&1
+		killall blockchain
 		exit 1
 	fi
 }
