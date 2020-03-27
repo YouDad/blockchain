@@ -37,11 +37,7 @@ func GetGenesis() (*types.Block, error) {
 func (c *DBController) GetGenesis() {
 	var reply GetGenesisReply
 
-	if global.IsDatabaseExists() {
-		genesis := core.GetBlockchain().GetGenesis()
-		reply = *genesis
-	}
-
+	reply = *core.GetBlockchain().GetGenesis()
 	c.Return(reply)
 }
 
