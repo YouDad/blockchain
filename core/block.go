@@ -9,7 +9,7 @@ import (
 	"github.com/YouDad/blockchain/utils"
 )
 
-func NewBlock(prev types.HashValue, diff float64, height int32, txns []*types.Transaction) *types.Block {
+func NewBlock(group int, prev types.HashValue, diff float64, height int32, txns []*types.Transaction) *types.Block {
 	block := &types.Block{
 		Timestamp:  time.Now().UnixNano(),
 		PrevHash:   prev,
@@ -26,7 +26,7 @@ func NewBlock(prev types.HashValue, diff float64, height int32, txns []*types.Tr
 	block.MerkleRoot = mTree.RootNode.Data
 
 	pow := NewPOW(block)
-	nonce, hash := pow.Run()
+	nonce, hash := pow.Run(group)
 	if hash == nil {
 		return nil
 	}

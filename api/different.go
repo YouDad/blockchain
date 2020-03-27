@@ -8,8 +8,8 @@ import (
 	"github.com/YouDad/blockchain/log"
 )
 
-func SyncBlocks(newHeight int32, address string) {
-	lastestHeight := core.GetBlockchain().GetHeight()
+func SyncBlocks(group int, newHeight int32, address string) {
+	lastestHeight := core.GetBlockchain().GetHeight(group)
 	if newHeight <= lastestHeight {
 		return
 	}
@@ -18,7 +18,7 @@ func SyncBlocks(newHeight int32, address string) {
 	defer global.SyncMutex.Unlock()
 	log.Infoln("SyncBlock Start!")
 	bc := core.GetBlockchain()
-	lastest := bc.GetLastest()
+	lastest := bc.GetLastest(group)
 	originHash := lastest.Hash()
 
 	if newHeight > lastestHeight {
@@ -28,8 +28,8 @@ func SyncBlocks(newHeight int32, address string) {
 		for r >= l {
 			mid := l + (r-l)/2
 			// log.Traceln("mid", mid)
-			block := core.BytesToBlock(bc.Get(mid))
-			hash, err := CallbackGetHash(mid, address)
+			block := core.BytesToBlock(bc.Get(group, mid))
+			hash, err := CallbackGetHash(group, mid, address)
 			if err != nil {
 				log.Warn(err)
 				return
@@ -44,31 +44,31 @@ func SyncBlocks(newHeight int32, address string) {
 		}
 
 		// log.Traceln("l", l, "r", r)
-		lastestBytes := bc.Get(r)
-		bc.Set("lastest", lastestBytes)
+		lastestBytes := bc.Get(group, r)
+		bc.Set(group, "lastest", lastestBytes)
 		lastest := core.BytesToBlock(lastestBytes)
 		if lastest == nil {
 			log.Errln("二分nil")
 		}
 
 		lastestHash := lastest.Hash()
-		blocks, err := CallbackGetBlocks(l, newHeight, lastestHash, address)
+		blocks, err := CallbackGetBlocks(group, l, newHeight, lastestHash, address)
 		if err != nil {
 			log.Warn(err)
-			lastestBytes = bc.Get(originHash)
-			bc.Set("lastest", lastestBytes)
+			lastestBytes = bc.Get(group, originHash)
+			bc.Set(group, "lastest", lastestBytes)
 			return
 		}
 
 		set := core.GetUTXOSet()
 		for i := lastestHeight; i > r; i-- {
-			set.Reverse(core.BytesToBlock(bc.Get(i)))
+			set.Reverse(group, core.BytesToBlock(bc.Get(group, i)))
 		}
 
 		for _, block := range blocks {
 			if bytes.Compare(block.PrevHash, lastestHash) == 0 {
-				bc.AddBlock(block)
-				set.Update(block)
+				bc.AddBlock(group, block)
+				set.Update(group, block)
 				lastestHash = block.Hash()
 			} else {
 				break

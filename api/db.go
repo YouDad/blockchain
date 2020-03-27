@@ -17,16 +17,20 @@ type DBController struct {
 	BaseController
 }
 
+type GetGenesisArgs = struct {
+	Group int
+}
 type GetGenesisReply = types.Block
 
 var (
 	ErrNull = errors.New("null")
 )
 
-func GetGenesis() (*types.Block, error) {
+func GetGenesis(group int) (*types.Block, error) {
+	args := GetGenesisArgs{group}
 	var reply GetGenesisReply
 
-	err, _ := network.CallInnerGroup("db/GetGenesis", nil, &reply)
+	err, _ := network.CallInnerGroup("db/GetGenesis", &args, &reply)
 	if err != nil {
 		return nil, err
 	}
@@ -35,9 +39,11 @@ func GetGenesis() (*types.Block, error) {
 
 // @router /GetGenesis [post]
 func (c *DBController) GetGenesis() {
+	var args GetGenesisArgs
 	var reply GetGenesisReply
+	c.ParseParameter(&args)
 
-	reply = *core.GetBlockchain().GetGenesis()
+	reply = *core.GetBlockchain().GetGenesis(args.Group)
 	c.Return(reply)
 }
 
@@ -70,7 +76,7 @@ func (c *DBController) GetBalance() {
 	reply.Balance = 0
 	pubKeyHash := utils.Base58Decode([]byte(args.Address))
 	pubKeyHash = pubKeyHash[1 : len(pubKeyHash)-4]
-	utxos := set.FindUTXOByHash(pubKeyHash)
+	utxos := set.FindUTXOByHash(global.GetGroup(), pubKeyHash)
 
 	for _, utxo := range utxos {
 		reply.Balance += utxo.Value
@@ -80,9 +86,10 @@ func (c *DBController) GetBalance() {
 }
 
 type GetBlocksArgs = struct {
-	From int32
-	To   int32
-	Hash types.HashValue
+	Group int
+	From  int32
+	To    int32
+	Hash  types.HashValue
 }
 type GetBlocksReply = struct {
 	Blocks []*types.Block
@@ -90,8 +97,8 @@ type GetBlocksReply = struct {
 
 var ErrNoBlock = errors.New("No Needed Hash Block")
 
-func CallbackGetBlocks(start, end int32, hash types.HashValue, address string) ([]*types.Block, error) {
-	args := GetBlocksArgs{start, end, hash}
+func CallbackGetBlocks(group int, start, end int32, hash types.HashValue, address string) ([]*types.Block, error) {
+	args := GetBlocksArgs{group, start, end, hash}
 	var reply GetBlocksReply
 
 	err := network.CallBack(address, "db/GetBlocks", &args, &reply)
@@ -99,8 +106,8 @@ func CallbackGetBlocks(start, end int32, hash types.HashValue, address string) (
 	return reply.Blocks, err
 }
 
-func GetBlocks(start, end int32, hash types.HashValue) []*types.Block {
-	args := GetBlocksArgs{start, end, hash}
+func GetBlocks(group int, start, end int32, hash types.HashValue) []*types.Block {
+	args := GetBlocksArgs{group, start, end, hash}
 	var reply GetBlocksReply
 	err, _ := network.CallInnerGroup("db/GetBlocks", &args, &reply)
 	log.Warn(err)
@@ -119,7 +126,7 @@ func (c *DBController) GetBlocks() {
 	}
 
 	bc := core.GetBlockchain()
-	block := core.BytesToBlock(bc.Get(args.From))
+	block := core.BytesToBlock(bc.Get(args.Group, args.From))
 	if block == nil {
 		c.ReturnErr(ErrNoBlock)
 	}
@@ -127,12 +134,12 @@ func (c *DBController) GetBlocks() {
 	if bytes.Compare(block.PrevHash, args.Hash) != 0 {
 		log.Warnf("%s != %s\n", block.PrevHash, args.Hash)
 		log.Warnln(block)
-		block := core.BytesToBlock(bc.Get(args.From - 1))
+		block := core.BytesToBlock(bc.Get(args.Group, args.From-1))
 		log.Warnln(block)
 		c.ReturnErr(ErrNoBlock)
 	}
 	for i := args.From; i <= args.To; i++ {
-		data := bc.Get(i)
+		data := bc.Get(args.Group, i)
 		if data == nil {
 			break
 		}
@@ -156,7 +163,7 @@ func (c *DBController) GossipTxn() {
 	mempool := global.GetMempool()
 	if !mempool.IsTxnExists(args) {
 		bc := core.GetBlockchain()
-		if bc.VerifyTransaction(args) {
+		if bc.VerifyTransaction(global.GetGroup(), args) {
 			mempool.AddTxnToMempool(args)
 			go GossipTxn(&args)
 		} else {
@@ -184,7 +191,7 @@ func (c *DBController) GossipBlock() {
 
 	bc := core.GetBlockchain()
 	set := core.GetUTXOSet()
-	lastest := bc.GetLastest()
+	lastest := bc.GetLastest(global.GetGroup())
 	lastestHeight := lastest.Height
 
 	log.Debugf("GossipBlock get=%d, lastest=%d\n", args.Height, lastestHeight)
@@ -195,20 +202,23 @@ func (c *DBController) GossipBlock() {
 
 	if args.Height == lastestHeight+1 {
 		if bytes.Compare(args.PrevHash, lastest.Hash()) == 0 {
-			bc.AddBlock(&args)
-			set.Update(&args)
+			bc.AddBlock(global.GetGroup(), &args)
+			set.Update(global.GetGroup(), &args)
 		}
 	}
-	SyncBlocks(args.Height, c.GetString("address"))
+	SyncBlocks(global.GetGroup(), args.Height, c.GetString("address"))
 
 	c.Return(nil)
 }
 
-type GetHashArgs struct{ Height int32 }
+type GetHashArgs struct {
+	Group  int
+	Height int32
+}
 type GetHashReply struct{ Hash types.HashValue }
 
-func CallbackGetHash(height int32, address string) (types.HashValue, error) {
-	args := GetHashArgs{height}
+func CallbackGetHash(group int, height int32, address string) (types.HashValue, error) {
+	args := GetHashArgs{group, height}
 	var reply GetHashReply
 
 	err := network.CallBack(address, "db/GetHash", &args, &reply)
@@ -216,8 +226,8 @@ func CallbackGetHash(height int32, address string) (types.HashValue, error) {
 	return reply.Hash, err
 }
 
-func GetHash(height int32) (types.HashValue, error) {
-	args := GetHashArgs{height}
+func GetHash(group int, height int32) (types.HashValue, error) {
+	args := GetHashArgs{group, height}
 	var reply GetHashReply
 
 	err, _ := network.CallInnerGroup("db/GetHash", &args, &reply)
@@ -233,7 +243,7 @@ func (c *DBController) GetHash() {
 	c.ParseParameter(&args)
 
 	bc := core.GetBlockchain()
-	block := core.BytesToBlock(bc.Get(args.Height))
+	block := core.BytesToBlock(bc.Get(args.Group, args.Height))
 	if block == nil {
 		c.ReturnErr(ErrNoBlock)
 	}

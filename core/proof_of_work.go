@@ -48,7 +48,7 @@ func (pow *ProofOfWork) prepareData(nonce int64) []byte {
 	)
 }
 
-func (pow *ProofOfWork) Run() (int64, []byte) {
+func (pow *ProofOfWork) Run(group int) (int64, []byte) {
 	var hash []byte
 	var ok bool
 	rand.Seed(time.Now().UnixNano())
@@ -56,7 +56,7 @@ func (pow *ProofOfWork) Run() (int64, []byte) {
 	start := nonce
 
 	for nonce < math.MaxInt64 {
-		if GetBlockchain().GetHeight() != pow.block.Height-1 {
+		if GetBlockchain().GetHeight(group) != pow.block.Height-1 {
 			return 0, nil
 		}
 		ok, hash = pow.Validate(nonce)

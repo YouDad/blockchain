@@ -77,7 +77,10 @@ func (bc *Blockchain) AddBlock(group int, b *types.Block) {
 	}
 
 	bytes := utils.Encode(b)
-	if GetBlockchain().GetHeight(group) < b.Height {
+	if bc.GetHeight(group) < b.Height {
+		if b.Height == 0 {
+			bc.Set(group, "genesis", bytes)
+		}
 		bc.Set(group, "lastest", bytes)
 		bc.Set(group, b.Hash(), bytes)
 		bc.Set(group, b.Height, bytes)

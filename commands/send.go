@@ -3,6 +3,7 @@ package commands
 import (
 	"github.com/YouDad/blockchain/api"
 	"github.com/YouDad/blockchain/core"
+	"github.com/YouDad/blockchain/global"
 	"github.com/YouDad/blockchain/log"
 	"github.com/YouDad/blockchain/network"
 	"github.com/YouDad/blockchain/types"
@@ -44,14 +45,14 @@ var SendCmd = &cobra.Command{
 			bc := core.GetBlockchain()
 			set := core.GetUTXOSet()
 
-			tx, err := set.NewUTXOTransaction(sendFrom, sendTo, sendAmount)
+			tx, err := set.NewUTXOTransaction(global.GetGroup(), sendFrom, sendTo, sendAmount)
 			log.Err(err)
 			cbTx := core.NewCoinbaseTxn(sendFrom)
 			txs := []*types.Transaction{cbTx, tx}
 
-			newBlocks := bc.MineBlock(txs)
-			bc.AddBlock(newBlocks)
-			set.Update(newBlocks)
+			newBlocks := bc.MineBlock(global.GetGroup(), txs)
+			bc.AddBlock(global.GetGroup(), newBlocks)
+			set.Update(global.GetGroup(), newBlocks)
 			return
 		}
 		err := api.SendCMD(sendFrom, sendTo, sendAmount)

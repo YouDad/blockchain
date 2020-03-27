@@ -2,6 +2,7 @@ package api
 
 import (
 	"github.com/YouDad/blockchain/core"
+	"github.com/YouDad/blockchain/global"
 	"github.com/YouDad/blockchain/network"
 )
 
@@ -24,7 +25,7 @@ func (c *ServerController) SendCMD() {
 	var args SendCMDArgs
 	c.ParseParameter(&args)
 	set := core.GetUTXOSet()
-	txn, err := set.NewUTXOTransaction(args.SendFrom, args.SendTo, args.Amount)
+	txn, err := set.NewUTXOTransaction(global.GetGroup(), args.SendFrom, args.SendTo, args.Amount)
 	if err != nil {
 		c.ReturnErr(err)
 	}

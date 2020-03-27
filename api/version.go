@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"github.com/YouDad/blockchain/core"
+	"github.com/YouDad/blockchain/global"
 	"github.com/YouDad/blockchain/log"
 	"github.com/YouDad/blockchain/network"
 	"github.com/YouDad/blockchain/types"
@@ -24,9 +25,10 @@ var (
 	VersionDifferentError  = errors.New("Version is different.")
 )
 
-func SendVersion(nowHeight int32, rootHash, nowHash types.HashValue) (int32, error, string) {
+func SendVersion(group int, nowHeight int32, rootHash, nowHash types.HashValue) (int32, error, string) {
 	var reply SendVersionReply
 	args := SendVersionArgs{
+		Group:    group,
 		Version:  Version,
 		Height:   nowHeight,
 		RootHash: rootHash,
@@ -50,7 +52,7 @@ func SendVersion(nowHeight int32, rootHash, nowHash types.HashValue) (int32, err
 }
 
 func GetVersion() (types.Version, error) {
-	var reply SendVersionReply
+	reply := SendVersionReply{Group: -1}
 
 	err := network.CallSelf("version/SendVersion", &reply, &reply)
 	return reply, err
@@ -63,32 +65,21 @@ func (c *VersionController) SendVersion() {
 	c.ParseParameter(&args)
 	log.Debugf("SendVersion %+v\n", args)
 
+	if args.Group == -1 {
+		args.Group = global.GetGroup()
+	}
+
 	bc := core.GetBlockchain()
-	genesis := bc.GetGenesis()
-	lastest := bc.GetLastest()
+	genesis := bc.GetGenesis(args.Group)
+	lastest := bc.GetLastest(args.Group)
 	lastestHeight := lastest.Height
 	reply = types.Version{
+		Group:    args.Group,
 		Version:  Version,
 		Height:   lastestHeight,
 		RootHash: genesis.Hash(),
 		NowHash:  lastest.Hash(),
 	}
-
-	if args.Height == 0 && len(args.RootHash) == 0 {
-		c.Return(reply)
-	}
-
-	if bytes.Compare(args.RootHash, genesis.Hash()) != 0 {
-		c.ReturnErr(RootHashDifferentError)
-	}
-
-	if args.Version != Version {
-		log.Infof("GetVersion: %d, WeVersion: %d\n", args.Version, Version)
-		log.Warnln("Version Update")
-		c.ReturnErr(VersionDifferentError)
-	}
-
-	SyncBlocks(lastestHeight, c.GetString("address"))
 
 	c.Return(reply)
 }

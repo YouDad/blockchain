@@ -21,20 +21,22 @@ var SyncCmd = &cobra.Command{
 		network.Register()
 		log.Warn(network.GetKnownNodes())
 
-		var bc *core.Blockchain
-		if !global.IsDatabaseExists() {
-			genesis, err := api.GetGenesis()
+		// XXX
+		bc := core.GetBlockchain()
+
+		// for
+		group := global.GetGroup()
+		if bc.GetHeight(group) < 0 {
+			genesis, err := api.GetGenesis(group)
 			log.Err(err)
-			bc = core.CreateBlockchainFromGenesis(genesis)
-		} else {
-			bc = core.GetBlockchain()
+			bc.AddBlock(group, genesis)
 		}
 
-		genesis := bc.GetGenesis()
-		lastest := bc.GetLastest()
+		genesis := bc.GetGenesis(group)
+		lastest := bc.GetLastest(group)
 		lastestHeight := lastest.Height
 		lastestHash := lastest.Hash()
-		height, err, address := api.SendVersion(lastestHeight, genesis.Hash(), lastestHash)
+		height, err, address := api.SendVersion(group, lastestHeight, genesis.Hash(), lastestHash)
 		if err == api.RootHashDifferentError {
 			log.Warnln(err)
 			return
@@ -45,6 +47,6 @@ var SyncCmd = &cobra.Command{
 			log.Warnln(err)
 		}
 
-		api.SyncBlocks(height, address)
+		api.SyncBlocks(group, height, address)
 	},
 }
