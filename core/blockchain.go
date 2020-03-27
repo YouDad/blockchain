@@ -45,7 +45,7 @@ func CreateBlockchain(minerAddress string) *Blockchain {
 	bc.Set(group, genesis.Hash(), bytes)
 	bc.Set(group, genesis.Height, bytes)
 	bc.Set(group, "genesis", bytes)
-	bc.Set(group, "lastest", bytes)
+	bc.SetLastest(group, bytes)
 	GetUTXOSet().Reindex(group)
 	return bc
 }
@@ -59,7 +59,16 @@ func (bc *Blockchain) GetGenesis(group int) *types.Block {
 }
 
 func (bc *Blockchain) GetLastest(group int) *types.Block {
+	block, ok := global.GetBlock(group, "lastest")
+	if ok {
+		return block
+	}
 	return BytesToBlock(bc.Get(group, "lastest"))
+}
+
+func (bc *Blockchain) SetLastest(group int, bytes []byte) {
+	bc.Set(group, "lastest", bytes)
+	global.SetBlock(group, "lastest", BytesToBlock(bytes))
 }
 
 func (bc *Blockchain) GetHeight(group int) int32 {
@@ -84,7 +93,7 @@ func (bc *Blockchain) AddBlock(group int, b *types.Block) {
 		if b.Height == 0 {
 			bc.Set(group, "genesis", bytes)
 		}
-		bc.Set(group, "lastest", bytes)
+		bc.SetLastest(group, bytes)
 		bc.Set(group, b.Hash(), bytes)
 		bc.Set(group, b.Height, bytes)
 	}

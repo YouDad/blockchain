@@ -45,7 +45,7 @@ func SyncBlocks(group int, newHeight int32, address string) {
 
 		// log.Traceln("l", l, "r", r)
 		lastestBytes := bc.Get(group, r)
-		bc.Set(group, "lastest", lastestBytes)
+		bc.SetLastest(group, lastestBytes)
 		lastest := core.BytesToBlock(lastestBytes)
 		if lastest == nil {
 			log.Errln("二分nil")
@@ -56,7 +56,7 @@ func SyncBlocks(group int, newHeight int32, address string) {
 		if err != nil {
 			log.Warn(err)
 			lastestBytes = bc.Get(group, originHash)
-			bc.Set(group, "lastest", lastestBytes)
+			bc.SetLastest(group, lastestBytes)
 			return
 		}
 
