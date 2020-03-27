@@ -59,12 +59,15 @@ func (bc *Blockchain) GetGenesis(group int) *types.Block {
 }
 
 func (bc *Blockchain) GetLastest(group int) *types.Block {
-	lastest := BytesToBlock(bc.Get(group, "lastest"))
-	return lastest
+	return BytesToBlock(bc.Get(group, "lastest"))
 }
 
 func (bc *Blockchain) GetHeight(group int) int32 {
-	return bc.GetLastest(group).Height
+	lastest := bc.GetLastest(group)
+	if lastest == nil {
+		return -1
+	}
+	return lastest.Height
 }
 
 func (bc *Blockchain) AddBlock(group int, b *types.Block) {
