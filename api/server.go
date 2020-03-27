@@ -24,8 +24,8 @@ func SendCMD(from, to string, amount int64) error {
 func (c *ServerController) SendCMD() {
 	var args SendCMDArgs
 	c.ParseParameter(&args)
-	set := core.GetUTXOSet()
-	txn, err := set.NewUTXOTransaction(global.GetGroup(), args.SendFrom, args.SendTo, args.Amount)
+	set := core.GetUTXOSet(global.GetGroup())
+	txn, err := set.NewUTXOTransaction(args.SendFrom, args.SendTo, args.Amount)
 	if err != nil {
 		c.ReturnErr(err)
 	}

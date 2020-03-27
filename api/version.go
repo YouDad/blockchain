@@ -69,9 +69,9 @@ func (c *VersionController) SendVersion() {
 		args.Group = global.GetGroup()
 	}
 
-	bc := core.GetBlockchain()
-	genesis := bc.GetGenesis(args.Group)
-	lastest := bc.GetLastest(args.Group)
+	bc := core.GetBlockchain(args.Group)
+	genesis := bc.GetGenesis()
+	lastest := bc.GetLastest()
 	lastestHeight := lastest.Height
 	reply = types.Version{
 		Group:    args.Group,

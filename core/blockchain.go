@@ -12,24 +12,44 @@ import (
 )
 
 type Blockchain struct {
-	*global.BlocksDB
+	db    *global.BlocksDB
+	group int
+}
+
+func (bc *Blockchain) Clear() {
+	bc.db.Clear(bc.group)
+}
+
+func (bc *Blockchain) Get(key interface{}) (value []byte) {
+	return bc.db.Get(bc.group, key)
+}
+
+func (bc *Blockchain) Set(key interface{}, value []byte) {
+	bc.db.Set(bc.group, key, value)
+}
+
+func (bc *Blockchain) Delete(key interface{}) {
+	bc.db.Delete(bc.group, key)
+}
+
+func (bc *Blockchain) Foreach(fn func(k, v []byte) bool) {
+	bc.db.Foreach(bc.group, fn)
 }
 
 type BlockchainIterator struct {
-	bc    *Blockchain
-	group int
-	next  types.HashValue
+	bc   *Blockchain
+	next types.HashValue
 }
 
-func (bc *Blockchain) Begin(group int) *BlockchainIterator {
-	return &BlockchainIterator{bc, group, bc.GetLastest(group).Hash()}
+func (bc *Blockchain) Begin() *BlockchainIterator {
+	return &BlockchainIterator{bc, bc.GetLastest().Hash()}
 }
 
 func (iter *BlockchainIterator) Next() (nextBlock *types.Block) {
 	if iter.next == nil {
 		return nil
 	}
-	nextBlock = BytesToBlock(iter.bc.Get(iter.group, iter.next))
+	nextBlock = BytesToBlock(iter.bc.Get(iter.next))
 	if nextBlock != nil {
 		iter.next = nextBlock.PrevHash
 	}
@@ -37,99 +57,98 @@ func (iter *BlockchainIterator) Next() (nextBlock *types.Block) {
 }
 
 func CreateBlockchain(minerAddress string) *Blockchain {
-	group := global.GetGroup()
-	bc := GetBlockchain()
-	bc.Clear(group)
-	genesis := NewBlock(group, nil, 1, 0, []*types.Transaction{NewCoinbaseTxn(minerAddress)})
+	bc := GetBlockchain(global.GetGroup())
+	bc.Clear()
+	genesis := NewBlock(global.GetGroup(), nil, 1, 0, []*types.Transaction{NewCoinbaseTxn(minerAddress)})
 	bytes := utils.Encode(genesis)
-	bc.Set(group, genesis.Hash(), bytes)
-	bc.Set(group, genesis.Height, bytes)
-	bc.Set(group, "genesis", bytes)
-	bc.SetLastest(group, bytes)
-	GetUTXOSet().Reindex(group)
+	bc.Set(genesis.Hash(), bytes)
+	bc.Set(genesis.Height, bytes)
+	bc.Set("genesis", bytes)
+	bc.SetLastest(bytes)
+	GetUTXOSet(global.GetGroup()).Reindex()
 	return bc
 }
 
-func GetBlockchain() *Blockchain {
-	return &Blockchain{global.GetBlocksDB()}
+func GetBlockchain(group int) *Blockchain {
+	return &Blockchain{global.GetBlocksDB(), group}
 }
 
-func (bc *Blockchain) GetGenesis(group int) *types.Block {
-	return BytesToBlock(bc.Get(group, "genesis"))
+func (bc *Blockchain) GetGenesis() *types.Block {
+	return BytesToBlock(bc.Get("genesis"))
 }
 
-func (bc *Blockchain) GetLastest(group int) *types.Block {
-	block, ok := global.GetBlock(group, "lastest")
+func (bc *Blockchain) GetLastest() *types.Block {
+	block, ok := global.GetBlock(bc.group, "lastest")
 	if ok {
 		return block
 	}
-	return BytesToBlock(bc.Get(group, "lastest"))
+	return BytesToBlock(bc.Get("lastest"))
 }
 
-func (bc *Blockchain) SetLastest(group int, bytes []byte) {
-	bc.Set(group, "lastest", bytes)
-	global.SetBlock(group, "lastest", BytesToBlock(bytes))
+func (bc *Blockchain) SetLastest(bytes []byte) {
+	bc.Set("lastest", bytes)
+	global.SetBlock(bc.group, "lastest", BytesToBlock(bytes))
 }
 
-func (bc *Blockchain) GetHeight(group int) int32 {
-	lastest := bc.GetLastest(group)
+func (bc *Blockchain) GetHeight() int32 {
+	lastest := bc.GetLastest()
 	if lastest == nil {
 		return -1
 	}
 	return lastest.Height
 }
 
-func (bc *Blockchain) AddBlock(group int, b *types.Block) {
+func (bc *Blockchain) AddBlock(b *types.Block) {
 	if b == nil {
 		return
 	}
 
-	if bc.Get(group, b.Hash()) != nil {
+	if bc.Get(b.Hash()) != nil {
 		return
 	}
 
 	bytes := utils.Encode(b)
-	if bc.GetHeight(group) < b.Height {
+	if bc.GetHeight() < b.Height {
 		if b.Height == 0 {
-			bc.Set(group, "genesis", bytes)
+			bc.Set("genesis", bytes)
 		}
-		bc.SetLastest(group, bytes)
-		bc.Set(group, b.Hash(), bytes)
-		bc.Set(group, b.Height, bytes)
+		bc.SetLastest(bytes)
+		bc.Set(b.Hash(), bytes)
+		bc.Set(b.Height, bytes)
 	}
 }
 
-func (bc *Blockchain) MineBlock(group int, txns []*types.Transaction) *types.Block {
+func (bc *Blockchain) MineBlock(txns []*types.Transaction) *types.Block {
 	for _, txn := range txns {
-		if !bc.VerifyTransaction(group, *txn) {
+		if !bc.VerifyTransaction(*txn) {
 			log.Errln("Invalid transaction")
 		}
 	}
 
-	lastest := bc.GetLastest(group)
+	lastest := bc.GetLastest()
 	difficulty := lastest.Difficulty
 	height := lastest.Height + 1
 	if height%60 == 0 {
-		lastDiff := BytesToBlock(bc.Get(group, height-60))
-		thisDiff := BytesToBlock(bc.Get(group, height-1))
+		lastDiff := BytesToBlock(bc.Get(height - 60))
+		thisDiff := BytesToBlock(bc.Get(height - 1))
 		difficulty *= 59 * 60 * 1e9 / float64(thisDiff.Timestamp-lastDiff.Timestamp)
 	}
 
-	newBlock := NewBlock(group, lastest.Hash(), difficulty, height, txns)
+	newBlock := NewBlock(bc.group, lastest.Hash(), difficulty, height, txns)
 	if newBlock == nil {
 		return nil
 	}
 	log.Infof("NewBlock[%d]{%.2f} %s", height, difficulty, lastest.Hash())
-	bc.AddBlock(group, newBlock)
+	bc.AddBlock(newBlock)
 	global.SyncMutex.Unlock()
 	return newBlock
 }
 
-func (bc *Blockchain) FindUTXO(group int) map[string][]types.TxnOutput {
+func (bc *Blockchain) FindUTXO() map[string][]types.TxnOutput {
 	utxos := make(map[string][]types.TxnOutput)
 	// spent transaction outputs
 	stxos := make(map[string]map[int]bool)
-	iter := bc.Begin(group)
+	iter := bc.Begin()
 	for {
 		block := iter.Next()
 		if block == nil {
@@ -169,9 +188,9 @@ func (bc *Blockchain) FindUTXO(group int) map[string][]types.TxnOutput {
 	return utxos
 }
 
-func (bc *Blockchain) FindTxn(group int, hash types.HashValue) (types.Transaction, error) {
+func (bc *Blockchain) FindTxn(hash types.HashValue) (types.Transaction, error) {
 	var block *types.Block
-	iter := bc.Begin(group)
+	iter := bc.Begin()
 
 	for block = iter.Next(); block != nil; block = iter.Next() {
 		for _, txn := range block.Txns {
@@ -184,12 +203,12 @@ func (bc *Blockchain) FindTxn(group int, hash types.HashValue) (types.Transactio
 	return types.Transaction{}, errors.New(fmt.Sprintf("Transaction is not found, %s", hash))
 }
 
-func (bc *Blockchain) SignTransaction(group int, txn *types.Transaction, sk types.PrivateKey) error {
+func (bc *Blockchain) SignTransaction(txn *types.Transaction, sk types.PrivateKey) error {
 	hashedTxn := make(map[string]types.Transaction)
 
 	for _, vin := range txn.Vin {
 		var vinTxn types.Transaction
-		vinTxn, err := bc.FindTxn(group, vin.VoutHash)
+		vinTxn, err := bc.FindTxn(vin.VoutHash)
 		if err != nil {
 			return err
 		}
@@ -200,7 +219,7 @@ func (bc *Blockchain) SignTransaction(group int, txn *types.Transaction, sk type
 	return nil
 }
 
-func (bc *Blockchain) VerifyTransaction(group int, txn types.Transaction) bool {
+func (bc *Blockchain) VerifyTransaction(txn types.Transaction) bool {
 	if txn.IsCoinbase() {
 		return true
 	}
@@ -208,7 +227,7 @@ func (bc *Blockchain) VerifyTransaction(group int, txn types.Transaction) bool {
 	prevTXs := make(map[string]types.Transaction)
 
 	for _, vin := range txn.Vin {
-		prevTX, err := bc.FindTxn(group, vin.VoutHash)
+		prevTX, err := bc.FindTxn(vin.VoutHash)
 		if err != nil {
 			return false
 		}

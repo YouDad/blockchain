@@ -42,17 +42,17 @@ var SendCmd = &cobra.Command{
 
 		network.Register()
 		if sendMine {
-			bc := core.GetBlockchain()
-			set := core.GetUTXOSet()
+			bc := core.GetBlockchain(global.GetGroup())
+			set := core.GetUTXOSet(global.GetGroup())
 
-			tx, err := set.NewUTXOTransaction(global.GetGroup(), sendFrom, sendTo, sendAmount)
+			tx, err := set.NewUTXOTransaction(sendFrom, sendTo, sendAmount)
 			log.Err(err)
 			cbTx := core.NewCoinbaseTxn(sendFrom)
 			txs := []*types.Transaction{cbTx, tx}
 
-			newBlocks := bc.MineBlock(global.GetGroup(), txs)
-			bc.AddBlock(global.GetGroup(), newBlocks)
-			set.Update(global.GetGroup(), newBlocks)
+			newBlocks := bc.MineBlock(txs)
+			bc.AddBlock(newBlocks)
+			set.Update(newBlocks)
 			return
 		}
 		err := api.SendCMD(sendFrom, sendTo, sendAmount)

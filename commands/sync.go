@@ -22,19 +22,19 @@ var SyncCmd = &cobra.Command{
 		log.Warn(network.GetKnownNodes())
 
 		// XXX
-		bc := core.GetBlockchain()
+		group := global.GetGroup()
+		bc := core.GetBlockchain(group)
 
 		// for
-		group := global.GetGroup()
-		if bc.GetHeight(group) < 0 {
+		if bc.GetHeight() < 0 {
 			genesis, err := api.GetGenesis(group)
 			log.Err(err)
-			bc.AddBlock(group, genesis)
-			core.GetUTXOSet().Reindex(group)
+			bc.AddBlock(genesis)
+			core.GetUTXOSet(group).Reindex()
 		}
 
-		genesis := bc.GetGenesis(group)
-		lastest := bc.GetLastest(group)
+		genesis := bc.GetGenesis()
+		lastest := bc.GetLastest()
 		lastestHeight := lastest.Height
 		lastestHash := lastest.Hash()
 		height, err, address := api.SendVersion(group, lastestHeight, genesis.Hash(), lastestHash)

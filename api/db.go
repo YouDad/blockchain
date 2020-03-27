@@ -43,7 +43,7 @@ func (c *DBController) GetGenesis() {
 	var reply GetGenesisReply
 	c.ParseParameter(&args)
 
-	reply = *core.GetBlockchain().GetGenesis(args.Group)
+	reply = *core.GetBlockchain(args.Group).GetGenesis()
 	c.Return(reply)
 }
 
@@ -71,12 +71,12 @@ func (c *DBController) GetBalance() {
 	if !wallet.ValidateAddress(args.Address) {
 		c.ReturnJson(SimpleJSONResult{"Address is not valid", nil})
 	}
-	set := core.GetUTXOSet()
+	set := core.GetUTXOSet(global.GetGroup())
 
 	reply.Balance = 0
 	pubKeyHash := utils.Base58Decode([]byte(args.Address))
 	pubKeyHash = pubKeyHash[1 : len(pubKeyHash)-4]
-	utxos := set.FindUTXOByHash(global.GetGroup(), pubKeyHash)
+	utxos := set.FindUTXOByHash(pubKeyHash)
 
 	for _, utxo := range utxos {
 		reply.Balance += utxo.Value
@@ -125,8 +125,8 @@ func (c *DBController) GetBlocks() {
 		c.ReturnErr(errors.New("Height 0 use GetGenesis"))
 	}
 
-	bc := core.GetBlockchain()
-	block := core.BytesToBlock(bc.Get(args.Group, args.From))
+	bc := core.GetBlockchain(args.Group)
+	block := core.BytesToBlock(bc.Get(args.From))
 	if block == nil {
 		c.ReturnErr(ErrNoBlock)
 	}
@@ -134,12 +134,12 @@ func (c *DBController) GetBlocks() {
 	if bytes.Compare(block.PrevHash, args.Hash) != 0 {
 		log.Warnf("%s != %s\n", block.PrevHash, args.Hash)
 		log.Warnln(block)
-		block := core.BytesToBlock(bc.Get(args.Group, args.From-1))
+		block := core.BytesToBlock(bc.Get(args.From - 1))
 		log.Warnln(block)
 		c.ReturnErr(ErrNoBlock)
 	}
 	for i := args.From; i <= args.To; i++ {
-		data := bc.Get(args.Group, i)
+		data := bc.Get(i)
 		if data == nil {
 			break
 		}
@@ -162,8 +162,8 @@ func (c *DBController) GossipTxn() {
 
 	mempool := global.GetMempool()
 	if !mempool.IsTxnExists(args) {
-		bc := core.GetBlockchain()
-		if bc.VerifyTransaction(global.GetGroup(), args) {
+		bc := core.GetBlockchain(global.GetGroup())
+		if bc.VerifyTransaction(args) {
 			mempool.AddTxnToMempool(args)
 			go GossipTxn(&args)
 		} else {
@@ -189,9 +189,9 @@ func (c *DBController) GossipBlock() {
 	var args GossipBlockArgs
 	c.ParseParameter(&args)
 
-	bc := core.GetBlockchain()
-	set := core.GetUTXOSet()
-	lastest := bc.GetLastest(global.GetGroup())
+	bc := core.GetBlockchain(global.GetGroup())
+	set := core.GetUTXOSet(global.GetGroup())
+	lastest := bc.GetLastest()
 	lastestHeight := lastest.Height
 
 	log.Debugf("GossipBlock get=%d, lastest=%d\n", args.Height, lastestHeight)
@@ -202,8 +202,8 @@ func (c *DBController) GossipBlock() {
 
 	if args.Height == lastestHeight+1 {
 		if bytes.Compare(args.PrevHash, lastest.Hash()) == 0 {
-			bc.AddBlock(global.GetGroup(), &args)
-			set.Update(global.GetGroup(), &args)
+			bc.AddBlock(&args)
+			set.Update(&args)
 		}
 	}
 	SyncBlocks(global.GetGroup(), args.Height, c.GetString("address"))
@@ -242,8 +242,8 @@ func (c *DBController) GetHash() {
 	var reply GetHashReply
 	c.ParseParameter(&args)
 
-	bc := core.GetBlockchain()
-	block := core.BytesToBlock(bc.Get(args.Group, args.Height))
+	bc := core.GetBlockchain(args.Group)
+	block := core.BytesToBlock(bc.Get(args.Height))
 	if block == nil {
 		c.ReturnErr(ErrNoBlock)
 	}

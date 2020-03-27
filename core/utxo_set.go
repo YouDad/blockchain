@@ -11,20 +11,40 @@ import (
 )
 
 type UTXOSet struct {
-	*global.UTXOSetDB
-	bc *Blockchain
+	db    *global.UTXOSetDB
+	bc    *Blockchain
+	group int
 }
 
-func GetUTXOSet() *UTXOSet {
-	return &UTXOSet{global.GetUTXOSetDB(), GetBlockchain()}
+func (set *UTXOSet) Clear() {
+	set.db.Clear(set.group)
 }
 
-func (set *UTXOSet) Update(group int, b *types.Block) {
+func (set *UTXOSet) Get(key interface{}) (value []byte) {
+	return set.db.Get(set.group, key)
+}
+
+func (set *UTXOSet) Set(key interface{}, value []byte) {
+	set.db.Set(set.group, key, value)
+}
+
+func (set *UTXOSet) Delete(key interface{}) {
+	set.db.Delete(set.group, key)
+}
+
+func (set *UTXOSet) Foreach(fn func(k, v []byte) bool) {
+	set.db.Foreach(set.group, fn)
+}
+func GetUTXOSet(group int) *UTXOSet {
+	return &UTXOSet{global.GetUTXOSetDB(), GetBlockchain(group), group}
+}
+
+func (set *UTXOSet) Update(b *types.Block) {
 	for _, txn := range b.Txns {
 		if txn.IsCoinbase() == false {
 			for _, vin := range txn.Vin {
 				updatedOuts := []types.TxnOutput{}
-				outsBytes := set.Get(group, vin.VoutHash)
+				outsBytes := set.Get(vin.VoutHash)
 				outs := BytesToTxnOutputs(outsBytes)
 
 				for outIdx, out := range outs {
@@ -34,9 +54,9 @@ func (set *UTXOSet) Update(group int, b *types.Block) {
 				}
 
 				if len(updatedOuts) == 0 {
-					set.Delete(group, vin.VoutHash)
+					set.Delete(vin.VoutHash)
 				} else {
-					set.Set(group, vin.VoutHash, utils.Encode(updatedOuts))
+					set.Set(vin.VoutHash, utils.Encode(updatedOuts))
 				}
 			}
 		}
@@ -45,17 +65,17 @@ func (set *UTXOSet) Update(group int, b *types.Block) {
 		for _, out := range txn.Vout {
 			newOutputs = append(newOutputs, out)
 		}
-		set.Set(group, txn.Hash(), utils.Encode(newOutputs))
+		set.Set(txn.Hash(), utils.Encode(newOutputs))
 	}
 }
 
-func (set *UTXOSet) Reverse(group int, b *types.Block) {
+func (set *UTXOSet) Reverse(b *types.Block) {
 	for _, txn := range b.Txns {
 		if !txn.IsCoinbase() {
-			set.Delete(group, txn.Hash())
+			set.Delete(txn.Hash())
 			for _, vin := range txn.Vin {
 				var txos []types.TxnOutput
-				txosBytes := set.Get(group, vin.VoutHash)
+				txosBytes := set.Get(vin.VoutHash)
 				if len(txosBytes) != 0 {
 					txos = BytesToTxnOutputs(txosBytes)
 				}
@@ -63,24 +83,24 @@ func (set *UTXOSet) Reverse(group int, b *types.Block) {
 					Value:      vin.VoutValue,
 					PubKeyHash: vin.PubKeyHash,
 				})
-				set.Set(group, vin.VoutHash, utils.Encode(txos))
+				set.Set(vin.VoutHash, utils.Encode(txos))
 			}
 		}
 	}
 }
 
-func (set *UTXOSet) Reindex(group int) {
-	hashedUtxos := set.bc.FindUTXO(group)
-	set.Clear(group)
+func (set *UTXOSet) Reindex() {
+	hashedUtxos := set.bc.FindUTXO()
+	set.Clear()
 
 	for txnHash, utxos := range hashedUtxos {
 		hash, err := hex.DecodeString(txnHash)
 		log.Err(err)
-		set.Set(group, hash, utils.Encode(utxos))
+		set.Set(hash, utils.Encode(utxos))
 	}
 }
 
-func (set *UTXOSet) NewUTXOTransaction(group int, from, to string, amount int64) (*types.Transaction, error) {
+func (set *UTXOSet) NewUTXOTransaction(from, to string, amount int64) (*types.Transaction, error) {
 	var ins []types.TxnInput
 	var outs []types.TxnOutput
 
@@ -92,7 +112,7 @@ func (set *UTXOSet) NewUTXOTransaction(group int, from, to string, amount int64)
 		log.Errf("You haven't %s's PrivateKey", from)
 	}
 	pubKeyHash := wallet.HashPubKey(srcWallet.PublicKey)
-	acc, utxos, values := set.FindUTXOs(group, pubKeyHash, amount)
+	acc, utxos, values := set.FindUTXOs(pubKeyHash, amount)
 
 	if acc < amount {
 		log.Errln("Not enough BTC")
@@ -122,14 +142,14 @@ func (set *UTXOSet) NewUTXOTransaction(group int, from, to string, amount int64)
 		Vin:  ins,
 		Vout: outs,
 	}
-	err = set.bc.SignTransaction(group, &txn, srcWallet.PrivateKey)
+	err = set.bc.SignTransaction(&txn, srcWallet.PrivateKey)
 	return &txn, err
 }
 
-func (set *UTXOSet) FindUTXOByHash(group int, pubKeyHash []byte) []types.TxnOutput {
+func (set *UTXOSet) FindUTXOByHash(pubKeyHash []byte) []types.TxnOutput {
 	utxos := []types.TxnOutput{}
 
-	set.Foreach(group, func(k, v []byte) bool {
+	set.Foreach(func(k, v []byte) bool {
 		outs := BytesToTxnOutputs(v)
 
 		for _, out := range outs {
@@ -145,12 +165,12 @@ func (set *UTXOSet) FindUTXOByHash(group int, pubKeyHash []byte) []types.TxnOutp
 }
 
 // 用公钥找一定数量余额
-func (set *UTXOSet) FindUTXOs(group int, pubKeyHash types.HashValue, amount int64) (int64, map[string][]int, map[string][]int64) {
+func (set *UTXOSet) FindUTXOs(pubKeyHash types.HashValue, amount int64) (int64, map[string][]int, map[string][]int64) {
 	hashedUTXOIdxs := make(map[string][]int)
 	hashedUTXOValues := make(map[string][]int64)
 	var accumulated int64 = 0
 
-	set.Foreach(group, func(k, v []byte) bool {
+	set.Foreach(func(k, v []byte) bool {
 		txnHash := hex.EncodeToString(k)
 		outs := BytesToTxnOutputs(v)
 
