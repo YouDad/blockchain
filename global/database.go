@@ -18,12 +18,20 @@ type IDatabase interface {
 	Foreach(group int, fn func(k, v []byte) bool)
 }
 
-var instanceBoltDB = make(map[int]*bolt.DB)
-var onceBoltDB = make(map[int]*sync.Once)
+var (
+	instanceBoltDB = make(map[int]*bolt.DB)
+	onceBoltDB     = make(map[int]*sync.Once)
+	mutexBoltDB    = sync.Mutex{}
+)
 
 func getDatabase(group int) *bolt.DB {
-	// XXX
-	once := onceBoltDB[group]
+	mutexBoltDB.Lock()
+	defer mutexBoltDB.Unlock()
+	once, ok := onceBoltDB[group]
+	if !ok {
+		onceBoltDB[group] = &sync.Once{}
+		once = onceBoltDB[group]
+	}
 	once.Do(func() {
 		databaseName := fmt.Sprintf("blockchain%s-%d.db", Port, group)
 
