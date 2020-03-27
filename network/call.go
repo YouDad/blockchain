@@ -54,7 +54,7 @@ func CallInnerGroup(method string, args interface{}, reply interface{}) (error, 
 	log.Infoln("Call", method)
 	for _, node := range GetSortedNodes() {
 		// TODO: use for to check Groups
-		if utils.IntIndexOf(node.Groups, GetGroup()) == -1 {
+		if utils.IntIndexOf(node.Groups, global.GetGroup()) == -1 {
 			continue
 		}
 		err := call(node.Address, method, args, reply)
@@ -113,7 +113,7 @@ func gossipCall(method string, args interface{}, reply interface{}, targetGroup 
 }
 
 func GossipCallInnerGroup(method string, args interface{}, reply interface{}) error {
-	return gossipCall(method, args, reply, GetGroup())
+	return gossipCall(method, args, reply, global.GetGroup())
 }
 
 func GossipCallInterGroup(method string, args interface{}, reply interface{}) error {
