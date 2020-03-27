@@ -37,9 +37,9 @@ func NewBlock(group int, prev types.HashValue, diff float64, height int32, txns 
 
 func BytesToBlock(bytes []byte) *types.Block {
 	if bytes == nil {
-		log.SetCallerLevel(1)
-		log.Warnln("BytesToBlock parameter is nil")
-		log.SetCallerLevel(0)
+		// log.SetCallerLevel(1)
+		// log.Warnln("BytesToBlock parameter is nil")
+		// log.SetCallerLevel(0)
 		return nil
 	}
 
