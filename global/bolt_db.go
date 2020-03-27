@@ -54,7 +54,12 @@ func (db *boltDB) Get(group int, key interface{}) (value []byte) {
 	db.lock()
 	defer db.unlock()
 	db.db(group).View(func(tx *bolt.Tx) error {
-		value = tx.Bucket([]byte(db.currentBucket)).Get(interfaceToBytes(key))
+		bucket := tx.Bucket([]byte(db.currentBucket))
+		if bucket == nil {
+			value = nil
+		} else {
+			value = bucket.Get(interfaceToBytes(key))
+		}
 		log.SetCallerLevel(3)
 		log.Debugf("Get %s %s %d\n", db.currentBucket, interfaceToString(key), len(value))
 		log.SetCallerLevel(0)
@@ -70,7 +75,13 @@ func (db *boltDB) Set(group int, key interface{}, value []byte) {
 		log.SetCallerLevel(3)
 		log.Debugf("Set %s %s %d\n", db.currentBucket, interfaceToString(key), len(value))
 		log.SetCallerLevel(0)
-		return tx.Bucket([]byte(db.currentBucket)).Put(interfaceToBytes(key), value)
+		bucket := tx.Bucket([]byte(db.currentBucket))
+		if bucket == nil {
+			var err error
+			bucket, err = tx.CreateBucketIfNotExists([]byte(db.currentBucket))
+			log.Err(err)
+		}
+		return bucket.Put(interfaceToBytes(key), value)
 	}))
 }
 
