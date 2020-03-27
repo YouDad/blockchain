@@ -30,6 +30,7 @@ var SyncCmd = &cobra.Command{
 			genesis, err := api.GetGenesis(group)
 			log.Err(err)
 			bc.AddBlock(group, genesis)
+			core.GetUTXOSet().Reindex(group)
 		}
 
 		genesis := bc.GetGenesis(group)
