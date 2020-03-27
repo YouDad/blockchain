@@ -12,11 +12,11 @@ import (
 )
 
 type IDatabase interface {
-	Clear()
-	Get(key interface{}) (value []byte)
-	Set(key interface{}, value []byte)
-	Delete(key interface{})
-	Foreach(func(k, v []byte) bool)
+	Clear(group int)
+	Get(group int, key interface{}) (value []byte)
+	Set(group int, key interface{}, value []byte)
+	Delete(group int, key interface{})
+	Foreach(group int, fn func(k, v []byte) bool)
 }
 
 var databaseName string
