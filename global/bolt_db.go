@@ -8,13 +8,16 @@ import (
 )
 
 type boltDB struct {
-	db            *bolt.DB
 	currentBucket string
 	mutex         sync.Mutex
 }
 
+func (db *boltDB) db(group int) *bolt.DB {
+	return getDatabase(group)
+}
+
 func getBoltDB(bucket string) IDatabase {
-	return &boltDB{getDatabase(), bucket, sync.Mutex{}}
+	return &boltDB{bucket, sync.Mutex{}}
 }
 
 func (db *boltDB) lock() {
@@ -25,13 +28,13 @@ func (db *boltDB) unlock() {
 	db.mutex.Unlock()
 }
 
-func (db *boltDB) Clear() {
+func (db *boltDB) Clear(group int) {
 	db.lock()
 	defer db.unlock()
 	log.SetCallerLevel(1)
 	log.Debugln("Clear", db.currentBucket)
 	log.SetCallerLevel(0)
-	log.Err(db.db.Update(func(tx *bolt.Tx) error {
+	log.Err(db.db(group).Update(func(tx *bolt.Tx) error {
 		err := tx.DeleteBucket([]byte(db.currentBucket))
 		if err == bolt.ErrBucketNotFound {
 			err = nil
@@ -47,10 +50,10 @@ func (db *boltDB) Clear() {
 	}))
 }
 
-func (db *boltDB) Get(key interface{}) (value []byte) {
+func (db *boltDB) Get(group int, key interface{}) (value []byte) {
 	db.lock()
 	defer db.unlock()
-	db.db.View(func(tx *bolt.Tx) error {
+	db.db(group).View(func(tx *bolt.Tx) error {
 		value = tx.Bucket([]byte(db.currentBucket)).Get(interfaceToBytes(key))
 		log.SetCallerLevel(3)
 		log.Debugf("Get %s %s %d\n", db.currentBucket, interfaceToString(key), len(value))
@@ -60,10 +63,10 @@ func (db *boltDB) Get(key interface{}) (value []byte) {
 	return value
 }
 
-func (db *boltDB) Set(key interface{}, value []byte) {
+func (db *boltDB) Set(group int, key interface{}, value []byte) {
 	db.lock()
 	defer db.unlock()
-	log.Err(db.db.Update(func(tx *bolt.Tx) error {
+	log.Err(db.db(group).Update(func(tx *bolt.Tx) error {
 		log.SetCallerLevel(3)
 		log.Debugf("Set %s %s %d\n", db.currentBucket, interfaceToString(key), len(value))
 		log.SetCallerLevel(0)
@@ -71,10 +74,10 @@ func (db *boltDB) Set(key interface{}, value []byte) {
 	}))
 }
 
-func (db *boltDB) Delete(key interface{}) {
+func (db *boltDB) Delete(group int, key interface{}) {
 	db.lock()
 	defer db.unlock()
-	log.Err(db.db.Update(func(tx *bolt.Tx) error {
+	log.Err(db.db(group).Update(func(tx *bolt.Tx) error {
 		log.SetCallerLevel(3)
 		log.Debugf("Delete %s %s\n", db.currentBucket, interfaceToString(key))
 		log.SetCallerLevel(0)
@@ -82,13 +85,13 @@ func (db *boltDB) Delete(key interface{}) {
 	}))
 }
 
-func (db *boltDB) Foreach(fn func(k, v []byte) bool) {
+func (db *boltDB) Foreach(group int, fn func(k, v []byte) bool) {
 	db.lock()
 	defer db.unlock()
 	log.SetCallerLevel(1)
 	log.Debugln("Foreach", db.currentBucket)
 	log.SetCallerLevel(0)
-	db.db.View(func(tx *bolt.Tx) error {
+	db.db(group).View(func(tx *bolt.Tx) error {
 		cursor := tx.Bucket([]byte(db.currentBucket)).Cursor()
 		for k, v := cursor.First(); k != nil; k, v = cursor.Next() {
 			if !fn(k, v) {
