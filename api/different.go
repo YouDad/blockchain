@@ -6,6 +6,7 @@ import (
 	"github.com/YouDad/blockchain/core"
 	"github.com/YouDad/blockchain/global"
 	"github.com/YouDad/blockchain/log"
+	"github.com/YouDad/blockchain/utils"
 )
 
 func SyncBlocks(group int, newHeight int32, address string) {
@@ -29,7 +30,7 @@ func SyncBlocks(group int, newHeight int32, address string) {
 		for r >= l {
 			mid := l + (r-l)/2
 			// log.Traceln("mid", mid)
-			block := core.BytesToBlock(bc.Get(mid))
+			block := bc.GetBlockByHeight(mid)
 			hash, err := CallbackGetHash(group, mid, address)
 			if err != nil {
 				log.Warn(err)
@@ -45,9 +46,9 @@ func SyncBlocks(group int, newHeight int32, address string) {
 		}
 
 		// log.Traceln("l", l, "r", r)
-		lastestBytes := bc.Get(r)
+		lastest := bc.GetBlockByHeight(r)
+		lastestBytes := utils.Encode(lastest)
 		bc.SetLastest(lastestBytes)
-		lastest := core.BytesToBlock(lastestBytes)
 		if lastest == nil {
 			log.Errln("二分nil")
 		}
@@ -63,7 +64,7 @@ func SyncBlocks(group int, newHeight int32, address string) {
 
 		set := core.GetUTXOSet(group)
 		for i := lastestHeight; i > r; i-- {
-			set.Reverse(core.BytesToBlock(bc.Get(i)))
+			set.Reverse(bc.GetBlockByHeight(i))
 		}
 
 		for _, block := range blocks {

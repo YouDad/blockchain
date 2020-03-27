@@ -57,14 +57,12 @@ func (iter *BlockchainIterator) Next() (nextBlock *types.Block) {
 }
 
 func CreateBlockchain(minerAddress string) *Blockchain {
-	bc := GetBlockchain(global.GetGroup())
+	group := global.GetGroup()
+	bc := GetBlockchain(group)
+	genesis := NewBlock(group, nil, 1, 0, []*types.Transaction{NewCoinbaseTxn(minerAddress)})
 	bc.Clear()
-	genesis := NewBlock(global.GetGroup(), nil, 1, 0, []*types.Transaction{NewCoinbaseTxn(minerAddress)})
-	bytes := utils.Encode(genesis)
-	bc.Set(genesis.Hash(), bytes)
-	bc.Set(genesis.Height, bytes)
-	bc.SetLastest(bytes)
-	GetUTXOSet(global.GetGroup()).Reindex()
+	bc.AddBlock(genesis)
+	GetUTXOSet(group).Reindex()
 	return bc
 }
 
@@ -73,7 +71,7 @@ func GetBlockchain(group int) *Blockchain {
 }
 
 func (bc *Blockchain) GetGenesis() *types.Block {
-	return BytesToBlock(bc.Get(0))
+	return bc.GetBlockByHeight(0)
 }
 
 func (bc *Blockchain) GetLastest() *types.Block {
@@ -82,6 +80,14 @@ func (bc *Blockchain) GetLastest() *types.Block {
 		return block
 	}
 	return BytesToBlock(bc.Get("lastest"))
+}
+
+func (bc *Blockchain) GetBlockByHeight(height int32) *types.Block {
+	return BytesToBlock(bc.Get(bc.Get(height)))
+}
+
+func (bc *Blockchain) SetBlockByHeight(height int, b *types.Block) {
+	bc.Set(height, b.Hash())
 }
 
 func (bc *Blockchain) SetLastest(bytes []byte) {
@@ -110,7 +116,7 @@ func (bc *Blockchain) AddBlock(b *types.Block) {
 	if bc.GetHeight() < b.Height {
 		bc.SetLastest(bytes)
 		bc.Set(b.Hash(), bytes)
-		bc.Set(b.Height, bytes)
+		bc.Set(b.Height, b.Hash())
 	}
 }
 
@@ -125,8 +131,8 @@ func (bc *Blockchain) MineBlock(txns []*types.Transaction) *types.Block {
 	difficulty := lastest.Difficulty
 	height := lastest.Height + 1
 	if height%60 == 0 {
-		lastDiff := BytesToBlock(bc.Get(height - 60))
-		thisDiff := BytesToBlock(bc.Get(height - 1))
+		lastDiff := bc.GetBlockByHeight(height - 60)
+		thisDiff := bc.GetBlockByHeight(height - 1)
 		difficulty *= 59 * 60 * 1e9 / float64(thisDiff.Timestamp-lastDiff.Timestamp)
 	}
 

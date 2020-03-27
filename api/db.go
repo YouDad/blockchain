@@ -126,7 +126,7 @@ func (c *DBController) GetBlocks() {
 	}
 
 	bc := core.GetBlockchain(args.Group)
-	block := core.BytesToBlock(bc.Get(args.From))
+	block := bc.GetBlockByHeight(args.From)
 	if block == nil {
 		c.ReturnErr(ErrNoBlock)
 	}
@@ -134,16 +134,16 @@ func (c *DBController) GetBlocks() {
 	if bytes.Compare(block.PrevHash, args.Hash) != 0 {
 		log.Warnf("%s != %s\n", block.PrevHash, args.Hash)
 		log.Warnln(block)
-		block := core.BytesToBlock(bc.Get(args.From - 1))
+		block := bc.GetBlockByHeight(args.From - 1)
 		log.Warnln(block)
 		c.ReturnErr(ErrNoBlock)
 	}
 	for i := args.From; i <= args.To; i++ {
-		data := bc.Get(i)
+		data := bc.GetBlockByHeight(i)
 		if data == nil {
 			break
 		}
-		reply.Blocks = append(reply.Blocks, core.BytesToBlock(data))
+		reply.Blocks = append(reply.Blocks, data)
 	}
 	c.Return(reply)
 }
