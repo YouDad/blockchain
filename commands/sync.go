@@ -10,7 +10,7 @@ import (
 )
 
 func init() {
-	SyncCmd.Flags().UintVar(&global.GroupNum, "group", 1, "process group of number")
+	SyncCmd.Flags().IntVar(&global.GroupNum, "group", 1, "process group of number")
 }
 
 var SyncCmd = &cobra.Command{

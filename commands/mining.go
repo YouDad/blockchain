@@ -20,7 +20,7 @@ var (
 func init() {
 	MiningCmd.Flags().StringVar(&nodeAddress, "address", "", "node's coin address")
 	MiningCmd.Flags().UintVar(&speed, "speed", 1, "mining speed: 0~100, 100 is 100% pc speed")
-	MiningCmd.Flags().UintVar(&global.GroupNum, "group", 1, "process group of number")
+	MiningCmd.Flags().IntVar(&global.GroupNum, "group", 1, "process group of number")
 }
 
 var MiningCmd = &cobra.Command{

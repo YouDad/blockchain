@@ -7,7 +7,7 @@ import (
 )
 
 var (
-	GroupNum uint
+	GroupNum int
 	Port     string
 )
 

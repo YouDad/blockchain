@@ -9,7 +9,7 @@ import (
 )
 
 func init() {
-	AllCmd.Flags().UintVar(&global.GroupNum, "group", 1, "process group of number")
+	AllCmd.Flags().IntVar(&global.GroupNum, "group", 1, "process group of number")
 }
 
 var AllCmd = &cobra.Command{
