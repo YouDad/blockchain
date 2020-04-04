@@ -11,11 +11,13 @@ import (
 
 func NewBlock(group int, prev types.HashValue, target float64, height int32, txns []*types.Transaction) *types.Block {
 	block := &types.Block{
-		Timestamp: time.Now().UnixNano(),
-		PrevHash:  prev,
-		Target:    target,
-		Height:    height,
-		Txns:      txns,
+		BlockHeader: types.BlockHeader{
+			Timestamp: time.Now().UnixNano(),
+			PrevHash:  prev,
+			Target:    target,
+			Height:    height,
+		},
+		Txns: txns,
 	}
 	var txs [][]byte
 

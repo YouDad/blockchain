@@ -6,14 +6,26 @@ import (
 	"github.com/YouDad/blockchain/utils"
 )
 
-type Block struct {
-	Timestamp  int64
-	PrevHash   HashValue
-	Target     float64
-	Nonce      int64
-	MerkleRoot HashValue
+type BlockHeader struct {
+	Group      int
 	Height     int32
-	Txns       []*Transaction
+	PrevHash   HashValue
+	Timestamp  int64
+	MerkleRoot HashValue
+	Target     float64
+}
+
+type ChukonuHeader struct {
+	GroupBase       int
+	BatchSize       int
+	BatchMerklePath []HashValue
+	Nonce           int64
+}
+
+type Block struct {
+	BlockHeader
+	ChukonuHeader
+	Txns []*Transaction
 }
 
 func (b Block) Hash() HashValue {
