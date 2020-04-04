@@ -26,13 +26,13 @@ type ProofOfWork struct {
 }
 
 func NewPOW(b *types.Block) *ProofOfWork {
-	target := big.NewInt(1)
-	target.Lsh(target, 256)
-	diff := big.NewInt(0)
-	big.NewFloat(b.Difficulty).Int(diff)
-	target.Div(target, diff)
-	log.Debugln(target, diff)
-	return &ProofOfWork{b, target}
+	max := big.NewInt(1)
+	max.Lsh(max, 256)
+	target := big.NewInt(0)
+	big.NewFloat(b.Target).Int(target)
+	max.Div(max, target)
+	log.Debugln(max, target)
+	return &ProofOfWork{b, max}
 }
 
 func (pow *ProofOfWork) prepareData(nonce int64) []byte {
@@ -41,7 +41,7 @@ func (pow *ProofOfWork) prepareData(nonce int64) []byte {
 			pow.block.PrevHash[:],
 			pow.block.MerkleRoot,
 			utils.IntToBytes(pow.block.Timestamp),
-			utils.FloatToBytes(pow.block.Difficulty),
+			utils.FloatToBytes(pow.block.Target),
 			utils.IntToBytes(nonce),
 		},
 		[]byte{},

@@ -9,13 +9,13 @@ import (
 	"github.com/YouDad/blockchain/utils"
 )
 
-func NewBlock(group int, prev types.HashValue, diff float64, height int32, txns []*types.Transaction) *types.Block {
+func NewBlock(group int, prev types.HashValue, target float64, height int32, txns []*types.Transaction) *types.Block {
 	block := &types.Block{
-		Timestamp:  time.Now().UnixNano(),
-		PrevHash:   prev,
-		Difficulty: diff,
-		Height:     height,
-		Txns:       txns,
+		Timestamp: time.Now().UnixNano(),
+		PrevHash:  prev,
+		Target:    target,
+		Height:    height,
+		Txns:      txns,
 	}
 	var txs [][]byte
 

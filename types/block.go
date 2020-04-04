@@ -9,7 +9,7 @@ import (
 type Block struct {
 	Timestamp  int64
 	PrevHash   HashValue
-	Difficulty float64
+	Target     float64
 	Nonce      int64
 	MerkleRoot HashValue
 	Height     int32

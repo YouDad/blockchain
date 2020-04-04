@@ -128,19 +128,19 @@ func (bc *Blockchain) MineBlock(txns []*types.Transaction) *types.Block {
 	}
 
 	lastest := bc.GetLastest()
-	difficulty := lastest.Difficulty
+	target := lastest.Target
 	height := lastest.Height + 1
 	if height%60 == 0 {
-		lastDiff := bc.GetBlockByHeight(height - 60)
-		thisDiff := bc.GetBlockByHeight(height - 1)
-		difficulty *= 59 * 60 * 1e9 / float64(thisDiff.Timestamp-lastDiff.Timestamp)
+		lastTarget := bc.GetBlockByHeight(height - 60)
+		thisTarget := bc.GetBlockByHeight(height - 1)
+		target *= 59 * 60 * 1e9 / float64(thisTarget.Timestamp-lastTarget.Timestamp)
 	}
 
-	newBlock := NewBlock(bc.group, lastest.Hash(), difficulty, height, txns)
+	newBlock := NewBlock(bc.group, lastest.Hash(), target, height, txns)
 	if newBlock == nil {
 		return nil
 	}
-	log.Infof("NewBlock[%d]{%.2f} %s", height, difficulty, lastest.Hash())
+	log.Infof("NewBlock[%d]{%.2f} %s", height, target, lastest.Hash())
 	bc.AddBlock(newBlock)
 	global.SyncMutex.Unlock()
 	return newBlock
