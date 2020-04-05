@@ -46,6 +46,10 @@ func SHA256(arg interface{}) []byte {
 }
 
 func BaseTypeToBytes(num interface{}) []byte {
+	switch number := num.(type) {
+	case int:
+		num = int32(number)
+	}
 	buff := new(bytes.Buffer)
 	err := binary.Write(buff, binary.BigEndian, num)
 	if err != nil {
