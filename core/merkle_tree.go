@@ -2,6 +2,8 @@ package core
 
 import (
 	"crypto/sha256"
+
+	"github.com/YouDad/blockchain/types"
 )
 
 // MerkleTree represent a Merkle tree
@@ -11,21 +13,19 @@ type MerkleTree struct {
 
 // MerkleNode represent a Merkle tree node
 type MerkleNode struct {
+	l     int
+	r     int
 	Left  *MerkleNode
 	Right *MerkleNode
-	Data  []byte
+	Data  types.HashValue
 }
 
 // NewMerkleTree creates a new Merkle tree from a sequence of data
-func NewMerkleTree(data [][]byte) *MerkleTree {
+func NewMerkleTree(dataSeq [][]byte) *MerkleTree {
 	var nodes []MerkleNode
 
-	if len(data)%2 != 0 {
-		data = append(data, data[len(data)-1])
-	}
-
-	for _, datum := range data {
-		node := NewMerkleNode(nil, nil, datum)
+	for index, data := range dataSeq {
+		node := NewMerkleNode(index, index, nil, nil, data)
 		nodes = append(nodes, *node)
 	}
 
@@ -33,7 +33,14 @@ func NewMerkleTree(data [][]byte) *MerkleTree {
 		var newLevel []MerkleNode
 
 		for j := 0; j < len(nodes); j += 2 {
-			node := NewMerkleNode(&nodes[j], &nodes[j+1], nil)
+			if j == len(nodes)-1 {
+				nodes = append(nodes, nodes[j])
+				last := nodes[len(nodes)-1]
+				delta := last.r - last.l + 1
+				last.l += delta
+				last.r += delta
+			}
+			node := NewMerkleNode(nodes[j].l, nodes[j+1].r, &nodes[j], &nodes[j+1], nil)
 			newLevel = append(newLevel, *node)
 		}
 
@@ -46,20 +53,32 @@ func NewMerkleTree(data [][]byte) *MerkleTree {
 }
 
 // NewMerkleNode creates a new Merkle tree node
-func NewMerkleNode(left, right *MerkleNode, data []byte) *MerkleNode {
-	mNode := MerkleNode{}
+func NewMerkleNode(l, r int, left, right *MerkleNode, data []byte) *MerkleNode {
+	if data == nil {
+		data = append(left.Data, right.Data...)
+	}
+	hash := sha256.Sum256(data)
+	return &MerkleNode{l, r, left, right, hash[:]}
+}
 
-	if left == nil && right == nil {
-		hash := sha256.Sum256(data)
-		mNode.Data = hash[:]
-	} else {
-		prevHashes := append(left.Data, right.Data...)
-		hash := sha256.Sum256(prevHashes)
-		mNode.Data = hash[:]
+// Index start from 0
+func (tree *MerkleTree) FindPath(index int) []types.HashValue {
+	node := tree.RootNode
+	var nodes []*MerkleNode
+
+	for node.l != node.r {
+		nodes = append(nodes, node)
+		mid := node.l + node.r
+		if index <= mid/2 {
+			node = node.Left
+		} else {
+			node = node.Right
+		}
 	}
 
-	mNode.Left = left
-	mNode.Right = right
-
-	return &mNode
+	var ret []types.HashValue
+	for i := len(nodes) - 1; i > 0; i-- {
+		ret = append(ret, nodes[i].Data)
+	}
+	return ret
 }
