@@ -128,6 +128,16 @@ func MineBlocks(txns [][]*types.Transaction, groupBase, batchSize int) []*types.
 	for i := 0; i < batchSize; i++ {
 		bc := GetBlockchain(groupBase + i)
 		lastest := bc.GetLastest()
+		var target float64 = 1.0
+		var height int32 = -1
+		var prevHash types.HashValue = nil
+		var timestamp int64 = time.Now().UnixNano()
+		if lastest != nil {
+			target = lastest.Target
+			height = lastest.Height
+			prevHash = lastest.Hash()
+			timestamp = lastest.Timestamp
+		}
 
 		// 1. 计算MerkleRoot用字节数组
 		var txnsBytes [][]byte
@@ -136,18 +146,17 @@ func MineBlocks(txns [][]*types.Transaction, groupBase, batchSize int) []*types.
 		}
 
 		// 2. 更新难度
-		target := lastest.Target
-		if lastest.Height%60 == 0 {
-			prevRecalcBlock := bc.GetBlockByHeight(lastest.Height - 59)
-			target *= 59 * 60 * 1e9 / float64(lastest.Timestamp-prevRecalcBlock.Timestamp)
+		if height%60 == 0 {
+			prevRecalcBlock := bc.GetBlockByHeight(height - 59)
+			target *= 59 * 60 * 1e9 / float64(timestamp-prevRecalcBlock.Timestamp)
 		}
 
 		// 3. 构造block
 		blocks = append(blocks, &types.Block{
 			BlockHeader: types.BlockHeader{
 				Group:      groupBase + i,
-				Height:     lastest.Height + 1,
-				PrevHash:   lastest.Hash(),
+				Height:     height + 1,
+				PrevHash:   prevHash,
 				Timestamp:  time.Now().UnixNano(),
 				MerkleRoot: NewMerkleTree(txnsBytes).RootNode.Data,
 				Target:     target,
