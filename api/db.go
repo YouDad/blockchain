@@ -159,13 +159,16 @@ func GossipTxn(group int, txn types.Transaction) error {
 
 // @router /GossipTxn [post]
 func (c *DBController) GossipTxn() {
-	// TODO: Check Group
 	var args GossipTxnArgs
 	c.ParseParameter(&args)
+	group := global.GetGroup()
+	if group > args.Group || args.Group >= group+global.GroupNum {
+		c.Return(nil)
+	}
 
 	mempool := global.GetMempool()
 	if !mempool.IsTxnExists(args.Group, args.Transaction) {
-		bc := core.GetBlockchain(global.GetGroup())
+		bc := core.GetBlockchain(group)
 		if bc.VerifyTransaction(args.Transaction) {
 			mempool.AddTxnToMempool(args.Group, args.Transaction)
 			go GossipTxn(args.Group, args.Transaction)
@@ -192,12 +195,15 @@ func CallSelfBlock(block *types.Block) {
 
 // @router /GossipBlock [post]
 func (c *DBController) GossipBlock() {
-	// TODO: Check Group
 	var args GossipBlockArgs
 	c.ParseParameter(&args)
+	group := global.GetGroup()
+	if group > args.Group || args.Group >= group+global.GroupNum {
+		c.Return(nil)
+	}
 
-	bc := core.GetBlockchain(global.GetGroup())
-	set := core.GetUTXOSet(global.GetGroup())
+	bc := core.GetBlockchain(group)
+	set := core.GetUTXOSet(group)
 	lastest := bc.GetLastest()
 	lastestHeight := lastest.Height
 
@@ -215,7 +221,7 @@ func (c *DBController) GossipBlock() {
 		}
 	}
 	global.SyncMutex.Unlock()
-	SyncBlocks(global.GetGroup(), args.Height, c.GetString("address"))
+	SyncBlocks(group, args.Height, c.GetString("address"))
 
 	c.Return(nil)
 }
