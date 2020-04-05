@@ -45,16 +45,7 @@ func SHA256(arg interface{}) []byte {
 	return hash[:]
 }
 
-func IntToBytes(num int64) []byte {
-	buff := new(bytes.Buffer)
-	err := binary.Write(buff, binary.BigEndian, num)
-	if err != nil {
-		log.Errln(err)
-	}
-	return buff.Bytes()
-}
-
-func FloatToBytes(num float64) []byte {
+func BaseTypeToBytes(num interface{}) []byte {
 	buff := new(bytes.Buffer)
 	err := binary.Write(buff, binary.BigEndian, num)
 	if err != nil {

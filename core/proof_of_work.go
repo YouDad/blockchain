@@ -35,18 +35,6 @@ func NewPOW(b *types.Block) *ProofOfWork {
 	return &ProofOfWork{b, max}
 }
 
-func (pow *ProofOfWork) prepareData(nonce int64) []byte {
-	return bytes.Join(
-		[][]byte{
-			pow.block.PrevHash[:],
-			pow.block.MerkleRoot,
-			utils.IntToBytes(pow.block.Timestamp),
-			utils.FloatToBytes(pow.block.Target),
-			utils.IntToBytes(nonce),
-		},
-		[]byte{},
-	)
-}
 
 func (pow *ProofOfWork) Run(group int) (int64, []byte) {
 	var hash []byte
@@ -90,4 +78,15 @@ func (pow *ProofOfWork) Validate(nonce int64) (bool, types.HashValue) {
 	}
 
 	return isValid, hash[:]
+}
+
+func (pow *ProofOfWork) prepareData() []byte {
+	return bytes.Join(
+		[][]byte{
+			pow.poweredStruct.batchMerkleRoot,
+			utils.BaseTypeToBytes(pow.poweredStruct.GroupBase),
+			utils.BaseTypeToBytes(pow.poweredStruct.BatchSize),
+			utils.BaseTypeToBytes(pow.poweredStruct.Nonce),
+		}, []byte{},
+	)
 }
