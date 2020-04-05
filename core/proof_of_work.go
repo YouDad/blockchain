@@ -116,7 +116,7 @@ func (pow *ProofOfWork) Validate(nonce int64) (bool, *big.Int) {
 	hashInt.SetBytes(hash[:])
 
 	if (nonce-nonceStart)%(1<<20) == 0 {
-		log.Debugf("Dig into mine [%d] %s\n", nonce-nonceStart, hash)
+		log.Debugf("Dig into mine [%d] %x\n", nonce-nonceStart, hash)
 	}
 	return hashInt.Cmp(pow.target) == -1, hashInt
 }
