@@ -148,7 +148,9 @@ func MineBlocks(txns [][]*types.Transaction, groupBase, batchSize int) []*types.
 		// 2. 更新难度
 		if height%60 == 0 {
 			prevRecalcBlock := bc.GetBlockByHeight(height - 59)
-			target *= 59 * 60 * 1e9 / float64(timestamp-prevRecalcBlock.Timestamp)
+			if prevRecalcBlock != nil {
+				target *= 59 * 60 * 1e9 / float64(timestamp-prevRecalcBlock.Timestamp)
+			}
 		}
 
 		// 3. 构造block
