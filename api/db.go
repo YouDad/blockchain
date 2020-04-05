@@ -148,10 +148,13 @@ func (c *DBController) GetBlocks() {
 	c.Return(reply)
 }
 
-type GossipTxnArgs = types.Transaction
+type GossipTxnArgs = struct {
+	types.Transaction
+	Group int
+}
 
-func GossipTxn(txn *types.Transaction) error {
-	return network.GossipCallInnerGroup("db/GossipTxn", txn, nil)
+func GossipTxn(group int, txn types.Transaction) error {
+	return network.GossipCallInnerGroup("db/GossipTxn", &GossipTxnArgs{txn, group}, nil)
 }
 
 // @router /GossipTxn [post]
@@ -161,11 +164,11 @@ func (c *DBController) GossipTxn() {
 	c.ParseParameter(&args)
 
 	mempool := global.GetMempool()
-	if !mempool.IsTxnExists(args) {
+	if !mempool.IsTxnExists(args.Group, args.Transaction) {
 		bc := core.GetBlockchain(global.GetGroup())
-		if bc.VerifyTransaction(args) {
-			mempool.AddTxnToMempool(args)
-			go GossipTxn(&args)
+		if bc.VerifyTransaction(args.Transaction) {
+			mempool.AddTxnToMempool(args.Group, args.Transaction)
+			go GossipTxn(args.Group, args.Transaction)
 		} else {
 			log.Warnf("AddTxnToMempool Verify false %s\n", args.Hash)
 		}

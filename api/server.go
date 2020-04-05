@@ -33,6 +33,6 @@ func (c *ServerController) SendCMD() {
 	if err != nil {
 		c.ReturnErr(err)
 	}
-	err = GossipTxn(txn)
+	err = GossipTxn(global.GetGroup(), *txn)
 	c.ReturnErr(err)
 }
