@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/YouDad/blockchain/global"
 	"github.com/YouDad/blockchain/log"
@@ -59,9 +60,10 @@ func (iter *BlockchainIterator) Next() (nextBlock *types.Block) {
 func CreateBlockchain(minerAddress string) *Blockchain {
 	group := global.GetGroup()
 	bc := GetBlockchain(group)
-	genesis := NewBlock(group, nil, 1, 0, []*types.Transaction{NewCoinbaseTxn(minerAddress)})
+	txns := [][]*types.Transaction{[]*types.Transaction{NewCoinbaseTxn(minerAddress)}}
+	blocks := MineBlocks(txns, group, 1)
 	bc.Clear()
-	bc.AddBlock(genesis)
+	bc.AddBlock(blocks[0])
 	GetUTXOSet(group).Reindex()
 	return bc
 }
@@ -120,30 +122,67 @@ func (bc *Blockchain) AddBlock(b *types.Block) {
 	}
 }
 
-func (bc *Blockchain) MineBlock(txns []*types.Transaction) *types.Block {
-	for _, txn := range txns {
-		if !bc.VerifyTransaction(*txn) {
-			log.Errln("Invalid transaction")
+func MineBlocks(txns [][]*types.Transaction, groupBase, batchSize int) []*types.Block {
+	// 1. 构造blocks
+	var blocks []*types.Block
+	for i := 0; i < batchSize; i++ {
+		bc := GetBlockchain(groupBase + i)
+		lastest := bc.GetLastest()
+
+		// 1. 计算MerkleRoot用字节数组
+		var txnsBytes [][]byte
+		for _, txn := range txns[i] {
+			txnsBytes = append(txnsBytes, utils.Encode(txn))
+		}
+
+		// 2. 更新难度
+		target := lastest.Target
+		if lastest.Height%60 == 0 {
+			prevRecalcBlock := bc.GetBlockByHeight(lastest.Height - 59)
+			target *= 59 * 60 * 1e9 / float64(lastest.Timestamp-prevRecalcBlock.Timestamp)
+		}
+
+		// 3. 构造block
+		blocks = append(blocks, &types.Block{
+			BlockHeader: types.BlockHeader{
+				Group:      groupBase + i,
+				Height:     lastest.Height + 1,
+				PrevHash:   lastest.Hash(),
+				Timestamp:  time.Now().UnixNano(),
+				MerkleRoot: NewMerkleTree(txnsBytes).RootNode.Data,
+				Target:     target,
+			},
+			ChukonuHeader: types.ChukonuHeader{
+				GroupBase: groupBase,
+				BatchSize: batchSize,
+			},
+			Txns: txns[i],
+		})
+	}
+
+	// 2. 计算Nonce
+	pow := NewPOW(blocks)
+	err, target, nonce, batchMerkleTree := pow.Run()
+	if err != nil {
+		return nil
+	}
+
+	var foundBlocks []*types.Block
+	for _, block := range blocks {
+		if target.Cmp(GetTarget(block.Target)) == -1 {
+			foundBlocks = append(foundBlocks, block)
 		}
 	}
 
-	lastest := bc.GetLastest()
-	target := lastest.Target
-	height := lastest.Height + 1
-	if height%60 == 0 {
-		lastTarget := bc.GetBlockByHeight(height - 60)
-		thisTarget := bc.GetBlockByHeight(height - 1)
-		target *= 59 * 60 * 1e9 / float64(thisTarget.Timestamp-lastTarget.Timestamp)
+	for _, block := range foundBlocks {
+		block.Nonce = nonce
+		block.BatchMerklePath = batchMerkleTree.FindPath(block.Group - block.GroupBase)
 	}
 
-	newBlock := NewBlock(bc.group, lastest.Hash(), target, height, txns)
-	if newBlock == nil {
-		return nil
+	for _, block := range blocks {
+		log.Infof("NewBlock[%d]{%.2f} %s", block.Height, block.Target, block.PrevHash)
 	}
-	log.Infof("NewBlock[%d]{%.2f} %s", height, target, lastest.Hash())
-	bc.AddBlock(newBlock)
-	global.SyncMutex.Unlock()
-	return newBlock
+	return blocks
 }
 
 func (bc *Blockchain) FindUTXO() map[string][]types.TxnOutput {

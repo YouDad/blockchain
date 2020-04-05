@@ -30,25 +30,27 @@ var MiningCmd = &cobra.Command{
 		log.Infoln("Starting node", global.Port)
 		network.Register()
 		core.Register(speed)
-		// XXX
 		go func() {
 			if !wallet.ValidateAddress(nodeAddress) {
 				log.Errln("Address is not valid")
 			}
 
-			bc := core.GetBlockchain(global.GetGroup())
+			group := global.GetGroup()
 			for {
-				txs := []*types.Transaction{core.NewCoinbaseTxn(nodeAddress)}
-				set := core.GetUTXOSet(global.GetGroup())
-				txs = append(txs, global.GetMempool().GetTxns()...)
+				var txns [][]*types.Transaction
+				for i := 0; i < global.GroupNum; i++ {
+					txns = append(txns, []*types.Transaction{core.NewCoinbaseTxn(nodeAddress)})
+					txns[i] = append(txns[i], global.GetMempool().GetTxns(group+i)...)
+				}
 
 				for {
-					newBlocks := bc.MineBlock(txs)
+					newBlocks := core.MineBlocks(txns, group, global.GroupNum)
 					if newBlocks == nil {
 						break
 					}
-					set.Update(newBlocks)
-					api.GossipBlock(newBlocks)
+					for _, newBlock := range newBlocks {
+						api.GossipBlock(newBlock)
+					}
 				}
 			}
 		}()

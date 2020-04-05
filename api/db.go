@@ -186,6 +186,10 @@ func GossipBlock(block *types.Block) {
 	network.GossipCallInnerGroup("db/GossipBlock", block, nil)
 }
 
+func CallSelfBlock(block *types.Block) {
+	network.CallSelf("db/GossipBlock", block, nil)
+}
+
 // @router /GossipBlock [post]
 func (c *DBController) GossipBlock() {
 	// TODO: Check Group
@@ -203,12 +207,14 @@ func (c *DBController) GossipBlock() {
 		CallbackGossipBlock(lastest, c.GetString("address"))
 	}
 
+	global.SyncMutex.Lock()
 	if args.Height == lastestHeight+1 {
 		if bytes.Compare(args.PrevHash, lastest.Hash()) == 0 {
 			bc.AddBlock(&args)
 			set.Update(&args)
 		}
 	}
+	global.SyncMutex.Unlock()
 	SyncBlocks(global.GetGroup(), args.Height, c.GetString("address"))
 
 	c.Return(nil)
