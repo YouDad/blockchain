@@ -7,20 +7,22 @@ import (
 	"runtime"
 	"strings"
 	"sync"
+	"time"
 )
 
 var (
 	callLevel   = 2
 	logLevel    uint
+	port        string
 	prefix      string
 	prefixMutex sync.Mutex
 	levelMutex  sync.Mutex
 )
 
-func Register(level uint, port string) {
-	log.SetFlags(log.Lmicroseconds | log.Ltime)
+func Register(level uint, p string) {
+	log.SetFlags(0)
 	logLevel = level
-	prefix = fmt.Sprintf("[%s]", port)
+	port = p
 }
 
 func LogSetPrefix(prefixString string) {
@@ -46,7 +48,8 @@ func setPrefix(level string) {
 		}
 	}
 
-	LogSetPrefix(fmt.Sprintf("[%s][%s]: { %s +%d } ", string(routineId), level, file, line))
+	LogSetPrefix(fmt.Sprintf("[%d][%s][%s][%s]: { %s +%d } ",
+		time.Now().UnixNano(), port, string(routineId), level, file, line))
 }
 
 func SetCallerLevel(level int) {
