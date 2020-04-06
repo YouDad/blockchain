@@ -51,7 +51,7 @@ var MiningCmd = &cobra.Command{
 						break
 					}
 					for _, newBlock := range newBlocks {
-						api.GossipBlock(newBlock)
+						api.CallSelfBlock(newBlock)
 					}
 					log.Infoln("core.MineBlocks", group, global.GroupNum, "}}}}}}}}")
 				}
