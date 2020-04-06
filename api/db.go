@@ -202,6 +202,7 @@ func (c *DBController) GossipBlock() {
 		c.Return(nil)
 	}
 
+	log.Infoln("GossipBlock", "{{{{{{{{")
 	bc := core.GetBlockchain(group)
 	set := core.GetUTXOSet(group)
 	lastest := bc.GetLastest()
@@ -223,6 +224,7 @@ func (c *DBController) GossipBlock() {
 	global.SyncMutex.Unlock()
 	SyncBlocks(group, args.Height, c.GetString("address"))
 
+	log.Infoln("GossipBlock", "}}}}}}}}")
 	c.Return(nil)
 }
 
@@ -258,7 +260,7 @@ func (c *DBController) GetHash() {
 	c.ParseParameter(&args)
 
 	bc := core.GetBlockchain(args.Group)
-	block := core.BytesToBlock(bc.Get(args.Height))
+	block := bc.GetBlockByHeight(args.Height)
 	if block == nil {
 		c.ReturnErr(ErrNoBlock)
 	}

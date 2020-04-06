@@ -10,6 +10,12 @@ import (
 )
 
 func SyncBlocks(group int, newHeight int32, address string) {
+	log.Infoln("SyncBlocks", "{{{{{{{{")
+	syncBlocks(group, newHeight, address)
+	log.Infoln("SyncBlocks", "}}}}}}}}")
+}
+
+func syncBlocks(group int, newHeight int32, address string) {
 	bc := core.GetBlockchain(group)
 
 	lastestHeight := bc.GetHeight()
