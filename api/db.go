@@ -214,14 +214,15 @@ func (c *DBController) GossipBlock() {
 		CallbackGossipBlock(lastest, c.GetString("address"))
 	}
 
-	global.SyncMutex.Lock()
 	if args.Height == lastestHeight+1 {
 		if bytes.Compare(args.PrevHash, lastest.Hash()) == 0 {
+			global.SyncMutex.Lock()
 			bc.AddBlock(&args)
 			set.Update(&args)
+			GossipBlock(&args)
+			global.SyncMutex.Unlock()
 		}
 	}
-	global.SyncMutex.Unlock()
 	SyncBlocks(group, args.Height, c.GetString("address"))
 
 	log.Infoln("GossipBlock", "}}}}}}}}")
