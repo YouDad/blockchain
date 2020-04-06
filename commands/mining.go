@@ -31,6 +31,7 @@ var MiningCmd = &cobra.Command{
 		network.Register()
 		core.Register(speed)
 		go func() {
+			<-network.ServerReady
 			if !wallet.ValidateAddress(nodeAddress) {
 				log.Errln("Address is not valid")
 			}
