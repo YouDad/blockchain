@@ -14,11 +14,11 @@ type Mempool struct {
 var instanceMempool Mempool
 var onceMempool = sync.Once{}
 
-func GetMempool() Mempool {
+func GetMempool() *Mempool {
 	onceMempool.Do(func() {
 		instanceMempool = Mempool{make(map[int]map[[32]byte]types.Transaction)}
 	})
-	return instanceMempool
+	return &instanceMempool
 }
 
 func (m Mempool) IsTxnExists(group int, txn types.Transaction) bool {
