@@ -179,6 +179,35 @@ func (c *DBController) GossipTxn() {
 	c.Return(nil)
 }
 
+type GossipRelayTxnArgs = struct {
+	FromGroup       int
+	ToGroup         int
+	Height          int32
+	RelayMerklePath []types.HashValue
+	Txn             types.Transaction
+}
+
+func GossipRelayTxn(fromGroup int, toGroup int, height int32,
+	relayMerklePath []types.HashValue, txn *types.Transaction) {
+
+	network.GossipCallSpecialGroup("db/GossipRelayTxn", &GossipRelayTxnArgs{
+		fromGroup, toGroup, height, relayMerklePath, *txn}, nil, toGroup)
+}
+
+// @router /GossipRelayTxn
+func (c *DBController) GossipRelayTxn() {
+	var args GossipRelayTxnArgs
+	c.ParseParameter(&args)
+
+	// TODO: Verify
+	if global.GetMempool().IsTxnExists(args.ToGroup, args.Txn) {
+		global.GetMempool().AddTxnToMempool(args.ToGroup, args.Txn)
+		network.GossipCallInnerGroup("db/GossipRelayTxn", &args, nil)
+	}
+
+	c.Return(nil)
+}
+
 type GossipBlockArgs = types.Block
 
 func CallbackGossipBlock(block *types.Block, address string) {
