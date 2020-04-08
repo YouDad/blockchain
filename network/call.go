@@ -67,7 +67,7 @@ func CallInnerGroup(method string, args interface{}, reply interface{}) (error, 
 	return errors.New("None of the nodes responded!"), ""
 }
 
-func gossipCall(method string, args interface{}, reply interface{}, targetGroup int) error {
+func GossipCallSpecialGroup(method string, args interface{}, reply interface{}, targetGroup int) error {
 	log.Infoln("GossipCall", method)
 	visit := make([]bool, len(sortedNodes))
 	visited := 0
@@ -113,9 +113,9 @@ func gossipCall(method string, args interface{}, reply interface{}, targetGroup 
 }
 
 func GossipCallInnerGroup(method string, args interface{}, reply interface{}) error {
-	return gossipCall(method, args, reply, global.GetGroup())
+	return GossipCallSpecialGroup(method, args, reply, global.GetGroup())
 }
 
 func GossipCallInterGroup(method string, args interface{}, reply interface{}) error {
-	return gossipCall(method, args, reply, -1)
+	return GossipCallSpecialGroup(method, args, reply, -1)
 }
