@@ -120,6 +120,8 @@ func (bc *Blockchain) AddBlock(b *types.Block) {
 		bc.Set(b.Hash(), bytes)
 		bc.Set(b.Height, b.Hash())
 	}
+
+	GetBlockhead(bc.group).AddBlockhead(b)
 }
 
 func MineBlocks(txns [][]*types.Transaction, groupBase, batchSize int) []*types.Block {

@@ -191,6 +191,7 @@ func GossipBlock(block *types.Block) {
 
 func CallSelfBlock(block *types.Block) {
 	network.CallSelf("db/GossipBlock", block, nil)
+	GossipBlockHead(block)
 }
 
 // @router /GossipBlock [post]
@@ -268,4 +269,31 @@ func (c *DBController) GetHash() {
 	reply.Hash = block.Hash()
 
 	c.Return(reply)
+}
+
+type GossipBlockHeadArgs = types.Block
+
+func GossipBlockHead(block *types.Block) {
+	txns := block.Txns
+	block.Txns = nil
+	network.GossipCallInterGroup("db/GossipBlockHead", block, nil)
+	block.Txns = txns
+}
+
+// @router /GossipBlockHead [post]
+func (c *DBController) GossipBlockHead() {
+	var args GossipBlockHeadArgs
+	c.ParseParameter(&args)
+	group := global.GetGroup()
+	if group > args.Group || args.Group >= group+global.GroupNum {
+		c.Return(nil)
+	}
+
+	bh := core.GetBlockhead(args.Group)
+	if bh.GetBlockheadByHeight(args.Height) == nil {
+		bh.AddBlockhead(&args)
+		GossipBlockHead(&args)
+	}
+
+	c.Return(nil)
 }
