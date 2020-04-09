@@ -53,10 +53,10 @@ func CallSelf(method string, args interface{}, reply interface{}) error {
 func CallInnerGroup(method string, args interface{}, reply interface{}) (error, string) {
 	log.Infoln("Call", method)
 	for _, node := range GetSortedNodes() {
-		// TODO: use for to check Groups
 		if utils.IntIndexOf(node.Groups, global.GetGroup()) == -1 {
 			continue
 		}
+
 		err := call(node.Address, method, args, reply)
 		if err != nil {
 			log.Warnln(node.Address, err)
