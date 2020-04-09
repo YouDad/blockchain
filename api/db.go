@@ -199,10 +199,12 @@ func (c *DBController) GossipRelayTxn() {
 	var args GossipRelayTxnArgs
 	c.ParseParameter(&args)
 
-	// TODO: Verify
 	if global.GetMempool().IsTxnExists(args.ToGroup, args.Txn) {
-		global.GetMempool().AddTxnToMempool(args.ToGroup, args.Txn)
-		network.GossipCallInnerGroup("db/GossipRelayTxn", &args, nil)
+		block := core.GetBlockhead(args.FromGroup).GetBlockheadByHeight(args.Height)
+		if args.Txn.RelayVerify(block.MerkleRoot, args.RelayMerklePath) {
+			global.GetMempool().AddTxnToMempool(args.ToGroup, args.Txn)
+			network.GossipCallInnerGroup("db/GossipRelayTxn", &args, nil)
+		}
 	}
 
 	c.Return(nil)

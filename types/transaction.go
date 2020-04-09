@@ -1,9 +1,11 @@
 package types
 
 import (
+	"bytes"
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rand"
+	"crypto/sha256"
 	"fmt"
 	"math/big"
 	"strings"
@@ -133,4 +135,13 @@ func (txn Transaction) Verify(hashedTxn map[string]Transaction) bool {
 	}
 
 	return true
+}
+
+func (txn *Transaction) RelayVerify(merkleRoot HashValue, relayMerklePath []HashValue) bool {
+	hash := txn.Hash()
+	for _, hashValue := range relayMerklePath {
+		sha := sha256.Sum256(append(hash, hashValue...))
+		hash = sha[:]
+	}
+	return bytes.Compare(merkleRoot, hash) == 0
 }
