@@ -10,7 +10,7 @@ import (
 var specified int
 
 func init() {
-	CreateWalletCmd.Flags().IntVar(&specified, "special_group", -1, "use specified group")
+	CreateWalletCmd.Flags().IntVar(&specified, "specified", -1, "use specified group")
 }
 
 var CreateWalletCmd = &cobra.Command{

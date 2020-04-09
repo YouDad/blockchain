@@ -7,4 +7,4 @@ RunTest create_wallet "${VPortA}" 's#.*: \(.*\)#\1#g'
 AddressA="${TestRegMatch}"
 
 RunTest create_blockchain "${VPortA} --address ${AddressA}"
-RunTest get_version "${VPortA}"
+RunTest get_version "${VPortA} --address ${AddressA}"
