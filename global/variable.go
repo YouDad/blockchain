@@ -1,18 +1,17 @@
 package global
 
 import (
-	"strconv"
-
-	"github.com/YouDad/blockchain/log"
+	"github.com/YouDad/blockchain/utils"
 )
 
 var (
 	GroupNum int
 	Port     string
+	Address  string
 )
 
 func GetGroup() int {
-	port, err := strconv.Atoi(Port)
-	log.Err(err)
-	return port / 1000
+	pubKeyHash := utils.Base58Decode([]byte(Address))
+	pubKeyHash = pubKeyHash[1 : len(pubKeyHash)-4]
+	return int(pubKeyHash[0]) % 4
 }
