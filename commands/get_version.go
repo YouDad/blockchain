@@ -2,10 +2,16 @@ package commands
 
 import (
 	"github.com/YouDad/blockchain/api"
+	"github.com/YouDad/blockchain/global"
 	"github.com/YouDad/blockchain/log"
 	"github.com/YouDad/blockchain/network"
 	"github.com/spf13/cobra"
 )
+
+func init() {
+	GetVersionCmd.Flags().StringVar(&global.Address, "address", "", "node's address")
+	GetVersionCmd.MarkFlagRequired("address")
+}
 
 var GetVersionCmd = &cobra.Command{
 	Use:   "get_version",

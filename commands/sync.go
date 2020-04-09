@@ -11,6 +11,8 @@ import (
 
 func init() {
 	SyncCmd.Flags().IntVar(&global.GroupNum, "group", 1, "process group of number")
+	SyncCmd.Flags().StringVar(&global.Address, "address", "", "address of node")
+	SyncCmd.MarkFlagRequired("address")
 }
 
 var SyncCmd = &cobra.Command{

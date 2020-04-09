@@ -12,13 +12,11 @@ import (
 	"github.com/YouDad/blockchain/wallet"
 )
 
-var (
-	nodeAddress string
-	speed       uint
-)
+var speed uint
 
 func init() {
-	MiningCmd.Flags().StringVar(&nodeAddress, "address", "", "node's coin address")
+	MiningCmd.Flags().StringVar(&global.Address, "address", "", "node's coin address")
+	MiningCmd.MarkFlagRequired("address")
 	MiningCmd.Flags().UintVar(&speed, "speed", 1, "mining speed: 0~100, 100 is 100% pc speed")
 	MiningCmd.Flags().IntVar(&global.GroupNum, "group", 1, "process group of number")
 }
@@ -32,7 +30,7 @@ var MiningCmd = &cobra.Command{
 		core.Register(speed)
 		go func() {
 			<-network.ServerReady
-			if !wallet.ValidateAddress(nodeAddress) {
+			if !wallet.ValidateAddress(global.Address) {
 				log.Errln("Address is not valid")
 			}
 
@@ -40,7 +38,7 @@ var MiningCmd = &cobra.Command{
 			for {
 				var txns [][]*types.Transaction
 				for i := 0; i < global.GroupNum; i++ {
-					txns = append(txns, []*types.Transaction{core.NewCoinbaseTxn(nodeAddress)})
+					txns = append(txns, []*types.Transaction{core.NewCoinbaseTxn(global.Address)})
 					txns[i] = append(txns[i], global.GetMempool().GetTxns(group+i)...)
 				}
 

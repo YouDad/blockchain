@@ -2,17 +2,14 @@ package commands
 
 import (
 	"github.com/YouDad/blockchain/core"
+	"github.com/YouDad/blockchain/global"
 	"github.com/YouDad/blockchain/log"
 	"github.com/YouDad/blockchain/wallet"
 	"github.com/spf13/cobra"
 )
 
-var (
-	createBlockchainAddress string
-)
-
 func init() {
-	CreateBlockchainCmd.Flags().StringVar(&createBlockchainAddress, "address", "",
+	CreateBlockchainCmd.Flags().StringVar(&global.Address, "address", "",
 		"The Address to be presented with Genesis Block Award")
 	CreateBlockchainCmd.MarkFlagRequired("address")
 }
@@ -21,11 +18,10 @@ var CreateBlockchainCmd = &cobra.Command{
 	Use:   "create_blockchain",
 	Short: "Create a blockchain and send genesis block reward to ADDRESS",
 	Run: func(cmd *cobra.Command, args []string) {
-		// XXX
-		if !wallet.ValidateAddress(createBlockchainAddress) {
-			log.Errln("Address is not valid", createBlockchainAddress)
+		if !wallet.ValidateAddress(global.Address) {
+			log.Errln("Address is not valid", global.Address)
 		}
-		core.CreateBlockchain(createBlockchainAddress)
+		core.CreateBlockchain(global.Address)
 		log.Infoln("Done!")
 	},
 }

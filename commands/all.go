@@ -10,6 +10,8 @@ import (
 
 func init() {
 	AllCmd.Flags().IntVar(&global.GroupNum, "group", 1, "process group of number")
+	AllCmd.Flags().StringVar(&global.Address, "address", "", "address of node")
+	AllCmd.MarkFlagRequired("address")
 }
 
 var AllCmd = &cobra.Command{

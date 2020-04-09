@@ -12,14 +12,13 @@ import (
 )
 
 var (
-	sendFrom   string
 	sendTo     string
 	sendAmount int64
 	sendMine   bool
 )
 
 func init() {
-	SendCmd.Flags().StringVar(&sendFrom, "from", "", "Source wallet address")
+	SendCmd.Flags().StringVar(&global.Address, "from", "", "Source wallet address")
 	SendCmd.Flags().StringVar(&sendTo, "to", "", "Destination wallet address")
 	SendCmd.Flags().Int64Var(&sendAmount, "amount", 0, "Amount to send")
 	SendCmd.Flags().BoolVar(&sendMine, "mine", false, "")
@@ -32,7 +31,7 @@ var SendCmd = &cobra.Command{
 	Use:   "send",
 	Short: "Send AMOUNT of coins from FROM address to TO",
 	Run: func(cmd *cobra.Command, args []string) {
-		if !wallet.ValidateAddress(sendFrom) {
+		if !wallet.ValidateAddress(global.Address) {
 			log.Errln("Sender address is not valid")
 		}
 
@@ -45,9 +44,9 @@ var SendCmd = &cobra.Command{
 			bc := core.GetBlockchain(global.GetGroup())
 			set := core.GetUTXOSet(global.GetGroup())
 
-			tx, err := set.NewUTXOTransaction(sendFrom, sendTo, sendAmount)
+			tx, err := set.NewUTXOTransaction(global.Address, sendTo, sendAmount)
 			log.Err(err)
-			cbTx := core.NewCoinbaseTxn(sendFrom)
+			cbTx := core.NewCoinbaseTxn(global.Address)
 			txs := []*types.Transaction{cbTx, tx}
 
 			newBlocks := core.MineBlocks([][]*types.Transaction{txs}, global.GetGroup(), 1)
@@ -55,7 +54,7 @@ var SendCmd = &cobra.Command{
 			set.Update(newBlocks[0])
 			return
 		}
-		err := api.SendCMD(sendFrom, sendTo, sendAmount)
+		err := api.SendCMD(global.Address, sendTo, sendAmount)
 
 		if err != nil {
 			log.Warnln(err)
