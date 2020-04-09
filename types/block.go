@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"fmt"
+	"math/big"
 
 	"github.com/YouDad/blockchain/utils"
 )
@@ -56,4 +57,12 @@ func (b Block) String() string {
 	ret += fmt.Sprintf("%s<-", b.PrevHash[:3])
 	ret += fmt.Sprintf("%s", b.Hash()[:3])
 	return ret
+}
+
+func (b Block) Verify() bool {
+	hashInt := big.NewInt(0)
+	target := big.NewInt(1)
+	hashInt.SetBytes(b.Hash())
+	div, _ := big.NewFloat(b.Target).Int(nil)
+	return hashInt.Cmp(target.Lsh(target, 256).Div(target, div)) < 0
 }

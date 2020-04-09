@@ -35,8 +35,9 @@ func GetBlockhead(group int) *Blockhead {
 }
 
 func (bh *Blockhead) AddBlockhead(block *types.Block) {
-	// TODO: Verify
-	bh.Set(block.Height, utils.Encode(block))
+	if block.Verify() {
+		bh.Set(block.Height, utils.Encode(block))
+	}
 }
 
 func (bh *Blockhead) GetBlockheadByHeight(height int32) *types.Block {
