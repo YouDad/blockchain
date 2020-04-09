@@ -1,6 +1,8 @@
 package types
 
 import (
+	"bytes"
+	"crypto/sha256"
 	"fmt"
 
 	"github.com/YouDad/blockchain/utils"
@@ -13,6 +15,10 @@ type BlockHeader struct {
 	Timestamp  int64
 	MerkleRoot HashValue
 	Target     float64
+}
+
+func (bh BlockHeader) Hash() HashValue {
+	return utils.SHA256(bh)
 }
 
 type ChukonuHeader struct {
@@ -29,7 +35,20 @@ type Block struct {
 }
 
 func (b Block) Hash() HashValue {
-	return utils.SHA256(b)
+	hash := b.BlockHeader.Hash()
+	for _, hashValue := range b.BatchMerklePath {
+		sha := sha256.Sum256(append(hash, hashValue...))
+		hash = sha[:]
+	}
+	sha := sha256.Sum256(bytes.Join(
+		[][]byte{
+			hash,
+			utils.BaseTypeToBytes(b.GroupBase),
+			utils.BaseTypeToBytes(b.BatchSize),
+			utils.BaseTypeToBytes(b.Nonce),
+		}, []byte{},
+	))
+	return sha[:]
 }
 
 func (b Block) String() string {
