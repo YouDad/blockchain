@@ -5,6 +5,11 @@ import (
 	"os"
 )
 
+func init() {
+	log.SetFlags(log.Lshortfile | log.Lmicroseconds | log.Ltime)
+	log.SetPrefix("[info]: ")
+}
+
 func Infof(format string, v ...interface{}) {
 	log.Printf("[INFO]: ")
 	log.Printf(format, v...)

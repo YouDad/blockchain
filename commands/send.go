@@ -1,14 +1,11 @@
 package commands
 
 import (
-	"fmt"
-	"log"
-
-	"github.com/spf13/cobra"
-
+	"github.com/YouDad/blockchain/api"
 	"github.com/YouDad/blockchain/core"
-	"github.com/YouDad/blockchain/rpc"
+	"github.com/YouDad/blockchain/log"
 	"github.com/YouDad/blockchain/wallet"
+	"github.com/spf13/cobra"
 )
 
 var (
@@ -33,29 +30,27 @@ var SendCmd = &cobra.Command{
 	Short: "Send AMOUNT of coins from FROM address to TO",
 	Run: func(cmd *cobra.Command, args []string) {
 		if !wallet.ValidateAddress(sendFrom) {
-			log.Panic("ERROR: Sender address is not valid")
+			log.Errln("Sender address is not valid")
 		}
 
 		if !wallet.ValidateAddress(sendTo) {
-			log.Panic("ERROR: Recipient address is not valid")
+			log.Errln("Recipient address is not valid")
 		}
 
-		bc := core.NewBlockchain()
-		defer bc.Close()
+		bc := core.GetBlockchain()
 		utxoSet := core.NewUTXOSet()
-		defer utxoSet.Close()
 
 		tx := utxoSet.NewUTXOTransaction(sendFrom, sendTo, sendAmount)
 
 		if sendMine {
-			cbTx := core.NewCoinbaseTX(sendFrom, "")
+			cbTx := core.NewCoinbaseTxn(sendFrom)
 			txs := []*core.Transaction{cbTx, tx}
 
 			newBlocks := bc.MineBlock(txs)
 			utxoSet.Update(newBlocks)
 		} else {
-			rpc.SendTransaction(tx)
+			api.SendTransaction(tx)
 		}
-		fmt.Println("Success!")
+		log.Infoln("Success!")
 	},
 }

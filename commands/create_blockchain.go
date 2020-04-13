@@ -1,13 +1,10 @@
 package commands
 
 import (
-	"fmt"
-	"log"
-
-	"github.com/spf13/cobra"
-
 	"github.com/YouDad/blockchain/core"
+	"github.com/YouDad/blockchain/log"
 	"github.com/YouDad/blockchain/wallet"
+	"github.com/spf13/cobra"
 )
 
 var (
@@ -25,13 +22,10 @@ var CreateBlockchainCmd = &cobra.Command{
 	Short: "Create a blockchain and send genesis block reward to ADDRESS",
 	Run: func(cmd *cobra.Command, args []string) {
 		if !wallet.ValidateAddress(createBlockchainAddress) {
-			log.Panic("Address is not valid")
+			log.Errln("Address is not valid")
 		}
 		core.CreateBlockchain(createBlockchainAddress)
-		utxoSet := core.NewUTXOSet()
-		defer utxoSet.Close()
-
-		utxoSet.Reindex()
-		fmt.Println("Done!")
+		core.NewUTXOSet().Reindex()
+		log.Infoln("Done!")
 	},
 }

@@ -22,8 +22,21 @@ type Wallets struct {
 // NewWallets creates Wallets and fills it from a file if it exists
 func NewWallets(walletFile string) (*Wallets, error) {
 	wallets := Wallets{Wallets: make(map[string]*Wallet)}
+	walletFile = fmt.Sprintf("wallet%s.dat", walletFile)
 
-	err := wallets.loadFromFile(walletFile)
+	_, err := os.Stat(walletFile)
+	if os.IsNotExist(err) {
+		return &wallets, err
+	}
+
+	fileContent, err := ioutil.ReadFile(walletFile)
+	if err != nil {
+		return &wallets, err
+	}
+
+	reader := bytes.NewReader(fileContent)
+	decoder := gob.NewDecoder(reader)
+	decoder.Decode(&wallets)
 
 	return &wallets, err
 }
@@ -54,23 +67,6 @@ func (ws Wallets) GetWallet(address string) Wallet {
 	return *ws.Wallets[address]
 }
 
-// LoadFromFile loads wallets from the file
-func (ws *Wallets) loadFromFile(walletFile string) error {
-	_, err := os.Stat(walletFile)
-	if os.IsNotExist(err) {
-		return err
-	}
-
-	fileContent, err := ioutil.ReadFile(walletFile)
-	if err != nil {
-		return err
-	}
-
-	reader := bytes.NewReader(fileContent)
-	decoder := gob.NewDecoder(reader)
-	return decoder.Decode(ws)
-}
-
 // SaveToFile saves wallets to a file
 func (ws Wallets) SaveToFile(walletFile string) {
 	var content bytes.Buffer
@@ -81,6 +77,7 @@ func (ws Wallets) SaveToFile(walletFile string) {
 		log.Panic(err)
 	}
 
+	walletFile = fmt.Sprintf("wallet%s.dat", walletFile)
 	err = ioutil.WriteFile(walletFile, content.Bytes(), 0644)
 	if err != nil {
 		log.Panic(err)

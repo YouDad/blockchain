@@ -1,12 +1,10 @@
 package commands
 
 import (
-	"fmt"
-	"log"
-
+	"github.com/YouDad/blockchain/api"
+	"github.com/YouDad/blockchain/log"
+	"github.com/YouDad/blockchain/p2p"
 	"github.com/spf13/cobra"
-
-	"github.com/YouDad/blockchain/rpc"
 )
 
 var (
@@ -22,15 +20,16 @@ var GetBalanceCmd = &cobra.Command{
 	Use:   "get_balance",
 	Short: "Get balance of ADDRESS",
 	Run: func(cmd *cobra.Command, args []string) {
-		balance, err := rpc.GetBalance(Port, getBalanceAddress)
+		balance, err := api.GetBalance(getBalanceAddress)
 		if err != nil {
-			go rpc.StartServer(Port, "")
-			<-rpc.ServerReady
-			balance, err = rpc.GetBalance(Port, getBalanceAddress)
+			p2p.Register(Port)
+			go p2p.StartServer("")
+			<-p2p.ServerReady
+			balance, err = api.GetBalance(getBalanceAddress)
 			if err != nil {
-				log.Panic(err)
+				log.Errln(err)
 			}
 		}
-		fmt.Printf("Balance of '%s': %d\n", getBalanceAddress, balance)
+		log.Infof("Balance of '%s': %d\n", getBalanceAddress, balance)
 	},
 }

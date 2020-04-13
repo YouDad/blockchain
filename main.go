@@ -1,16 +1,12 @@
 package main
 
 import (
-	"fmt"
-	"log"
-
 	cmd "github.com/YouDad/blockchain/commands"
+	"github.com/YouDad/blockchain/log"
 )
 
 // Run parses command line arguments and processes commands
 func main() {
-	log.SetFlags(log.Lshortfile | log.Lmicroseconds | log.Ltime)
-	log.SetPrefix("[info]: ")
 
 	rootCmd := cmd.RootCmd
 	rootCmd.AddCommand(
@@ -24,7 +20,7 @@ func main() {
 	)
 
 	if err := rootCmd.Execute(); err != nil {
-		fmt.Println("Error:", err)
+		log.Errln(err)
 		return
 	}
 }

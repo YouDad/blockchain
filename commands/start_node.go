@@ -1,12 +1,15 @@
 package commands
 
 import (
+	"fmt"
+
 	"github.com/spf13/cobra"
 
+	"github.com/YouDad/blockchain/api"
 	"github.com/YouDad/blockchain/core"
 	"github.com/YouDad/blockchain/log"
-	"github.com/YouDad/blockchain/rpc"
-	"github.com/YouDad/blockchain/wallet"
+	"github.com/YouDad/blockchain/p2p"
+	"github.com/YouDad/blockchain/storage"
 )
 
 var (
@@ -22,64 +25,48 @@ var StartNodeCmd = &cobra.Command{
 	Short: "Start a node with ID specified in port.",
 	Run: func(cmd *cobra.Command, args []string) {
 		log.Infoln("Starting node", Port)
-
-		// 是否挖矿，检验钱包
-		if len(startNodeAddress) > 0 {
-			if wallet.ValidateAddress(startNodeAddress) {
-				log.Infoln("Mining is on. Address to receive rewards:", startNodeAddress)
-			} else {
-				log.Errln("Wrong miner address!")
-			}
-		}
-
-		rpc.Init(Port)
-
-		var bc *core.Blockchain
-		if !core.IsBlockchainExists() {
-			genesis, err := rpc.GetGenesis()
-			if err != nil {
-				log.Errln(err)
-			}
-			bc = core.CreateBlockchainFromGenesis(genesis)
-		} else {
-			bc = core.NewBlockchain()
-		}
-		utxoSet := core.NewUTXOSet()
-
+		p2p.Register(Port)
+		storage.RegisterDatabase(fmt.Sprintf("blockchain%s.db", Port))
 		go func() {
-			<-rpc.ServerReady
-			err := rpc.GetKnownNodes()
+			<-p2p.ServerReady
+			err := p2p.GetKnownNodes()
 			if err != nil {
 				log.Warnln(err)
 			}
 
-			genesisBlock := core.DeserializeBlock(bc.GetGenesis())
-			bestHeight := bc.GetBestHeight()
-			height, err := rpc.SendVersion(bestHeight, genesisBlock.Hash)
-			if err == rpc.RootHashDifferentError {
+			var bc *core.Blockchain
+			if !bc.IsExists() {
+				genesis, err := api.GetGenesis()
+				if err != nil {
+					log.Errln(err)
+				}
+				bc = core.CreateBlockchainFromGenesis(genesis)
+			} else {
+				bc = core.GetBlockchain()
+			}
+			utxoSet := core.NewUTXOSet()
+
+			genesis := bc.GetGenesis()
+			nowHeight := bc.GetHeight()
+			height, err := api.SendVersion(nowHeight, genesis.Hash())
+			if err == api.RootHashDifferentError {
 				// TODO
 				log.Warnln(err)
-			} else if err == rpc.VersionDifferentError {
+			} else if err == api.VersionDifferentError {
 				// TODO
 				log.Warnln(err)
 			} else if err != nil {
 				log.Warnln(err)
 			}
 
-			if height > bestHeight {
-				blocks := rpc.GetBlocks(bestHeight+1, height)
+			if height > nowHeight {
+				blocks := api.GetBlocks(nowHeight+1, height)
 				for _, block := range blocks {
 					bc.AddBlock(block)
 				}
 				utxoSet.Reindex()
 			}
-
-			rpc.GetTransactions()
-
-			bc.Close()
-			utxoSet.Close()
 		}()
-
-		rpc.StartServer(Port, startNodeAddress)
+		p2p.StartServer(startNodeAddress)
 	},
 }
