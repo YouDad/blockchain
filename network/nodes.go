@@ -76,7 +76,7 @@ func knownNodeUpdating() {
 		time.Sleep(20 * time.Second)
 		GetKnownNodes()
 		knownNodes := global.GetKnownNodes()
-		for nodeAddress, _ := range knownNodes.Get() {
+		for nodeAddress := range knownNodes.Get() {
 			address := nodeAddress
 			go func() {
 				start := time.Now().UnixNano()
