@@ -4,19 +4,17 @@ import (
 	"time"
 
 	"github.com/YouDad/blockchain/api"
+	"github.com/YouDad/blockchain/global"
 	"github.com/YouDad/blockchain/log"
 	"github.com/YouDad/blockchain/network"
 	"github.com/YouDad/blockchain/wallet"
 	"github.com/spf13/cobra"
 )
 
-var (
-	sendTestFrom string
-	tps          int64
-)
+var tps int64
 
 func init() {
-	SendTestCmd.Flags().StringVar(&sendTestFrom, "from", "", "Source wallet address")
+	SendTestCmd.Flags().StringVar(&global.Address, "from", "", "Source wallet address")
 	SendTestCmd.Flags().Int64Var(&tps, "tps", 400, "send speed, transaction per second")
 	SendTestCmd.MarkFlagRequired("from")
 }
@@ -25,7 +23,7 @@ var SendTestCmd = &cobra.Command{
 	Use:   "send_test",
 	Short: "Send A lot of Txns for test, from FROM",
 	Run: func(cmd *cobra.Command, args []string) {
-		if !wallet.ValidateAddress(sendTestFrom) {
+		if !wallet.ValidateAddress(global.Address) {
 			log.Errln("Sender address is not valid")
 		}
 
@@ -35,8 +33,8 @@ var SendTestCmd = &cobra.Command{
 		for {
 			last := time.Now().UnixNano()
 			sendTestTo := string(wallet.NewWallet().GetAddress())
-			log.Infoln("SendTest", sendTestFrom, sendTestTo)
-			err := api.SendCMD(sendTestFrom, sendTestTo, 1)
+			log.Infoln("SendTest", global.Address, sendTestTo)
+			err := api.SendCMD(global.Address, sendTestTo, 1)
 
 			if err != nil {
 				log.Warnln("SendTest Warn?", err)
