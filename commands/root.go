@@ -17,6 +17,8 @@ func init() {
 	RootCmd.MarkPersistentFlagRequired("port")
 	RootCmd.PersistentFlags().UintVarP(&logLevel, "verbose", "v", 2,
 		"Verbose information 0~3")
+	RootCmd.PersistentFlags().IntVarP(&global.MaxGroupNum, "max_group_number", "g", 4,
+		"Group hash's max group number, must bigger than 0")
 }
 
 var RootCmd = &cobra.Command{
