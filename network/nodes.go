@@ -42,10 +42,6 @@ func updateSortedNodes() {
 			time += reactTime
 		}
 
-		if address == "127.0.0.1:9999" {
-			time += 100
-		}
-
 		sortedNodes = append(sortedNodes, Position{
 			Address:  address,
 			Distance: time / 5,

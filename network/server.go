@@ -18,7 +18,7 @@ var (
 
 func Register() {
 	onceRegister.Do(func() {
-		global.GetKnownNodes().AddNode("127.0.0.1:9999", 0, []int{global.GetGroup()})
+		global.GetKnownNodes().AddNode("127.0.0.1:1111", 0, []int{global.GetGroup()})
 		updateSortedNodes()
 	})
 }
