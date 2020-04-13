@@ -20,10 +20,6 @@ var AllCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		log.Infoln("Starting node", global.Port)
 		network.Register()
-		go func() {
-			<-network.ServerReady
-			SyncCmd.Run(cmd, args)
-		}()
 		network.StartServer()
 	},
 }

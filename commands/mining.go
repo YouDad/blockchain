@@ -55,10 +55,6 @@ var MiningCmd = &cobra.Command{
 				}
 			}
 		}()
-		go func() {
-			<-network.ServerReady
-			SyncCmd.Run(cmd, args)
-		}()
 		network.StartServer()
 	},
 }
