@@ -10,14 +10,10 @@ var ListAddressCmd = &cobra.Command{
 	Use:   "list_address",
 	Short: "Lists all addresses from the wallet file",
 	Run: func(cmd *cobra.Command, args []string) {
-		wallets, err := wallet.NewWallets()
-		if err != nil {
-			log.Errln(err)
-		}
+		wallets, err := wallet.GetWallets()
+		log.Err(err)
 
-		addresses := wallets.GetAddresses()
-
-		for _, address := range addresses {
+		for address := range wallets {
 			log.Infoln(address)
 		}
 	},

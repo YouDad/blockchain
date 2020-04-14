@@ -3,7 +3,6 @@ package commands
 import (
 	"github.com/YouDad/blockchain/global"
 	"github.com/YouDad/blockchain/log"
-	"github.com/YouDad/blockchain/wallet"
 	"github.com/spf13/cobra"
 )
 
@@ -25,7 +24,6 @@ var RootCmd = &cobra.Command{
 	Use:   "blockchain",
 	Short: "Blockchain coin Application",
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
-		wallet.Register()
 		log.Register(logLevel, global.Port)
 	},
 }

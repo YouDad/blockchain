@@ -17,13 +17,16 @@ var CreateWalletCmd = &cobra.Command{
 	Use:   "create_wallet",
 	Short: "Generates a new key-pair and saves it into the wallet file",
 	Run: func(cmd *cobra.Command, args []string) {
-		wallets, _ := wallet.NewWallets()
-		global.Address = wallets.CreateWallet()
+		ws, err := wallet.GetWallets()
+		log.Err(err)
+		w := wallet.NewWallet()
+		global.Address = w.String()
 		for specified != -1 && specified != global.GetGroup() {
-			wallets, _ = wallet.NewWallets()
-			global.Address = wallets.CreateWallet()
+			w = wallet.NewWallet()
+			global.Address = w.String()
 		}
-		wallets.SaveToFile()
+		ws[w.String()] = w
+		ws.SaveToFile()
 
 		log.Infof("Your new address: %s\n", global.Address)
 	},

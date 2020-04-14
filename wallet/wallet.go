@@ -6,6 +6,7 @@ import (
 	"crypto/elliptic"
 	"crypto/rand"
 	"crypto/sha256"
+	"fmt"
 
 	"github.com/YouDad/blockchain/log"
 	"github.com/YouDad/blockchain/types"
@@ -29,7 +30,7 @@ func NewWallet() *Wallet {
 }
 
 // GetAddress returns wallet address
-func (w *Wallet) GetAddress() types.Address {
+func (w Wallet) GetAddress() types.Address {
 	pubKeyHash := HashPubKey(w.PublicKey)
 
 	versionedPayload := append([]byte{version}, pubKeyHash...)
@@ -39,6 +40,10 @@ func (w *Wallet) GetAddress() types.Address {
 	address := utils.Base58Encode(fullPayload)
 
 	return address
+}
+
+func (w Wallet) String() string {
+	return fmt.Sprintf("%s", w.GetAddress())
 }
 
 // HashPubKey hashes public key

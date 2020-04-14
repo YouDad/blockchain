@@ -104,10 +104,10 @@ func (set *UTXOSet) NewUTXOTransaction(from, to string, amount int64) (*types.Tr
 	var ins []types.TxnInput
 	var outs []types.TxnOutput
 
-	wallets, err := wallet.NewWallets()
+	wallets, err := wallet.GetWallets()
 	log.Err(err)
 
-	srcWallet, have := wallets.GetWallet(from)
+	srcWallet, have := wallets[from]
 	if !have {
 		log.Errf("You haven't %s's PrivateKey", from)
 	}
