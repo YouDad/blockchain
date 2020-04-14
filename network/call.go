@@ -15,7 +15,7 @@ import (
 )
 
 func call(node, method string, args interface{}, reply interface{}) error {
-	log.Infoln("Request", method, node, args)
+	log.Debugln("call", "Request", method, node, args)
 	b, err := json.Marshal(args)
 	if err != nil {
 		return err
@@ -35,23 +35,23 @@ func call(node, method string, args interface{}, reply interface{}) error {
 
 	json.NewDecoder(resp.Body).Decode(&ret)
 	if ret.Message != "" {
-		log.Warnln(ret.Message)
+		log.Warnln("call", ret.Message)
 	}
 	return nil
 }
 
 func CallBack(node, method string, args interface{}, reply interface{}) error {
-	log.Infoln("Callback", method)
+	log.Debugln("Callback", method)
 	return call(node, method, args, reply)
 }
 
 func CallSelf(method string, args interface{}, reply interface{}) error {
-	log.Infoln("CallMySelf", method)
+	log.Debugln("CallMySelf", method)
 	return call("127.0.0.1:"+global.Port, method, args, reply)
 }
 
 func CallInnerGroup(method string, args interface{}, reply interface{}) (error, string) {
-	log.Infoln("Call", method)
+	log.Debugln("CallInnerGroup", method)
 	for _, node := range GetSortedNodes() {
 		if utils.IntIndexOf(node.Groups, global.GetGroup()) == -1 {
 			continue
@@ -59,7 +59,7 @@ func CallInnerGroup(method string, args interface{}, reply interface{}) (error, 
 
 		err := call(node.Address, method, args, reply)
 		if err != nil {
-			log.Warnln(node.Address, err)
+			log.Warnln("CallInnerGroup", node.Address, err)
 			continue
 		}
 		return nil, node.Address
@@ -68,7 +68,7 @@ func CallInnerGroup(method string, args interface{}, reply interface{}) (error, 
 }
 
 func GossipCallSpecialGroup(method string, args interface{}, reply interface{}, targetGroup int) error {
-	log.Infoln("GossipCall", method)
+	log.Debugln("GossipCall", "start", method, targetGroup)
 	visit := make([]bool, len(sortedNodes))
 	visited := 0
 	success := 0
@@ -89,10 +89,10 @@ func GossipCallSpecialGroup(method string, args interface{}, reply interface{}, 
 			}
 			err := call(sortedNodes[visitor].Address, method, args, reply)
 			if err != nil {
-				log.Infoln(sortedNodes[visitor].Address, err)
+				log.Debugln("GossipCall", sortedNodes[visitor].Address, err)
 				continue
 			}
-			log.Infoln(sortedNodes[visitor].Address, "success!")
+			log.Debugln("GossipCall", sortedNodes[visitor].Address, "success!")
 			return true
 		}
 		return false
@@ -105,7 +105,7 @@ func GossipCallSpecialGroup(method string, args interface{}, reply interface{}, 
 	}
 
 	if success == 0 {
-		log.Warnln("None of the nodes responded!")
+		log.Warnln("GossipCall", "None of the nodes responded!")
 		return errors.New("None of the nodes responded!")
 	}
 
