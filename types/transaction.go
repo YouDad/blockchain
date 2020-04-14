@@ -8,7 +8,6 @@ import (
 	"crypto/sha256"
 	"fmt"
 	"math/big"
-	"strings"
 
 	"github.com/YouDad/blockchain/log"
 	"github.com/YouDad/blockchain/utils"
@@ -24,28 +23,7 @@ func (txn Transaction) Hash() HashValue {
 }
 
 func (txn Transaction) String() string {
-	lines := []string{}
-
-	lines = append(lines, fmt.Sprintf("\n\t\tTxnHash %s:", txn.Hash()))
-
-	for i, input := range txn.Vin {
-
-		lines = append(lines, fmt.Sprintf("\t\t+ Input %d:", i))
-		lines = append(lines, fmt.Sprintf("\t\t  - VoutHash:   %s", input.VoutHash))
-		lines = append(lines, fmt.Sprintf("\t\t  - VoutIndex:  %d", input.VoutIndex))
-		lines = append(lines, fmt.Sprintf("\t\t  - Signature:  %x", input.Signature))
-		lines = append(lines, fmt.Sprintf("\t\t  - PubKeyHash: %x", input.PubKeyHash))
-	}
-
-	for i, output := range txn.Vout {
-		lines = append(lines, fmt.Sprintf("\t\t+ Output %d:", i))
-		lines = append(lines, fmt.Sprintf("\t\t  - Value:      %d", output.Value))
-		lines = append(lines, fmt.Sprintf("\t\t  - PubKeyHash: %x", output.PubKeyHash))
-	}
-
-	lines = append(lines, "")
-
-	return strings.Join(lines, "\n")
+	return fmt.Sprintf("[%s](%d)(%d)", txn.Hash()[:3], len(txn.Vin), len(txn.Vout))
 }
 
 func (txn Transaction) IsCoinbase() bool {
