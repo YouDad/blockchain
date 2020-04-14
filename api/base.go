@@ -18,6 +18,7 @@ type SimpleJSONResult struct {
 }
 
 func (c *BaseController) ParseParameter(data interface{}) {
+	log.Debugln(log.Funcname(1))
 	err := json.Unmarshal(c.Ctx.Input.RequestBody, data)
 	if err != nil {
 		log.Warnln(string(c.Ctx.Input.RequestBody))
@@ -41,10 +42,9 @@ func (c *BaseController) ReturnJson(data SimpleJSONResult) {
 }
 
 func (c *BaseController) ReturnErr(err error) {
-	if err == nil {
-		c.Return(nil)
+	if err != nil {
+		c.ReturnJson(SimpleJSONResult{err.Error(), nil})
 	}
-	c.ReturnJson(SimpleJSONResult{err.Error(), nil})
 }
 
 func (c *BaseController) Return(data interface{}) {

@@ -26,13 +26,8 @@ func (c *ServerController) SendCMD() {
 	c.ParseParameter(&args)
 	set := core.GetUTXOSet(global.GetGroup())
 	txn, err := set.NewUTXOTransaction(args.SendFrom, args.SendTo, args.Amount)
-	if err != nil {
-		c.ReturnErr(err)
-	}
-	err = network.GetKnownNodes()
-	if err != nil {
-		c.ReturnErr(err)
-	}
-	err = GossipTxn(global.GetGroup(), *txn)
 	c.ReturnErr(err)
+	c.ReturnErr(network.GetKnownNodes())
+	c.ReturnErr(GossipTxn(global.GetGroup(), *txn))
+	c.Return(nil)
 }
