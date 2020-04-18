@@ -166,11 +166,11 @@ func (c *DBController) GossipTxn() {
 		c.Return(nil)
 	}
 
-	mempool := global.GetMempool()
-	if !mempool.IsTxnExists(args.Group, args.Transaction) {
+	mempool := global.GetMempool(args.Group)
+	if !mempool.IsTxnExists(args.Transaction) {
 		bc := core.GetBlockchain(group)
 		if bc.VerifyTransaction(args.Transaction) {
-			mempool.AddTxnToMempool(args.Group, args.Transaction)
+			mempool.AddTxnToMempool(args.Transaction)
 			go GossipTxn(args.Group, args.Transaction)
 		} else {
 			log.Warnf("AddTxnToMempool Verify false %s\n", args.Hash())
@@ -199,10 +199,10 @@ func (c *DBController) GossipRelayTxn() {
 	var args GossipRelayTxnArgs
 	c.ParseParameter(&args)
 
-	if global.GetMempool().IsTxnExists(args.ToGroup, args.Txn) {
+	if global.GetMempool(args.ToGroup).IsTxnExists(args.Txn) {
 		block := core.GetBlockhead(args.FromGroup).GetBlockheadByHeight(args.Height)
 		if args.Txn.RelayVerify(block.MerkleRoot, args.RelayMerklePath) {
-			global.GetMempool().AddTxnToMempool(args.ToGroup, args.Txn)
+			global.GetMempool(args.ToGroup).AddTxnToMempool(args.Txn)
 			network.GossipCallInnerGroup("db/GossipRelayTxn", &args, nil)
 		}
 	}

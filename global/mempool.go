@@ -1,60 +1,52 @@
 package global
 
 import (
+	"errors"
+	"fmt"
 	"sync"
 
 	"github.com/YouDad/blockchain/log"
 	"github.com/YouDad/blockchain/types"
 )
 
-type Mempool struct {
-	pool map[int]map[[32]byte]types.Transaction
-}
+type Mempool map[[32]byte]types.Transaction
 
-var instanceMempool Mempool
+type Mempools map[int]Mempool
+
+var instanceMempool Mempools
 var onceMempool = sync.Once{}
 
-func GetMempool() *Mempool {
+func GetMempool(group int) Mempool {
 	onceMempool.Do(func() {
-		instanceMempool = Mempool{make(map[int]map[[32]byte]types.Transaction)}
+		instanceMempool = make(Mempools)
 	})
-	return &instanceMempool
+
+	_, ok := instanceMempool[group]
+	if !ok {
+		instanceMempool[group] = make(Mempool)
+	}
+	return instanceMempool[group]
 }
 
-func (m Mempool) IsTxnExists(group int, txn types.Transaction) bool {
-	_, ok := m.pool[group]
-	if !ok {
-		return false
-	}
-
+func (m Mempool) IsTxnExists(txn types.Transaction) bool {
 	var key [32]byte
 	copy(key[0:32], txn.Hash())
-	_, ok = m.pool[group][key]
+	_, ok := m[key]
 	return ok
 }
 
-func (m *Mempool) AddTxnToMempool(group int, txn types.Transaction) {
-	_, ok := m.pool[group]
-	if !ok {
-		m.pool[group] = make(map[[32]byte]types.Transaction)
-	}
-
+func (m Mempool) AddTxnToMempool(txn types.Transaction) {
 	log.Infof("AddTxnToMempool %s\n", txn.Hash())
 	var key [32]byte
 	copy(key[0:32], txn.Hash())
-	m.pool[group][key] = txn
+	m[key] = txn
 }
 
-func (m Mempool) GetTxns(group int) []*types.Transaction {
-	pool, ok := m.pool[group]
-	if !ok {
-		return nil
-	}
-
+func (m Mempool) GetTxns() []*types.Transaction {
 	var ret []*types.Transaction
 	i := 0
-	for _, tx := range pool {
-		ret = append(ret, &tx)
+	for _, txn := range m {
+		ret = append(ret, &txn)
 		i++
 		if i == 2000 {
 			break
@@ -63,11 +55,15 @@ func (m Mempool) GetTxns(group int) []*types.Transaction {
 	return ret
 }
 
-func (m Mempool) GetMempoolSize(group int) int {
-	pool, ok := m.pool[group]
-	if !ok {
-		return 0
-	}
+func (m Mempool) GetMempoolSize() int {
+	return len(m)
+}
 
-	return len(pool)
+func (m Mempool) FindTxn(hash types.HashValue) (*types.Transaction, error) {
+	for _, txn := range m {
+		if txn.Hash().Equal(hash) {
+			return &txn, nil
+		}
+	}
+	return nil, errors.New(fmt.Sprintf("Transaction is not found, %s", hash))
 }

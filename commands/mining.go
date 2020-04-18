@@ -39,7 +39,7 @@ var MiningCmd = &cobra.Command{
 				var txns [][]*types.Transaction
 				for i := 0; i < global.GroupNum; i++ {
 					txns = append(txns, []*types.Transaction{core.NewCoinbaseTxn(global.Address)})
-					txns[i] = append(txns[i], global.GetMempool().GetTxns(group+i)...)
+					txns[i] = append(txns[i], global.GetMempool(group+i).GetTxns()...)
 				}
 
 				for {
