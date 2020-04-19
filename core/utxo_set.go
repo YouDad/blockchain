@@ -2,6 +2,8 @@ package core
 
 import (
 	"encoding/hex"
+	"errors"
+	"fmt"
 
 	"github.com/YouDad/blockchain/global"
 	"github.com/YouDad/blockchain/log"
@@ -106,22 +108,26 @@ func (set *UTXOSet) CreateTransaction(from, to string, amount int64) (*types.Tra
 	var outs []types.TxnOutput
 
 	wallets, err := wallet.GetWallets()
-	log.Err(err)
+	if err != nil {
+		return nil, err
+	}
 
 	srcWallet, have := wallets[from]
 	if !have {
-		log.Errf("You haven't %s's PrivateKey", from)
+		return nil, errors.New(fmt.Sprintf("You haven't %s's PrivateKey", from))
 	}
 	pubKeyHash := wallet.HashPubKey(srcWallet.PublicKey)
 	acc, utxos, values := set.FindUTXOs(pubKeyHash, amount)
 
 	if acc < amount {
-		log.Errln("Not enough BTC")
+		return nil, errors.New("Not enough BTC")
 	}
 
 	for txnHash, outIdxs := range utxos {
 		txnHashByte, err := hex.DecodeString(txnHash)
-		log.Err(err)
+		if err != nil {
+			return nil, err
+		}
 
 		for i, outIdx := range outIdxs {
 			ins = append(ins, types.TxnInput{
