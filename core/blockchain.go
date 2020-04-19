@@ -106,22 +106,24 @@ func (bc *Blockchain) GetHeight() int32 {
 }
 
 func (bc *Blockchain) AddBlock(b *types.Block) {
-	if b == nil {
+	// 去重
+	if b == nil || bc.Get(b.Hash()) != nil {
 		return
 	}
 
-	if bc.Get(b.Hash()) != nil {
-		return
-	}
-
-	bytes := utils.Encode(b)
-	if bc.GetHeight() < b.Height {
+	// 符合高度
+	if bc.GetHeight()+1 == b.Height {
+		bytes := utils.Encode(b)
 		bc.SetLastest(bytes)
 		bc.Set(b.Hash(), bytes)
 		bc.Set(b.Height, b.Hash())
-	}
+		GetBlockhead(bc.group).AddBlockhead(b)
 
-	GetBlockhead(bc.group).AddBlockhead(b)
+		mempool := global.GetMempool(b.Group)
+		for _, txn := range b.Txns {
+			delete(mempool, txn.Hash().Key())
+		}
+	}
 }
 
 func MineBlocks(txns [][]*types.Transaction, groupBase, batchSize int) []*types.Block {
