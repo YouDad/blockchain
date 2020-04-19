@@ -254,11 +254,16 @@ func (c *DBController) GossipBlock() {
 			global.SyncMutex.Lock()
 			bc.AddBlock(&args)
 			set.Update(&args)
-			GossipBlock(&args)
 			global.SyncMutex.Unlock()
+			GossipBlock(&args)
+			lastestHeight += 1
 		}
 	}
-	SyncBlocks(group, args.Height, c.GetString("address"))
+
+	// 认为我们和主链差一些区块
+	if args.Height > lastestHeight {
+		SyncBlocks(group, args.Height, c.GetString("address"))
+	}
 
 	log.Debugln("GossipBlock", "}}}}}}}}")
 	c.Return(nil)
