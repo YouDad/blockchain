@@ -103,26 +103,30 @@ func (set *UTXOSet) Reindex() {
 	}
 }
 
+// 构造新的交易
 func (set *UTXOSet) CreateTransaction(from, to string, amount int64) (*types.Transaction, error) {
-	var ins []types.TxnInput
-	var outs []types.TxnOutput
-
+	// 找到发送者的私钥
 	wallets, err := wallet.GetWallets()
 	if err != nil {
 		return nil, err
 	}
 
-	srcWallet, have := wallets[from]
+	fromWallet, have := wallets[from]
 	if !have {
 		return nil, errors.New(fmt.Sprintf("You haven't %s's PrivateKey", from))
 	}
-	pubKeyHash := wallet.HashPubKey(srcWallet.PublicKey)
-	acc, utxos, values := set.FindUTXOs(pubKeyHash, amount)
 
-	if acc < amount {
+	pubKeyHash := wallet.HashPubKey(fromWallet.PublicKey)
+
+	// 用公钥找到一定数量的余额
+	sum, utxos, values := set.FindUTXOs(pubKeyHash, amount)
+
+	if sum < amount {
 		return nil, errors.New("Not enough BTC")
 	}
 
+	// 构造TxnInput
+	ins := []types.TxnInput{}
 	for txnHash, outIdxs := range utxos {
 		txnHashByte, err := hex.DecodeString(txnHash)
 		if err != nil {
@@ -135,21 +139,20 @@ func (set *UTXOSet) CreateTransaction(from, to string, amount int64) (*types.Tra
 				VoutIndex:  outIdx,
 				VoutValue:  values[txnHash][i],
 				Signature:  nil,
-				PubKeyHash: srcWallet.PublicKey,
+				PubKeyHash: fromWallet.PublicKey,
 			})
 		}
 	}
 
-	outs = append(outs, *NewTxnOutput(to, amount))
-	if acc > amount {
-		outs = append(outs, *NewTxnOutput(from, acc-amount))
+	// 构造TxnOutput
+	outs := []types.TxnOutput{*NewTxnOutput(to, amount)}
+	if sum > amount {
+		outs = append(outs, *NewTxnOutput(from, sum-amount))
 	}
 
-	txn := types.Transaction{
-		Vin:  ins,
-		Vout: outs,
-	}
-	err = set.bc.SignTransaction(&txn, srcWallet.PrivateKey)
+	// 交易签名
+	txn := types.Transaction{Vin: ins, Vout: outs}
+	err = set.bc.SignTransaction(&txn, fromWallet.PrivateKey)
 	return &txn, err
 }
 
