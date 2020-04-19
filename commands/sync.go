@@ -23,11 +23,9 @@ var SyncCmd = &cobra.Command{
 		network.Register()
 		log.Warn(network.GetKnownNodes())
 
-		// XXX
 		group := global.GetGroup()
 		bc := core.GetBlockchain(group)
 
-		// for
 		if bc.GetHeight() < 0 {
 			genesis, err := api.GetGenesis(group)
 			log.Err(err)

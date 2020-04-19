@@ -34,9 +34,6 @@ func InterfaceIsNil(i interface{}) bool {
 func Encode(arg interface{}) []byte {
 	ret, err := json.Marshal(arg)
 	log.Err(err)
-	// var result bytes.Buffer
-	// log.Err(gob.NewEncoder(&result).Encode(arg))
-	// ret := result.Bytes()
 	return ret
 }
 

@@ -154,7 +154,6 @@ func (set *UTXOSet) FindUTXOByHash(pubKeyHash []byte) []types.TxnOutput {
 		outs := BytesToTxnOutputs(v)
 
 		for _, out := range outs {
-			// log.Tracef("%s %s\n", pubKeyHash, out.PubKeyHash)
 			if out.IsLockedWithKey(pubKeyHash) {
 				utxos = append(utxos, out)
 			}

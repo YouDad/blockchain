@@ -101,13 +101,11 @@ func (txn Transaction) Verify(hashedTxn map[string]Transaction) bool {
 		sigLen := len(vin.Signature)
 		r.SetBytes(vin.Signature[:(sigLen / 2)])
 		s.SetBytes(vin.Signature[(sigLen / 2):])
-
 		x := big.Int{}
 		y := big.Int{}
 		keyLen := len(vin.PubKeyHash)
 		x.SetBytes(vin.PubKeyHash[:(keyLen / 2)])
 		y.SetBytes(vin.PubKeyHash[(keyLen / 2):])
-
 		rawPubKey := ecdsa.PublicKey{Curve: curve, X: &x, Y: &y}
 		if !ecdsa.Verify(&rawPubKey, dataToVerify, &r, &s) {
 			return false

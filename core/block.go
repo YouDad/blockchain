@@ -9,9 +9,6 @@ import (
 
 func BytesToBlock(bytes []byte) *types.Block {
 	if bytes == nil {
-		// log.SetCallerLevel(1)
-		// log.Warnln("BytesToBlock parameter is nil")
-		// log.SetCallerLevel(0)
 		return nil
 	}
 
