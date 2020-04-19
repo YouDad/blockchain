@@ -242,11 +242,14 @@ func (c *DBController) GossipBlock() {
 
 	log.Debugf("GossipBlock get=%d, lastest=%d\n", args.Height, lastestHeight)
 
+	// 认为对方的区块不够新，反向广播
 	if args.Height < lastestHeight {
 		CallbackGossipBlock(lastest, c.GetString("address"))
 	}
 
+	// 从高度上来说可能是后继区块
 	if args.Height == lastestHeight+1 {
+		// 满足哈希链
 		if bytes.Compare(args.PrevHash, lastest.Hash()) == 0 {
 			global.SyncMutex.Lock()
 			bc.AddBlock(&args)

@@ -80,6 +80,7 @@ func (txn *Transaction) Sign(sk PrivateKey, hashedTxn map[string]Transaction) {
 	}
 }
 
+// 验证交易是否有效，需要map[前置交易哈希]前置交易
 func (txn Transaction) Verify(hashedTxn map[string]Transaction) bool {
 	if txn.IsCoinbase() {
 		return true
@@ -88,11 +89,13 @@ func (txn Transaction) Verify(hashedTxn map[string]Transaction) bool {
 	txnCopy := txn.TrimmedCopy()
 	curve := elliptic.P256()
 
+	// 遍历交易的输入
 	for inIndex, vin := range txn.Vin {
 		prevTxn := hashedTxn[vin.VoutHash.String()]
 		txnCopy.Vin[inIndex].PubKeyHash = prevTxn.Vout[vin.VoutIndex].PubKeyHash
 		dataToVerify := []byte(fmt.Sprintf("%s\n", txnCopy))
 
+		// 验证TxnInput的签名是否正确
 		r := big.Int{}
 		s := big.Int{}
 		sigLen := len(vin.Signature)

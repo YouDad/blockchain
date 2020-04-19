@@ -180,6 +180,7 @@ func MineBlocks(txns [][]*types.Transaction, groupBase, batchSize int) []*types.
 		return nil
 	}
 
+	// 3. 过滤有效区块
 	var foundBlocks []*types.Block
 	for _, block := range blocks {
 		if target.Cmp(GetTarget(block.Target)) == -1 {
@@ -187,11 +188,13 @@ func MineBlocks(txns [][]*types.Transaction, groupBase, batchSize int) []*types.
 		}
 	}
 
+	// 4. 设置区块的一些字段
 	for _, block := range foundBlocks {
 		block.Nonce = nonce
 		block.BatchMerklePath = batchMerkleTree.FindPath(block.Group - block.GroupBase)
 	}
 
+	// 5. 返回挖到的区块
 	for _, block := range blocks {
 		log.Infof("NewBlock[%d]{%.2f} %s", block.Height, block.Target, block.PrevHash)
 	}

@@ -10,6 +10,7 @@ import (
 	"github.com/YouDad/blockchain/wallet"
 )
 
+// 交易地址: Unspent TxnOutputs
 type UTXOSet struct {
 	db    *global.UTXOSetDB
 	bc    *Blockchain

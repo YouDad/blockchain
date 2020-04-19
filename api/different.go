@@ -9,6 +9,7 @@ import (
 	"github.com/YouDad/blockchain/utils"
 )
 
+// 同步group组的区块，最新的区块高度是newHeight，发送者是address
 func SyncBlocks(group int, newHeight int32, address string) {
 	log.Infoln("SyncBlocks", "{{{{{{{{")
 	syncBlocks(group, newHeight, address)
@@ -20,6 +21,7 @@ func syncBlocks(group int, newHeight int32, address string) {
 
 	lastestHeight := bc.GetHeight()
 	if newHeight <= lastestHeight {
+		// 认为不需要同步
 		return
 	}
 
