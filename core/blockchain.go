@@ -283,20 +283,32 @@ func (bc *Blockchain) SignTransaction(txn *types.Transaction, sk types.PrivateKe
 	return nil
 }
 
+// 验证交易是否有效
 func (bc *Blockchain) VerifyTransaction(txn types.Transaction) bool {
 	if txn.IsCoinbase() {
 		return true
 	}
 
-	prevTXs := make(map[string]types.Transaction)
+	// map[前置交易哈希]前置交易
+	prevTxns := make(map[string]types.Transaction)
 
+	// 遍历交易的输入
 	for _, vin := range txn.Vin {
-		prevTX, err := bc.FindTxn(vin.VoutHash)
+		// 在区块链中用引用交易哈希找到该输入引用的交易
+		prevTxn, err := bc.FindTxn(vin.VoutHash)
+		if err == nil {
+			prevTxns[prevTxn.Hash().String()] = *prevTxn
+			continue
+		}
+
+		// 在未打包交易池中用引用交易哈希找到该输入引用的交易
+		mempool := global.GetMempool(bc.group)
+		prevTxn, err = mempool.FindTxn(vin.VoutHash)
 		if err != nil {
 			return false
 		}
-		prevTXs[prevTX.Hash().String()] = *prevTX
+		prevTxns[prevTxn.Hash().String()] = *prevTxn
 	}
 
-	return txn.Verify(prevTXs)
+	return txn.Verify(prevTxns)
 }
