@@ -25,8 +25,6 @@ done
 for (( i=1; i<=2; i++ )); do
 	RunTest create_blockchain "$Pre $(( i*1111 )) --address ${Address[i*1111]}"
 	sleep 0.1
-	RunTest all "$Pre $(( i*1111 )) --address ${Address[i*1111]}" &
-	sleep 0.1
 	RunTest send_test "$Pre $(( i*1111 )) --from ${Address[i*1111]}" &
 	sleep 0.1
 done

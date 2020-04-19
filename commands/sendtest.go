@@ -28,9 +28,10 @@ var SendTestCmd = &cobra.Command{
 		}
 
 		network.Register()
+		go network.StartServer()
 		time.Sleep(time.Second)
 
-		for {
+		for global.GetMempool(global.GetGroup()).GetMempoolSize() < 4000 {
 			last := time.Now().UnixNano()
 			sendTestTo := string(wallet.NewWallet().GetAddress())
 			log.Infoln("SendTest", global.Address, sendTestTo)
