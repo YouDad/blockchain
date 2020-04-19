@@ -1,5 +1,7 @@
 package types
 
+import "bytes"
+
 type HashValue []byte
 
 const hexTable = "0123456789abcdef"
@@ -13,4 +15,19 @@ func (h HashValue) String() string {
 		i += 2
 	}
 	return string(ret)
+}
+
+func (h HashValue) Equal(other HashValue) bool {
+	return bytes.Compare(h, other) == 0
+}
+
+func (h HashValue) Key() [32]byte {
+	var ret [32]byte
+	for i := range h {
+		if i >= 32 {
+			break
+		}
+		ret[i] = h[i]
+	}
+	return ret
 }
