@@ -205,8 +205,9 @@ func MineBlocks(txns [][]*types.Transaction, groupBase, batchSize int) []*types.
 
 func (bc *Blockchain) FindUTXO() map[string][]types.TxnOutput {
 	utxos := make(map[string][]types.TxnOutput)
-	// spent transaction outputs
 	stxos := make(map[string]map[int]bool)
+
+	// 遍历区块链
 	iter := bc.Begin()
 	for {
 		block := iter.Next()
@@ -214,20 +215,24 @@ func (bc *Blockchain) FindUTXO() map[string][]types.TxnOutput {
 			break
 		}
 
+		// 遍历区块的所有交易
 		for _, txn := range block.Txns {
 			hash := txn.Hash().String()
 
+			// 遍历所有输出
 			for i, out := range txn.Vout {
-				if stxos[hash] != nil {
-					_, ok := stxos[hash][i]
-					if ok {
-						continue
-					}
+				_, ok := stxos[hash]
+				if !ok {
+					utxos[hash] = append(utxos[hash], out)
+					continue
 				}
-
-				utxos[hash] = append(utxos[hash], out)
+				_, ok = stxos[hash][i]
+				if !ok {
+					utxos[hash] = append(utxos[hash], out)
+				}
 			}
 
+			// 遍历所有输入
 			if !txn.IsCoinbase() {
 				for _, in := range txn.Vin {
 					inHash := in.VoutHash.String()
