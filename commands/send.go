@@ -44,7 +44,7 @@ var SendCmd = &cobra.Command{
 			bc := core.GetBlockchain(global.GetGroup())
 			set := core.GetUTXOSet(global.GetGroup())
 
-			tx, err := set.NewUTXOTransaction(global.Address, sendTo, sendAmount)
+			tx, err := set.CreateTransaction(global.Address, sendTo, sendAmount)
 			log.Err(err)
 			cbTx := core.NewCoinbaseTxn(global.Address)
 			txs := []*types.Transaction{cbTx, tx}

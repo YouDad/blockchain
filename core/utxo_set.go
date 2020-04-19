@@ -101,7 +101,7 @@ func (set *UTXOSet) Reindex() {
 	}
 }
 
-func (set *UTXOSet) NewUTXOTransaction(from, to string, amount int64) (*types.Transaction, error) {
+func (set *UTXOSet) CreateTransaction(from, to string, amount int64) (*types.Transaction, error) {
 	var ins []types.TxnInput
 	var outs []types.TxnOutput
 
