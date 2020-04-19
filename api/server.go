@@ -24,10 +24,11 @@ func SendCMD(from, to string, amount int64) error {
 func (c *ServerController) SendCMD() {
 	var args SendCMDArgs
 	c.ParseParameter(&args)
-	set := core.GetUTXOSet(global.GetGroup())
+
+	set := core.GetUTXOSet(global.GetGroupByAddress(args.SendFrom))
 	txn, err := set.CreateTransaction(args.SendFrom, args.SendTo, args.Amount)
 	c.ReturnErr(err)
 	c.ReturnErr(network.GetKnownNodes())
-	c.ReturnErr(GossipTxn(global.GetGroup(), *txn))
+	c.ReturnErr(GossipTxn(global.GetGroupByAddress(args.SendFrom), *txn))
 	c.Return(nil)
 }
