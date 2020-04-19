@@ -234,7 +234,7 @@ func (c *DBController) GossipBlock() {
 		c.Return(nil)
 	}
 
-	log.Infoln("GossipBlock", "{{{{{{{{")
+	log.Debugln("GossipBlock", "{{{{{{{{")
 	bc := core.GetBlockchain(group)
 	set := core.GetUTXOSet(group)
 	lastest := bc.GetLastest()
@@ -260,7 +260,7 @@ func (c *DBController) GossipBlock() {
 	}
 	SyncBlocks(group, args.Height, c.GetString("address"))
 
-	log.Infoln("GossipBlock", "}}}}}}}}")
+	log.Debugln("GossipBlock", "}}}}}}}}")
 	c.Return(nil)
 }
 

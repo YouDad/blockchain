@@ -43,7 +43,7 @@ var MiningCmd = &cobra.Command{
 				}
 
 				for {
-					log.Infoln("core.MineBlocks", group, global.GroupNum, "{{{{{{{{")
+					log.Debugln("core.MineBlocks", group, global.GroupNum, "{{{{{{{{")
 					newBlocks := core.MineBlocks(txns, group, global.GroupNum)
 					if newBlocks == nil {
 						break
@@ -51,7 +51,7 @@ var MiningCmd = &cobra.Command{
 					for _, newBlock := range newBlocks {
 						api.CallSelfBlock(newBlock)
 					}
-					log.Infoln("core.MineBlocks", group, global.GroupNum, "}}}}}}}}")
+					log.Debugln("core.MineBlocks", group, global.GroupNum, "}}}}}}}}")
 				}
 			}
 		}()
