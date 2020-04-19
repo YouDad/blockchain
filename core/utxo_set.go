@@ -119,7 +119,7 @@ func (set *UTXOSet) CreateTransaction(from, to string, amount int64) (*types.Tra
 	pubKeyHash := wallet.HashPubKey(fromWallet.PublicKey)
 
 	// 用公钥找到一定数量的余额
-	sum, utxos, values := set.FindUTXOs(pubKeyHash, amount)
+	sum, utxos, values := set.findUTXOs(pubKeyHash, amount)
 
 	if sum < amount {
 		return nil, errors.New("Not enough BTC")
@@ -174,28 +174,37 @@ func (set *UTXOSet) FindUTXOByHash(pubKeyHash []byte) []types.TxnOutput {
 }
 
 // 用公钥找一定数量余额
-func (set *UTXOSet) FindUTXOs(pubKeyHash types.HashValue, amount int64) (int64, map[string][]int, map[string][]int64) {
+func (set *UTXOSet) findUTXOs(pubKeyHash types.HashValue, amount int64) (int64, map[string][]int, map[string][]int64) {
 	hashedUTXOIdxs := make(map[string][]int)
 	hashedUTXOValues := make(map[string][]int64)
-	var accumulated int64 = 0
+	var sum int64 = 0
+	mempool := global.GetMempool(set.group)
 
 	set.Foreach(func(k, v []byte) bool {
-		txnHash := hex.EncodeToString(k)
-		outs := BytesToTxnOutputs(v)
+		txnOutputs := BytesToTxnOutputs(v)
 
-		for outIdx, out := range outs {
-			if out.IsLockedWithKey(pubKeyHash) {
-				accumulated += out.Value
-				hashedUTXOIdxs[txnHash] = append(hashedUTXOIdxs[txnHash], outIdx)
-				hashedUTXOValues[txnHash] = append(hashedUTXOValues[txnHash], out.Value)
+		for txnOutputIndex, txnOutput := range txnOutputs {
+			if txnOutput.IsLockedWithKey(pubKeyHash) {
+				outs, hashs, indexs, err := mempool.FindTxnOutput(txnOutput, k, txnOutputIndex)
+				if err != nil {
+					continue
+				}
 
-				if accumulated >= amount {
-					return false
+				for i := range outs {
+					str := hashs[i].String()
+
+					sum += outs[i].Value
+					hashedUTXOIdxs[str] = append(hashedUTXOIdxs[str], indexs[i])
+					hashedUTXOValues[str] = append(hashedUTXOValues[str], outs[i].Value)
+
+					if sum >= amount {
+						return false
+					}
 				}
 			}
 		}
 		return true
 	})
 
-	return accumulated, hashedUTXOIdxs, hashedUTXOValues
+	return sum, hashedUTXOIdxs, hashedUTXOValues
 }
