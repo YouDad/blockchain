@@ -67,3 +67,40 @@ func (m Mempool) FindTxn(hash types.HashValue) (*types.Transaction, error) {
 	}
 	return nil, errors.New(fmt.Sprintf("Transaction is not found, %s", hash))
 }
+
+func (m Mempool) FindTxnOutput(out types.TxnOutput, hash types.HashValue, index int) (
+	outs []*types.TxnOutput, hashs []types.HashValue, indexs []int, err error) {
+	outs = append(outs, &out)
+	hashs = append(hashs, hash)
+	indexs = append(indexs, index)
+
+	target := 0
+	for target != len(outs) {
+		outs = outs[target:]
+		hashs = hashs[target:]
+		indexs = indexs[target:]
+		target = len(outs)
+
+		for i := 0; i < target; i++ {
+			for _, txn := range m {
+				for _, in := range txn.Vin {
+					if !(outs[i].IsLockedWithKey(in.PubKeyHash) &&
+						outs[i].Value == in.VoutValue && hashs[i].Equal(in.VoutHash)) {
+						continue
+					}
+
+					for index, out := range txn.Vout {
+						if !out.IsLockedWithKey(in.PubKeyHash) {
+							continue
+						}
+
+						outs = append(outs, &out)
+						hashs = append(hashs, txn.Hash())
+						indexs = append(indexs, index)
+					}
+				}
+			}
+		}
+	}
+	return outs, hashs, indexs, err
+}
