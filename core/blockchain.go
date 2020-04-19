@@ -252,31 +252,31 @@ func (bc *Blockchain) FindUTXO() map[string][]types.TxnOutput {
 	return utxos
 }
 
-func (bc *Blockchain) FindTxn(hash types.HashValue) (types.Transaction, error) {
+func (bc *Blockchain) FindTxn(hash types.HashValue) (*types.Transaction, error) {
 	var block *types.Block
 	iter := bc.Begin()
 
+	// 遍历所有区块的所有交易，找到哈希值一致的交易
 	for block = iter.Next(); block != nil; block = iter.Next() {
 		for _, txn := range block.Txns {
 			if bytes.Compare(txn.Hash(), hash) == 0 {
-				return *txn, nil
+				return txn, nil
 			}
 		}
 	}
 
-	return types.Transaction{}, errors.New(fmt.Sprintf("Transaction is not found, %s", hash))
+	return nil, errors.New(fmt.Sprintf("Transaction is not found, %s", hash))
 }
 
 func (bc *Blockchain) SignTransaction(txn *types.Transaction, sk types.PrivateKey) error {
 	hashedTxn := make(map[string]types.Transaction)
 
 	for _, vin := range txn.Vin {
-		var vinTxn types.Transaction
 		vinTxn, err := bc.FindTxn(vin.VoutHash)
 		if err != nil {
 			return err
 		}
-		hashedTxn[vinTxn.Hash().String()] = vinTxn
+		hashedTxn[vinTxn.Hash().String()] = *vinTxn
 	}
 
 	txn.Sign(sk, hashedTxn)
@@ -295,7 +295,7 @@ func (bc *Blockchain) VerifyTransaction(txn types.Transaction) bool {
 		if err != nil {
 			return false
 		}
-		prevTXs[prevTX.Hash().String()] = prevTX
+		prevTXs[prevTX.Hash().String()] = *prevTX
 	}
 
 	return txn.Verify(prevTXs)
