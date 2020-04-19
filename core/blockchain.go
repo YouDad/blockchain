@@ -60,7 +60,7 @@ func (iter *BlockchainIterator) Next() (nextBlock *types.Block) {
 func CreateBlockchain(minerAddress string) *Blockchain {
 	group := global.GetGroup()
 	bc := GetBlockchain(group)
-	txns := [][]*types.Transaction{[]*types.Transaction{NewCoinbaseTxn(minerAddress)}}
+	txns := [][]*types.Transaction{{NewCoinbaseTxn(minerAddress)}}
 	blocks := MineBlocks(txns, group, 1)
 	bc.Clear()
 	bc.AddBlock(blocks[0])
