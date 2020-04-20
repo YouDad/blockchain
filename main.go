@@ -20,6 +20,7 @@ func main() {
 		cmd.SyncCmd,
 		cmd.AllCmd,
 		cmd.SendTestCmd,
+		cmd.PrintCmd,
 	)
 
 	if err := rootCmd.Execute(); err != nil {
