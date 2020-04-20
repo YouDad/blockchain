@@ -26,16 +26,17 @@ func (net *NET) HeartBeat(args *HeartBeatArgs) error {
 }
 
 type GetKnownNodesArgs = struct {
-	Address   string
-	Timestamp int64
-	Groups    []int
+	Address     string
+	Timestamp   int64
+	GroupBase   int
+	GroupNumber int
 }
 type GetKnownNodesReply = struct {
 	Addresses []GetKnownNodesArgs
 }
 
 func getKnownNodes(myAddress string, knownNodeAddresses *[]GetKnownNodesArgs) error {
-	args := GetKnownNodesArgs{myAddress, time.Now().UnixNano(), []int{global.GetGroup()}}
+	args := GetKnownNodesArgs{myAddress, time.Now().UnixNano(), global.GetGroup(), global.GroupNum}
 	var reply GetKnownNodesReply
 
 	err, _ := CallInnerGroup("net/GetKnownNodes", &args, &reply)
@@ -48,14 +49,14 @@ func (net *NET) GetKnownNodes(args *GetKnownNodesArgs, reply *GetKnownNodesReply
 
 	knownNodes := global.GetKnownNodes()
 	if args.Address != "" {
-		knownNodes.AddNode(args.Address, args.Timestamp, args.Groups)
+		knownNodes.AddNode(args.Address, args.Timestamp, args.GroupBase, args.GroupNumber)
 	}
 
 	var nodes []GetKnownNodesArgs
 	defer knownNodes.Release()
 	for address, node := range knownNodes.Get() {
 		nodes = append(nodes, GetKnownNodesArgs{
-			address, node.Timestamp, node.Groups,
+			address, node.Timestamp, node.GroupBase, node.GroupNumber,
 		})
 	}
 	reply.Addresses = nodes

@@ -19,9 +19,10 @@ func GetKnownNodes() *KnownNodes {
 }
 
 type NetworkNode struct {
-	ReactTime types.Queue
-	Timestamp int64
-	Groups    []int
+	ReactTime   types.Queue
+	Timestamp   int64
+	GroupBase   int
+	GroupNumber int
 }
 
 type KnownNodes struct {
@@ -40,12 +41,12 @@ func (this *KnownNodes) Release() {
 	// log.Debugln("KN Unlock")
 }
 
-func (this *KnownNodes) AddNode(address string, time int64, group []int) {
+func (this *KnownNodes) AddNode(address string, time int64, groupBase int, groupNumber int) {
 	knownNodes := this.Get()
 	defer this.Release()
 	_, ok := knownNodes[address]
 	if !ok {
-		knownNodes[address] = NetworkNode{types.NewQueue(5), time, group}
+		knownNodes[address] = NetworkNode{types.NewQueue(5), time, groupBase, groupNumber}
 	}
 }
 

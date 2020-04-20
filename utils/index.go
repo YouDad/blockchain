@@ -59,12 +59,3 @@ func GetDecoder(b []byte) *gob.Decoder {
 	reader := bytes.NewReader(b)
 	return gob.NewDecoder(reader)
 }
-
-func IntIndexOf(arr []int, target int) int {
-	for index, value := range arr {
-		if value == target {
-			return index
-		}
-	}
-	return -1
-}

@@ -11,9 +11,10 @@ import (
 var sortedNodes PositionSlice
 
 type Position struct {
-	Address  string
-	Distance int
-	Groups   []int
+	Address     string
+	Distance    int
+	GroupBase   int
+	GroupNumber int
 }
 
 type PositionSlice []Position
@@ -43,9 +44,10 @@ func updateSortedNodes() {
 		}
 
 		sortedNodes = append(sortedNodes, Position{
-			Address:  address,
-			Distance: time / 5,
-			Groups:   node.Groups,
+			Address:     address,
+			Distance:    time / 5,
+			GroupBase:   node.GroupBase,
+			GroupNumber: node.GroupNumber,
 		})
 	}
 	sort.Sort(sortedNodes)
@@ -57,7 +59,7 @@ func GetKnownNodes() error {
 	err := getKnownNodes(myAddress, &knownNodes)
 	if err == nil {
 		for _, node := range knownNodes {
-			global.GetKnownNodes().AddNode(node.Address, node.Timestamp, node.Groups)
+			global.GetKnownNodes().AddNode(node.Address, node.Timestamp, node.GroupBase, node.GroupNumber)
 		}
 	}
 	return err

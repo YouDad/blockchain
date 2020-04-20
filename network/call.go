@@ -11,7 +11,6 @@ import (
 
 	"github.com/YouDad/blockchain/global"
 	"github.com/YouDad/blockchain/log"
-	"github.com/YouDad/blockchain/utils"
 )
 
 func call(node, method string, args interface{}, reply interface{}) error {
@@ -50,11 +49,24 @@ func CallSelf(method string, args interface{}, reply interface{}) error {
 	return call("127.0.0.1:"+global.Port, method, args, reply)
 }
 
+// 左闭右开,target in [l,r)
+func in(target, l, r int) bool {
+	return l <= target && target < r
+}
+
 func CallInnerGroup(method string, args interface{}, reply interface{}) (error, string) {
 	log.Debugln("CallInnerGroup", method)
 	for _, node := range GetSortedNodes() {
-		if utils.IntIndexOf(node.Groups, global.GetGroup()) == -1 {
-			continue
+		// 分组检查
+		if node.GroupBase+node.GroupNumber > global.MaxGroupNum {
+			if !in(global.GetGroup(), node.GroupBase, global.MaxGroupNum) &&
+				!in(global.GetGroup(), 0, node.GroupBase+node.GroupNumber-global.MaxGroupNum) {
+				continue
+			}
+		} else {
+			if !in(global.GetGroup(), node.GroupBase, node.GroupBase+node.GroupNumber) {
+				continue
+			}
 		}
 
 		err := call(node.Address, method, args, reply)
@@ -84,9 +96,20 @@ func GossipCallSpecialGroup(method string, args interface{}, reply interface{}, 
 
 			visit[visitor] = true
 			visited++
-			if targetGroup >= 0 && utils.IntIndexOf(sortedNodes[visitor].Groups, targetGroup) < 0 {
-				continue
+
+			// 分组检查
+			node := sortedNodes[visitor]
+			if node.GroupBase+node.GroupNumber > global.MaxGroupNum {
+				if !in(global.GetGroup(), node.GroupBase, global.MaxGroupNum) &&
+					!in(global.GetGroup(), 0, node.GroupBase+node.GroupNumber-global.MaxGroupNum) {
+					continue
+				}
+			} else {
+				if !in(global.GetGroup(), node.GroupBase, node.GroupBase+node.GroupNumber) {
+					continue
+				}
 			}
+
 			err := call(sortedNodes[visitor].Address, method, args, reply)
 			if err != nil {
 				log.Debugln("GossipCall", sortedNodes[visitor].Address, err)
