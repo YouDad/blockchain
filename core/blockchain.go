@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/YouDad/blockchain/global"
@@ -94,15 +95,26 @@ func (bc *Blockchain) SetBlockByHeight(height int, b *types.Block) {
 
 func (bc *Blockchain) SetLastest(bytes []byte) {
 	bc.Set("lastest", bytes)
-	global.SetBlock(bc.group, "lastest", BytesToBlock(bytes))
+	block := BytesToBlock(bytes)
+	global.SetBlock(bc.group, "lastest", block)
+	cacheHeight = block.Height
 }
 
+var (
+	onceGetHeight sync.Once
+	cacheHeight   int32
+)
+
 func (bc *Blockchain) GetHeight() int32 {
-	lastest := bc.GetLastest()
-	if lastest == nil {
-		return -1
-	}
-	return lastest.Height
+	onceGetHeight.Do(func() {
+		lastest := bc.GetLastest()
+		if lastest == nil {
+			cacheHeight = -1
+		} else {
+			cacheHeight = lastest.Height
+		}
+	})
+	return cacheHeight
 }
 
 func (bc *Blockchain) AddBlock(b *types.Block) {
