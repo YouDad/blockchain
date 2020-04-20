@@ -48,7 +48,7 @@ func (m Mempool) GetTxns() []*types.Transaction {
 	for _, txn := range m {
 		ret = append(ret, &txn)
 		i++
-		if i == 2000 {
+		if i == 50 {
 			break
 		}
 	}

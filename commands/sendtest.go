@@ -15,7 +15,7 @@ var tps int64
 
 func init() {
 	SendTestCmd.Flags().StringVar(&global.Address, "from", "", "Source wallet address")
-	SendTestCmd.Flags().Int64Var(&tps, "tps", 400, "send speed, transaction per second")
+	SendTestCmd.Flags().Int64Var(&tps, "tps", 10, "send speed, transaction per second")
 	SendTestCmd.MarkFlagRequired("from")
 }
 
@@ -29,12 +29,17 @@ var SendTestCmd = &cobra.Command{
 
 		network.Register()
 		go network.StartServer()
-		time.Sleep(2 * time.Second)
+		time.Sleep(90 * time.Second)
 
-		for global.GetMempool(global.GetGroup()).GetMempoolSize() < 4000 {
+		for {
+			for global.GetMempool(global.GetGroup()).GetMempoolSize() >= 7*int(tps) {
+				time.Sleep(time.Second)
+			}
+
 			last := time.Now().UnixNano()
 			sendTestTo := string(wallet.NewWallet().GetAddress())
-			log.Infoln("SendTest", global.Address, sendTestTo)
+			log.Infoln("SendTest", global.GetMempool(global.GetGroup()).GetMempoolSize(),
+				global.Address, sendTestTo)
 			err := api.SendCMD(global.Address, sendTestTo, 1)
 
 			if err != nil {
