@@ -85,7 +85,7 @@ func knownNodeUpdating() {
 		}
 		knownNodes.Release()
 		time.Sleep(20 * time.Second)
-		log.Infof("Sorted %+v\n", sortedNodes)
 		UpdateSortedNodes()
+		log.Debugf("Sorted %+v\n", sortedNodes)
 	}
 }
