@@ -39,14 +39,12 @@ func getKnownNodes(myAddress string, knownNodeAddresses *[]GetKnownNodesArgs) er
 	args := GetKnownNodesArgs{myAddress, time.Now().UnixNano(), global.GetGroup(), global.GroupNum}
 	var reply GetKnownNodesReply
 
-	err, _ := CallInnerGroup("net/GetKnownNodes", &args, &reply)
+	err, _ := CallInterGroup("net/GetKnownNodes", &args, &reply)
 	*knownNodeAddresses = reply.Addresses
 	return err
 }
 
 func (net *NET) GetKnownNodes(args *GetKnownNodesArgs, reply *GetKnownNodesReply) error {
-	log.Infoln("GetKnownNodes", *args)
-
 	knownNodes := global.GetKnownNodes()
 	if args.Address != "" {
 		knownNodes.AddNode(args.Address, args.Timestamp, args.GroupBase, args.GroupNumber)
@@ -60,6 +58,7 @@ func (net *NET) GetKnownNodes(args *GetKnownNodesArgs, reply *GetKnownNodesReply
 		})
 	}
 	reply.Addresses = nodes
+	log.Debugln("GetKnownNodes Reply", *reply)
 
 	return nil
 }

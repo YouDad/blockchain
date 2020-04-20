@@ -54,6 +54,19 @@ func in(target, l, r int) bool {
 	return l <= target && target < r
 }
 
+func CallInterGroup(method string, args interface{}, reply interface{}) (error, string) {
+	log.Debugln("CallInterGroup", method)
+	for _, node := range GetSortedNodes() {
+		err := call(node.Address, method, args, reply)
+		if err != nil {
+			log.Warnln("CallInterGroup", node.Address, err)
+			continue
+		}
+		return nil, node.Address
+	}
+	return errors.New("None of the nodes responded!"), ""
+}
+
 func CallInnerGroup(method string, args interface{}, reply interface{}) (error, string) {
 	log.Debugln("CallInnerGroup", method)
 	for _, node := range GetSortedNodes() {
