@@ -61,9 +61,12 @@ func (b Block) String() string {
 }
 
 func (b Block) Verify() bool {
-	hashInt := big.NewInt(0)
-	target := big.NewInt(1)
-	hashInt.SetBytes(b.Hash())
 	div, _ := big.NewFloat(b.Target).Int(nil)
-	return hashInt.Cmp(target.Lsh(target, 256).Div(target, div)) < 0
+	t := big.NewInt(1)
+	target := t.Lsh(t, 256).Div(t, div)
+
+	hashInt := big.NewInt(0)
+	hashInt.SetBytes(b.Hash())
+
+	return hashInt.Cmp(target) < 0
 }
