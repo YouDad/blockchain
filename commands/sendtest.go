@@ -29,7 +29,7 @@ var SendTestCmd = &cobra.Command{
 
 		network.Register()
 		go network.StartServer()
-		time.Sleep(time.Second)
+		time.Sleep(2 * time.Second)
 
 		for global.GetMempool(global.GetGroup()).GetMempoolSize() < 4000 {
 			last := time.Now().UnixNano()
