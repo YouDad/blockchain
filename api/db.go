@@ -3,6 +3,7 @@ package api
 import (
 	"bytes"
 	"errors"
+	"fmt"
 
 	"github.com/YouDad/blockchain/core"
 	"github.com/YouDad/blockchain/global"
@@ -43,7 +44,12 @@ func (c *DBController) GetGenesis() {
 	var reply GetGenesisReply
 	c.ParseParameter(&args)
 
-	reply = *core.GetBlockchain(args.Group).GetGenesis()
+	bc := core.GetBlockchain(args.Group)
+	genesis := bc.GetGenesis()
+	if genesis == nil {
+		c.ReturnErr(errors.New(fmt.Sprintf("Blockchain[%d] don't have genesis", args.Group)))
+	}
+	reply = *genesis
 	c.Return(reply)
 }
 
