@@ -1,6 +1,8 @@
 package commands
 
 import (
+	"time"
+
 	"github.com/YouDad/blockchain/api"
 	"github.com/YouDad/blockchain/core"
 	"github.com/YouDad/blockchain/global"
@@ -21,14 +23,19 @@ var SyncCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		log.Debugln("Syncing", global.Port)
 		network.Register()
-		log.Warn(network.GetKnownNodes())
 
 		group := global.GetGroup()
 		bc := core.GetBlockchain(group)
 
 		if bc.GetHeight() < 0 {
 			genesis, err := api.GetGenesis(group)
-			log.Err(err)
+			for err != nil {
+				log.Warn(err)
+				time.Sleep(5 * time.Second)
+				log.Warn(network.GetKnownNodes())
+				network.UpdateSortedNodes()
+				genesis, err = api.GetGenesis(group)
+			}
 			bc.AddBlock(genesis)
 			core.GetUTXOSet(group).Reindex()
 		}
