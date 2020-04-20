@@ -31,7 +31,7 @@ func (p PositionSlice) Less(i, j int) bool {
 	return p[i].Distance < p[j].Distance
 }
 
-func updateSortedNodes() {
+func UpdateSortedNodes() {
 	sortedNodes = nil
 	knownNodes := global.GetKnownNodes()
 	defer knownNodes.Release()
@@ -85,7 +85,7 @@ func knownNodeUpdating() {
 		}
 		knownNodes.Release()
 		time.Sleep(20 * time.Second)
-		updateSortedNodes()
 		log.Infof("Sorted %+v\n", sortedNodes)
+		UpdateSortedNodes()
 	}
 }
