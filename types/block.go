@@ -37,13 +37,14 @@ type Block struct {
 
 func (b Block) Hash() HashValue {
 	hash := b.BlockHeader.Hash()
+	sha := sha256.Sum256(hash)
 	for _, hashValue := range b.BatchMerklePath {
-		sha := sha256.Sum256(append(hash, hashValue...))
+		sha = sha256.Sum256(append(hash, hashValue...))
 		hash = sha[:]
 	}
-	sha := sha256.Sum256(bytes.Join(
+	sha = sha256.Sum256(bytes.Join(
 		[][]byte{
-			hash,
+			sha[:],
 			utils.BaseTypeToBytes(b.GroupBase),
 			utils.BaseTypeToBytes(b.BatchSize),
 			utils.BaseTypeToBytes(b.Nonce),
