@@ -13,7 +13,7 @@ func (c *NetController) HeartBeat() {
 	var args network.HeartBeatArgs
 	c.ParseParameter(&args)
 
-	c.net.HeartBeat(&args)
+	c.ReturnErr(c.net.HeartBeat(&args))
 	c.Return(nil)
 }
 
@@ -22,6 +22,6 @@ func (c *NetController) GetKnownNodes() {
 	var reply network.GetKnownNodesReply
 	c.ParseParameter(&args)
 
-	c.net.GetKnownNodes(&args, &reply)
+	c.ReturnErr(c.net.GetKnownNodes(&args, &reply))
 	c.Return(reply)
 }
