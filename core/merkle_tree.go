@@ -69,7 +69,7 @@ func (tree *MerkleTree) FindPath(index int) []types.HashValue {
 	for node.l != node.r {
 		nodes = append(nodes, node)
 		mid := node.l + node.r
-		if index <= mid/2 {
+		if index < mid/2 {
 			node = node.Left
 		} else {
 			node = node.Right
@@ -77,8 +77,13 @@ func (tree *MerkleTree) FindPath(index int) []types.HashValue {
 	}
 
 	var ret []types.HashValue
-	for i := len(nodes) - 1; i > 0; i-- {
-		ret = append(ret, nodes[i].Data)
+	for i := len(nodes) - 1; i >= 0; i-- {
+		if index > nodes[i].Left.r {
+			ret = append(ret, nodes[i].Left.Data)
+		}
+		if index < nodes[i].Right.l {
+			ret = append(ret, nodes[i].Right.Data)
+		}
 	}
 	return ret
 }
