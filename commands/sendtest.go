@@ -38,7 +38,6 @@ var SendTestCmd = &cobra.Command{
 				time.Sleep(time.Second)
 			}
 
-			last := time.Now().UnixNano()
 			sendTestTo := string(wallet.NewWallet().GetAddress())
 			log.Infoln("SendTest", global.GetMempool(global.GetGroup()).GetMempoolSize(),
 				global.Address, sendTestTo)
@@ -48,10 +47,6 @@ var SendTestCmd = &cobra.Command{
 				log.Warnln("SendTest Warn?", err)
 			} else {
 				log.Infoln("SendTest Success!")
-			}
-
-			if 1e9/tps > time.Now().UnixNano()-last {
-				time.Sleep(time.Duration(1e9/tps - (time.Now().UnixNano() - last)))
 			}
 		}
 	},
