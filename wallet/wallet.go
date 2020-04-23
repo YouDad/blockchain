@@ -47,7 +47,7 @@ func (w Wallet) String() string {
 }
 
 // HashPubKey hashes public key
-func HashPubKey(pubKey types.PublicKey) []byte {
+func HashPubKey(pubKey types.PublicKey) types.HashValue {
 	publicSHA256 := sha256.Sum256(pubKey)
 
 	RIPEMD160Hasher := ripemd160.New()

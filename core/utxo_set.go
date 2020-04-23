@@ -139,7 +139,7 @@ func (set *UTXOSet) CreateTransaction(from, to string, amount int64) (*types.Tra
 				VoutIndex:  outIdx,
 				VoutValue:  values[txnHash][i],
 				Signature:  nil,
-				PubKeyHash: fromWallet.PublicKey,
+				PubKeyHash: pubKeyHash,
 			})
 		}
 	}
