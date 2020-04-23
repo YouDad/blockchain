@@ -26,6 +26,10 @@ func (bc *Blockchain) Get(key interface{}) (value []byte) {
 	return bc.db.Get(bc.group, key)
 }
 
+func (bc *Blockchain) GetWithoutLog(key interface{}) (value []byte) {
+	return bc.db.GetWithoutLog(bc.group, key)
+}
+
 func (bc *Blockchain) Set(key interface{}, value []byte) {
 	bc.db.Set(bc.group, key, value)
 }
@@ -44,6 +48,7 @@ type BlockchainIterator struct {
 }
 
 func (bc *Blockchain) Begin() *BlockchainIterator {
+	log.Debugln("Blockchain.Begin")
 	return &BlockchainIterator{bc, bc.GetLastest().Hash()}
 }
 
@@ -51,7 +56,7 @@ func (iter *BlockchainIterator) Next() (nextBlock *types.Block) {
 	if iter.next == nil {
 		return nil
 	}
-	nextBlock = BytesToBlock(iter.bc.Get(iter.next))
+	nextBlock = BytesToBlock(iter.bc.GetWithoutLog(iter.next))
 	if nextBlock != nil {
 		iter.next = nextBlock.PrevHash
 	}

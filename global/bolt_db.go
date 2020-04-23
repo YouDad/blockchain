@@ -68,6 +68,21 @@ func (db *boltDB) Get(group int, key interface{}) (value []byte) {
 	return value
 }
 
+func (db *boltDB) GetWithoutLog(group int, key interface{}) (value []byte) {
+	db.lock()
+	defer db.unlock()
+	db.db(group).View(func(tx *bolt.Tx) error {
+		bucket := tx.Bucket([]byte(db.currentBucket))
+		if bucket == nil {
+			value = nil
+		} else {
+			value = bucket.Get(interfaceToBytes(key))
+		}
+		return nil
+	})
+	return value
+}
+
 func (db *boltDB) Set(group int, key interface{}, value []byte) {
 	db.lock()
 	defer db.unlock()

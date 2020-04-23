@@ -13,6 +13,7 @@ import (
 type IDatabase interface {
 	Clear(group int)
 	Get(group int, key interface{}) (value []byte)
+	GetWithoutLog(group int, key interface{}) (value []byte)
 	Set(group int, key interface{}, value []byte)
 	Delete(group int, key interface{})
 	Foreach(group int, fn func(k, v []byte) bool)
