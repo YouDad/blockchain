@@ -1,9 +1,9 @@
 #!/bin/bash
 source test/define.sh $0 $1
 
-rm -rf *9999*
-VPortA="-v3 --port 9999"
-VPortB="-v3 --port 9993"
+rm -rf *1111*
+VPortA="-v3 --port 1111"
+VPortB="-v3 --port 1106"
 
 RunTest create_wallet "${VPortA} --specified 0" 's#.*: \(.*\)#\1#g'
 AddressA="${TestRegMatch}"
