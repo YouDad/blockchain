@@ -23,7 +23,7 @@ func BytesToTxnOutputs(bytes []byte) []types.TxnOutput {
 	err := json.Unmarshal(bytes, &txnOutputs)
 	if err != nil {
 		log.Warn(err)
-		log.Warnf("%x", bytes)
+		log.Warnf("len=%d,bytes=%x", len(bytes), bytes)
 		log.PrintStack()
 	}
 

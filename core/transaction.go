@@ -27,7 +27,8 @@ func BytesToTransaction(bytes []byte) *types.Transaction {
 	txn := types.Transaction{}
 	err := json.Unmarshal(bytes, &txn)
 	if err != nil {
-		log.Warnf("%s\n", bytes)
+		log.Warn(err)
+		log.Warnf("len=%d,bytes=%x", len(bytes), bytes)
 		log.PrintStack()
 	}
 	return &txn

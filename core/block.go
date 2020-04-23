@@ -15,7 +15,8 @@ func BytesToBlock(bytes []byte) *types.Block {
 	block := types.Block{}
 	err := json.Unmarshal(bytes, &block)
 	if err != nil {
-		log.Warnf("%s\n", bytes)
+		log.Warn(err)
+		log.Warnf("len=%d,bytes=%x", len(bytes), bytes)
 		log.PrintStack()
 	}
 	log.Err(err)
