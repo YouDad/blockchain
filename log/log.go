@@ -14,7 +14,6 @@ var (
 	callLevel   = 2
 	logLevel    uint
 	port        string
-	prefix      string
 	prefixMutex sync.Mutex
 	levelMutex  sync.Mutex
 )
@@ -25,15 +24,12 @@ func Register(level uint, p string) {
 	port = p
 }
 
-func LogSetPrefix(prefixString string) {
-	log.SetPrefix(prefix + prefixString)
-}
-
-func setPrefix(level string) {
+func setPrefix(prefix string) {
 	_, file, line, _ := runtime.Caller(callLevel)
-	index := strings.Index(file, "blockchain")
+	keyword := "blockchain"
+	index := strings.Index(file, keyword)
 	if index >= 0 {
-		file = file[index+len("blockchain "):]
+		file = file[index+len(keyword)+1:]
 	}
 	prefixMutex.Lock()
 
@@ -48,8 +44,9 @@ func setPrefix(level string) {
 		}
 	}
 
-	LogSetPrefix(fmt.Sprintf("[%d][%s][%s][%s]: { %s +%d } ",
-		time.Now().UnixNano(), port, string(routineId), level, file, line))
+	log.SetPrefix(fmt.Sprintf("%s.%09d[%s][%s][%s]: { %s +%d } ",
+		time.Now().Format("2006/01/02 15:04:05"),
+		time.Now().UnixNano()%1e9, port, string(routineId), prefix, file, line))
 }
 
 func SetCallerLevel(level int) {
@@ -169,9 +166,8 @@ func Errln(v ...interface{}) {
 
 func PrintStack() {
 	levelMutex.Lock()
-	LogSetPrefix("")
-	log.Println("")
-	LogSetPrefix("[STACK]: ")
+	setPrefix("STACK")
+	log.Println("====================================")
 	for i := 0; i < 5; i++ {
 		pc, file, line, ok := runtime.Caller(2 + 4 - i)
 		if !ok {
