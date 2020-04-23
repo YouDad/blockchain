@@ -39,8 +39,10 @@ func UpdateSortedNodes() {
 		time := 0
 
 		for _, rt := range node.ReactTime.Get() {
-			reactTime := rt.(int)
-			time += reactTime
+			reactTime, ok := rt.(int)
+			if ok {
+				time += reactTime
+			}
 		}
 
 		sortedNodes = append(sortedNodes, Position{
