@@ -14,7 +14,6 @@ type Queue struct {
 
 var (
 	ErrInit = errors.New("Queue need initize")
-	ErrFull = errors.New("Queue is full")
 )
 
 func NewQueue(cap int) Queue {
@@ -38,7 +37,7 @@ func (q *Queue) Push(data interface{}) {
 	}
 
 	if (q.back+1)%q.capability == q.front {
-		panic(ErrFull)
+		q.Pop()
 	}
 
 	q.array[q.back] = data
