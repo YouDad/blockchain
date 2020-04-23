@@ -14,7 +14,7 @@ import (
 )
 
 func call(node, method string, args interface{}, reply interface{}) error {
-	log.Debugln("call", "Request", method, node, args)
+	log.Infof("call %s's %s, args: %+v", node, method, args)
 	b, err := json.Marshal(args)
 	if err != nil {
 		return err
