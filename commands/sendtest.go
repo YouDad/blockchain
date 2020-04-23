@@ -12,10 +12,12 @@ import (
 )
 
 var tps int64
+var wait int64
 
 func init() {
 	SendTestCmd.Flags().StringVar(&global.Address, "from", "", "Source wallet address")
 	SendTestCmd.Flags().Int64Var(&tps, "tps", 10, "send speed, transaction per second")
+	SendTestCmd.Flags().Int64Var(&wait, "wait", 90, "the time before sendloop")
 	SendTestCmd.MarkFlagRequired("from")
 }
 
@@ -29,7 +31,7 @@ var SendTestCmd = &cobra.Command{
 
 		network.Register()
 		go network.StartServer()
-		time.Sleep(90 * time.Second)
+		time.Sleep(time.Duration(wait) * time.Second)
 
 		for {
 			for global.GetMempool(global.GetGroup()).GetMempoolSize() >= 7*int(tps) {
