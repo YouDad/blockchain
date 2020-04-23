@@ -26,10 +26,10 @@ func (txn Transaction) String() (ret string) {
 	ret = "\n"
 	ret += fmt.Sprintf("Hash: %s\n", txn.Hash())
 	for i, in := range txn.Vin {
-		ret += fmt.Sprintf("\tInput[%d]: %s\n", i, in)
+		ret += fmt.Sprintf("    Input[%d]: %s\n", i, in)
 	}
 	for i, out := range txn.Vout {
-		ret += fmt.Sprintf("\tOutput[%d]: %s\n", i, out)
+		ret += fmt.Sprintf("    Output[%d]: %s\n", i, out)
 	}
 	return ret
 }
@@ -44,11 +44,11 @@ func (txn Transaction) TrimmedCopy() Transaction {
 
 	for _, vin := range txn.Vin {
 		inputs = append(inputs, TxnInput{
-			VoutHash:   vin.VoutHash,
-			VoutIndex:  vin.VoutIndex,
-			VoutValue:  vin.VoutValue,
-			Signature:  nil,
-			PubKeyHash: nil,
+			VoutHash:  vin.VoutHash,
+			VoutIndex: vin.VoutIndex,
+			VoutValue: vin.VoutValue,
+			Signature: nil,
+			PubKey:    nil,
 		})
 	}
 
@@ -67,25 +67,28 @@ func (txn Transaction) TrimmedCopy() Transaction {
 	return txCopy
 }
 
-func (txn *Transaction) Sign(sk PrivateKey, hashedTxn map[string]Transaction) {
+func (txn *Transaction) Sign(sk PrivateKey, hashedTxn map[string]Transaction) error {
 	if txn.IsCoinbase() {
-		return
+		return nil
 	}
 
 	txnCopy := txn.TrimmedCopy()
 
 	for inIndex, vin := range txnCopy.Vin {
 		prevTxn := hashedTxn[vin.VoutHash.String()]
-		txnCopy.Vin[inIndex].PubKeyHash = prevTxn.Vout[vin.VoutIndex].PubKeyHash
+		txnCopy.Vin[inIndex].PubKey = PublicKey(prevTxn.Vout[vin.VoutIndex].PubKeyHash)
 		dataToSign := []byte(fmt.Sprintf("%s\n", txnCopy))
 
 		r, s, err := ecdsa.Sign(rand.Reader, &sk, dataToSign)
-		log.Err(err)
+		if err != nil {
+			return err
+		}
 		signature := append(r.Bytes(), s.Bytes()...)
 
 		txn.Vin[inIndex].Signature = signature
-		txnCopy.Vin[inIndex].PubKeyHash = nil
+		txnCopy.Vin[inIndex].PubKey = nil
 	}
+	return nil
 }
 
 // 验证交易是否有效，需要map[前置交易哈希]前置交易
@@ -100,7 +103,7 @@ func (txn Transaction) Verify(hashedTxn map[string]Transaction) bool {
 	// 遍历交易的输入
 	for inIndex, vin := range txn.Vin {
 		prevTxn := hashedTxn[vin.VoutHash.String()]
-		txnCopy.Vin[inIndex].PubKeyHash = prevTxn.Vout[vin.VoutIndex].PubKeyHash
+		txnCopy.Vin[inIndex].PubKey = PublicKey(prevTxn.Vout[vin.VoutIndex].PubKeyHash)
 		dataToVerify := []byte(fmt.Sprintf("%s\n", txnCopy))
 
 		// 验证TxnInput的签名是否正确
@@ -111,14 +114,16 @@ func (txn Transaction) Verify(hashedTxn map[string]Transaction) bool {
 		s.SetBytes(vin.Signature[(sigLen / 2):])
 		x := big.Int{}
 		y := big.Int{}
-		keyLen := len(vin.PubKeyHash)
-		x.SetBytes(vin.PubKeyHash[:(keyLen / 2)])
-		y.SetBytes(vin.PubKeyHash[(keyLen / 2):])
+		keyLen := len(vin.PubKey)
+		x.SetBytes(vin.PubKey[:(keyLen / 2)])
+		y.SetBytes(vin.PubKey[(keyLen / 2):])
 		rawPubKey := ecdsa.PublicKey{Curve: curve, X: &x, Y: &y}
 		if !ecdsa.Verify(&rawPubKey, dataToVerify, &r, &s) {
+			log.Traceln(txn, hashedTxn)
+			log.Traceln("false")
 			return false
 		}
-		txnCopy.Vin[inIndex].PubKeyHash = nil
+		txnCopy.Vin[inIndex].PubKey = nil
 	}
 
 	return true

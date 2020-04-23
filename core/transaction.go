@@ -17,7 +17,7 @@ func NewCoinbaseTxn(from string) *types.Transaction {
 
 	txn := types.Transaction{}
 
-	txn.Vin = []types.TxnInput{{VoutIndex: -1, PubKeyHash: []byte(data)}}
+	txn.Vin = []types.TxnInput{{VoutIndex: -1, PubKey: []byte(data)}}
 	// Send $from 50BTC
 	txn.Vout = []types.TxnOutput{*NewTxnOutput(from, 50_000_000)}
 	return &txn

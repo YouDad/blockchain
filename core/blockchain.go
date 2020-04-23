@@ -287,17 +287,23 @@ func (bc *Blockchain) FindTxn(hash types.HashValue) (*types.Transaction, error) 
 
 func (bc *Blockchain) SignTransaction(txn *types.Transaction, sk types.PrivateKey) error {
 	hashedTxn := make(map[string]types.Transaction)
+	mempool := global.GetMempool(bc.group)
 
 	for _, vin := range txn.Vin {
 		vinTxn, err := bc.FindTxn(vin.VoutHash)
+		if err == nil {
+			hashedTxn[vinTxn.Hash().String()] = *vinTxn
+			continue
+		}
+
+		vinTxn, err = mempool.FindTxn(vin.VoutHash)
 		if err != nil {
-			return err
+			return errors.New(fmt.Sprintf("Transaction is not found, %s", vin.VoutHash))
 		}
 		hashedTxn[vinTxn.Hash().String()] = *vinTxn
 	}
 
-	txn.Sign(sk, hashedTxn)
-	return nil
+	return txn.Sign(sk, hashedTxn)
 }
 
 // 验证交易是否有效

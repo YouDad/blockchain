@@ -84,7 +84,7 @@ func (set *UTXOSet) Reverse(b *types.Block) {
 				}
 				txos = append(txos, types.TxnOutput{
 					Value:      vin.VoutValue,
-					PubKeyHash: vin.PubKeyHash,
+					PubKeyHash: vin.PubKey.Hash(),
 				})
 				set.Set(vin.VoutHash, utils.Encode(txos))
 			}
@@ -116,10 +116,8 @@ func (set *UTXOSet) CreateTransaction(from, to string, amount int64) (*types.Tra
 		return nil, errors.New(fmt.Sprintf("You haven't %s's PrivateKey", from))
 	}
 
-	pubKeyHash := wallet.HashPubKey(fromWallet.PublicKey)
-
 	// 用公钥找到一定数量的余额
-	sum, utxos, values := set.findUTXOs(pubKeyHash, amount)
+	sum, utxos, values := set.findUTXOs(fromWallet.PublicKey, amount)
 
 	if sum < amount {
 		return nil, errors.New("Not enough BTC")
@@ -135,11 +133,11 @@ func (set *UTXOSet) CreateTransaction(from, to string, amount int64) (*types.Tra
 
 		for i, outIdx := range outIdxs {
 			ins = append(ins, types.TxnInput{
-				VoutHash:   txnHashByte,
-				VoutIndex:  outIdx,
-				VoutValue:  values[txnHash][i],
-				Signature:  nil,
-				PubKeyHash: pubKeyHash,
+				VoutHash:  txnHashByte,
+				VoutIndex: outIdx,
+				VoutValue: values[txnHash][i],
+				Signature: nil,
+				PubKey:    fromWallet.PublicKey,
 			})
 		}
 	}
@@ -156,14 +154,14 @@ func (set *UTXOSet) CreateTransaction(from, to string, amount int64) (*types.Tra
 	return &txn, err
 }
 
-func (set *UTXOSet) FindUTXOByHash(pubKeyHash []byte) []types.TxnOutput {
+func (set *UTXOSet) FindUTXOByHash(pubKey types.PublicKey) []types.TxnOutput {
 	utxos := []types.TxnOutput{}
 
 	set.Foreach(func(k, v []byte) bool {
 		outs := BytesToTxnOutputs(v)
 
 		for _, out := range outs {
-			if out.IsLockedWithKey(pubKeyHash) {
+			if out.IsLockedWithKey(pubKey) {
 				utxos = append(utxos, out)
 			}
 		}
@@ -174,7 +172,7 @@ func (set *UTXOSet) FindUTXOByHash(pubKeyHash []byte) []types.TxnOutput {
 }
 
 // 用公钥找一定数量余额
-func (set *UTXOSet) findUTXOs(pubKeyHash types.HashValue, amount int64) (int64, map[string][]int, map[string][]int64) {
+func (set *UTXOSet) findUTXOs(pubKey types.PublicKey, amount int64) (int64, map[string][]int, map[string][]int64) {
 	hashedUTXOIdxs := make(map[string][]int)
 	hashedUTXOValues := make(map[string][]int64)
 	var sum int64 = 0
@@ -184,11 +182,8 @@ func (set *UTXOSet) findUTXOs(pubKeyHash types.HashValue, amount int64) (int64, 
 		txnOutputs := BytesToTxnOutputs(v)
 
 		for txnOutputIndex, txnOutput := range txnOutputs {
-			if txnOutput.IsLockedWithKey(pubKeyHash) {
-				outs, hashs, indexs, err := mempool.FindTxnOutput(txnOutput, k, txnOutputIndex)
-				if err != nil {
-					continue
-				}
+			if txnOutput.IsLockedWithKey(pubKey) {
+				outs, hashs, indexs := mempool.ExpandTxnOutput(txnOutput, k, txnOutputIndex)
 
 				for i := range outs {
 					str := hashs[i].String()
