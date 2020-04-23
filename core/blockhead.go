@@ -36,7 +36,10 @@ func GetBlockhead(group int) *Blockhead {
 
 func (bh *Blockhead) AddBlockhead(block *types.Block) {
 	if block.Verify() {
+		txns := block.Txns
+		block.Txns = nil
 		bh.Set(block.Height, utils.Encode(block))
+		block.Txns = txns
 	}
 }
 
