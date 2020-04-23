@@ -170,7 +170,6 @@ func Errln(v ...interface{}) {
 func PrintStack() {
 	levelMutex.Lock()
 	LogSetPrefix("")
-	log.SetFlags(0)
 	log.Println("")
 	LogSetPrefix("[STACK]: ")
 	for i := 0; i < 5; i++ {
@@ -188,7 +187,6 @@ func PrintStack() {
 		file = file[index+len(keyword)+1:]
 		log.Printf("{ %s +%d } [ %s ]", file, line, function.Name())
 	}
-	log.SetFlags(log.Lmicroseconds | log.Ltime)
 	levelMutex.Unlock()
 }
 
