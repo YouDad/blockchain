@@ -63,15 +63,25 @@ func Funcname(level int) string {
 	return runtime.FuncForPC(pc).Name()
 }
 
+func logPrint(str string) {
+	strs := strings.Split(str, "\n")
+	for _, str := range strs {
+		if len(str) == 0 {
+			continue
+		}
+		log.Println(str)
+	}
+}
+
 func Tracef(format string, v ...interface{}) {
 	setPrefix("TRACE")
-	log.Printf(format, v...)
+	logPrint(fmt.Sprintf(format, v...))
 	prefixMutex.Unlock()
 }
 
 func Traceln(v ...interface{}) {
 	setPrefix("TRACE")
-	log.Println(v...)
+	logPrint(fmt.Sprintln(v...))
 	prefixMutex.Unlock()
 }
 
@@ -80,7 +90,7 @@ func Debugf(format string, v ...interface{}) {
 		return
 	}
 	setPrefix("DEBUG")
-	log.Printf(format, v...)
+	logPrint(fmt.Sprintf(format, v...))
 	prefixMutex.Unlock()
 }
 
@@ -89,7 +99,7 @@ func Debugln(v ...interface{}) {
 		return
 	}
 	setPrefix("DEBUG")
-	log.Println(v...)
+	logPrint(fmt.Sprintln(v...))
 	prefixMutex.Unlock()
 }
 
@@ -98,7 +108,7 @@ func Infof(format string, v ...interface{}) {
 		return
 	}
 	setPrefix("INFO")
-	log.Printf(format, v...)
+	logPrint(fmt.Sprintf(format, v...))
 	prefixMutex.Unlock()
 }
 
@@ -107,7 +117,7 @@ func Infoln(v ...interface{}) {
 		return
 	}
 	setPrefix("INFO")
-	log.Println(v...)
+	logPrint(fmt.Sprintln(v...))
 	prefixMutex.Unlock()
 }
 
@@ -124,7 +134,7 @@ func Warnf(format string, v ...interface{}) {
 		return
 	}
 	setPrefix("WARN")
-	log.Printf(format, v...)
+	logPrint(fmt.Sprintf(format, v...))
 	prefixMutex.Unlock()
 }
 
@@ -133,7 +143,7 @@ func Warnln(v ...interface{}) {
 		return
 	}
 	setPrefix("WARN")
-	log.Println(v...)
+	logPrint(fmt.Sprintln(v...))
 	prefixMutex.Unlock()
 }
 
@@ -149,7 +159,7 @@ func Errf(format string, v ...interface{}) {
 		return
 	}
 	setPrefix("ERROR")
-	log.Printf(format, v...)
+	logPrint(fmt.Sprintf(format, v...))
 	prefixMutex.Unlock()
 	os.Exit(1)
 }
@@ -159,7 +169,7 @@ func Errln(v ...interface{}) {
 		return
 	}
 	setPrefix("ERROR")
-	log.Println(v...)
+	logPrint(fmt.Sprintln(v...))
 	prefixMutex.Unlock()
 	os.Exit(1)
 }
