@@ -33,6 +33,7 @@ var SendTestCmd = &cobra.Command{
 		go network.StartServer()
 		time.Sleep(time.Duration(wait) * time.Second)
 
+		<-network.ServerReady
 		for {
 			for global.GetMempool(global.GetGroup()).GetMempoolSize() >= 7*int(tps) {
 				time.Sleep(time.Second)
