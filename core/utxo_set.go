@@ -48,6 +48,10 @@ func (set *UTXOSet) Update(b *types.Block) {
 			for _, vin := range txn.Vin {
 				updatedOuts := []types.TxnOutput{}
 				outsBytes := set.Get(vin.VoutHash)
+				if len(outsBytes) == 0 {
+					set.Reindex()
+					return
+				}
 				outs := BytesToTxnOutputs(outsBytes)
 
 				for outIdx, out := range outs {
