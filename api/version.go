@@ -61,7 +61,6 @@ func GetVersion() (types.Version, error) {
 // @router /SendVersion [post]
 func (c *VersionController) SendVersion() {
 	var args SendVersionArgs
-	var reply SendVersionReply
 	c.ParseParameter(&args)
 	log.Debugf("SendVersion %+v\n", args)
 
@@ -72,14 +71,18 @@ func (c *VersionController) SendVersion() {
 	bc := core.GetBlockchain(args.Group)
 	genesis := bc.GetGenesis()
 	lastest := bc.GetLastest()
-	lastestHeight := lastest.Height
-	reply = types.Version{
+	if genesis == nil || lastest == nil {
+		c.Return(types.Version{
+			Group:   args.Group,
+			Version: Version,
+			Height:  -1,
+		})
+	}
+	c.Return(types.Version{
 		Group:    args.Group,
 		Version:  Version,
-		Height:   lastestHeight,
+		Height:   lastest.Height,
 		RootHash: genesis.Hash(),
 		NowHash:  lastest.Hash(),
-	}
-
-	c.Return(reply)
+	})
 }
