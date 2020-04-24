@@ -136,9 +136,8 @@ func (bc *Blockchain) AddBlock(b *types.Block) {
 		bc.Set(b.Height, b.Hash())
 		GetBlockhead(bc.group).AddBlockhead(b)
 
-		mempool := global.GetMempool(b.Group)
 		for _, txn := range b.Txns {
-			delete(mempool, txn.Hash().Key())
+			global.GetMempool(b.Group).Delete(txn.Hash())
 		}
 	}
 }
@@ -287,7 +286,6 @@ func (bc *Blockchain) FindTxn(hash types.HashValue) (*types.Transaction, error) 
 
 func (bc *Blockchain) SignTransaction(txn *types.Transaction, sk types.PrivateKey) error {
 	hashedTxn := make(map[string]types.Transaction)
-	mempool := global.GetMempool(bc.group)
 
 	for _, vin := range txn.Vin {
 		vinTxn, err := bc.FindTxn(vin.VoutHash)
@@ -296,7 +294,7 @@ func (bc *Blockchain) SignTransaction(txn *types.Transaction, sk types.PrivateKe
 			continue
 		}
 
-		vinTxn, err = mempool.FindTxn(vin.VoutHash)
+		vinTxn, err = global.GetMempool(bc.group).GetTxn(vin.VoutHash)
 		if err != nil {
 			return errors.New(fmt.Sprintf("Transaction is not found, %s", vin.VoutHash))
 		}
@@ -325,9 +323,9 @@ func (bc *Blockchain) VerifyTransaction(txn types.Transaction) bool {
 		}
 
 		// 在未打包交易池中用引用交易哈希找到该输入引用的交易
-		mempool := global.GetMempool(bc.group)
-		prevTxn, err = mempool.FindTxn(vin.VoutHash)
+		prevTxn, err = global.GetMempool(bc.group).GetTxn(vin.VoutHash)
 		if err != nil {
+			log.Traceln("Not Found", vin.VoutHash)
 			return false
 		}
 		prevTxns[prevTxn.Hash().String()] = *prevTxn

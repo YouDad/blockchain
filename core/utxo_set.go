@@ -176,14 +176,13 @@ func (set *UTXOSet) findUTXOs(pubKey types.PublicKey, amount int64) (int64, map[
 	hashedUTXOIdxs := make(map[string][]int)
 	hashedUTXOValues := make(map[string][]int64)
 	var sum int64 = 0
-	mempool := global.GetMempool(set.group)
 
 	set.Foreach(func(k, v []byte) bool {
 		txnOutputs := BytesToTxnOutputs(v)
 
 		for txnOutputIndex, txnOutput := range txnOutputs {
 			if txnOutput.IsLockedWithKey(pubKey) {
-				outs, hashs, indexs := mempool.ExpandTxnOutput(txnOutput, k, txnOutputIndex)
+				outs, hashs, indexs := global.GetMempool(set.group).ExpandTxnOutput(txnOutput, k, txnOutputIndex)
 
 				for i := range outs {
 					str := hashs[i].String()
