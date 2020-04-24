@@ -26,9 +26,6 @@ var GetVersionCmd = &cobra.Command{
 			version, err = api.GetVersion()
 			log.Err(err)
 		}
-		log.Infof("Version :%d\n", version.Version)
-		log.Infof("Height  :%d\n", version.Height)
-		log.Infof("NowHash :%s\n", version.NowHash)
-		log.Infof("RootHash:%s\n", version.RootHash)
+		log.Infoln(version)
 	},
 }
