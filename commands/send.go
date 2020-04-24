@@ -49,7 +49,8 @@ var SendCmd = &cobra.Command{
 			cbTx := core.NewCoinbaseTxn(global.Address)
 			txs := []*types.Transaction{cbTx, tx}
 
-			newBlocks := core.MineBlocks([][]*types.Transaction{txs}, global.GetGroup(), 1)
+			newBlocks, err := core.MineBlocks([][]*types.Transaction{txs}, global.GetGroup(), 1)
+			log.Err(err)
 			bc.AddBlock(newBlocks[0])
 			set.Update(newBlocks[0])
 			return

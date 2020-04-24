@@ -21,7 +21,7 @@ var CreateBlockchainCmd = &cobra.Command{
 		if !wallet.ValidateAddress(global.Address) {
 			log.Errln("Address is not valid", global.Address)
 		}
-		core.CreateBlockchain(global.Address)
+		log.Err(core.CreateBlockchain(global.Address))
 		log.Infoln("Done!")
 	},
 }

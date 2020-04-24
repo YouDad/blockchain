@@ -1,6 +1,8 @@
 package commands
 
 import (
+	"time"
+
 	"github.com/spf13/cobra"
 
 	"github.com/YouDad/blockchain/api"
@@ -44,8 +46,10 @@ var MiningCmd = &cobra.Command{
 
 				for {
 					log.Debugln("core.MineBlocks", group, global.GroupNum, "{{{{{{{{")
-					newBlocks := core.MineBlocks(txns, group, global.GroupNum)
-					if newBlocks == nil {
+					newBlocks, err := core.MineBlocks(txns, group, global.GroupNum)
+					if err != nil {
+						time.Sleep(10 * time.Second)
+						log.Warn(err)
 						break
 					}
 					for _, newBlock := range newBlocks {

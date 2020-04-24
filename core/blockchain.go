@@ -63,15 +63,17 @@ func (iter *BlockchainIterator) Next() (nextBlock *types.Block) {
 	return nextBlock
 }
 
-func CreateBlockchain(minerAddress string) *Blockchain {
+func CreateBlockchain(minerAddress string) error {
 	group := global.GetGroup()
 	bc := GetBlockchain(group)
-	txns := [][]*types.Transaction{{NewCoinbaseTxn(minerAddress)}}
-	blocks := MineBlocks(txns, group, 1)
+	block, err := MineBlocksForCreate(NewCoinbaseTxn(minerAddress), group)
+	if err != nil {
+		return err
+	}
 	bc.Clear()
-	bc.AddBlock(blocks[0])
+	bc.AddBlock(block)
 	GetUTXOSet(group).Reindex()
-	return bc
+	return nil
 }
 
 func GetBlockchain(group int) *Blockchain {
@@ -142,22 +144,47 @@ func (bc *Blockchain) AddBlock(b *types.Block) {
 	}
 }
 
-func MineBlocks(txns [][]*types.Transaction, groupBase, batchSize int) []*types.Block {
+func MineBlocksForCreate(txns *types.Transaction, groupBase int) (*types.Block, error) {
+	blocks := []*types.Block{{
+		BlockHeader: types.BlockHeader{
+			Group:      groupBase,
+			Height:     0,
+			PrevHash:   nil,
+			Timestamp:  time.Now().UnixNano(),
+			MerkleRoot: NewMerkleTree([][]byte{utils.Encode(txns)}).RootNode.Data,
+			Target:     1.0,
+		},
+		ChukonuHeader: types.ChukonuHeader{
+			GroupBase: groupBase,
+			BatchSize: 1,
+		},
+		Txns: []*types.Transaction{txns},
+	}}
+
+	pow := NewPOW(blocks)
+	err, _, nonce, _ := pow.Run()
+	if err != nil {
+		return nil, err
+	}
+
+	blocks[0].Nonce = nonce
+	log.Infoln("CreateBlockchain", blocks[0])
+	return blocks[0], nil
+}
+
+func MineBlocks(txns [][]*types.Transaction, groupBase, batchSize int) ([]*types.Block, error) {
 	// 1. 构造blocks
 	var blocks []*types.Block
 	for i := 0; i < batchSize; i++ {
 		bc := GetBlockchain(groupBase + i)
 		lastest := bc.GetLastest()
-		var target float64 = 1.0
-		var height int32 = -1
-		var prevHash types.HashValue = nil
-		var timestamp int64 = time.Now().UnixNano()
-		if lastest != nil {
-			target = lastest.Target
-			height = lastest.Height
-			prevHash = lastest.Hash()
-			timestamp = lastest.Timestamp
+		if lastest == nil {
+			return nil, errors.New(fmt.Sprintf("MineBlocks failed, because don't have blockchain[%d].lastest", groupBase+i))
 		}
+		var target float64 = lastest.Target
+		var height int32 = lastest.Height
+		var prevHash types.HashValue = lastest.Hash()
+		var timestamp int64 = lastest.Timestamp
 
 		// 1. 计算MerkleRoot用字节数组
 		var txnsBytes [][]byte
@@ -195,7 +222,7 @@ func MineBlocks(txns [][]*types.Transaction, groupBase, batchSize int) []*types.
 	pow := NewPOW(blocks)
 	err, target, nonce, batchMerkleTree := pow.Run()
 	if err != nil {
-		return nil
+		return nil, err
 	}
 
 	// 3. 过滤有效区块
@@ -216,7 +243,7 @@ func MineBlocks(txns [][]*types.Transaction, groupBase, batchSize int) []*types.
 	for _, block := range blocks {
 		log.Infoln("NewBlock", block)
 	}
-	return blocks
+	return blocks, nil
 }
 
 func (bc *Blockchain) FindUTXO() map[string][]types.TxnOutput {
