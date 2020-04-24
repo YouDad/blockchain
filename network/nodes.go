@@ -73,7 +73,7 @@ func GetSortedNodes() PositionSlice {
 
 func knownNodeUpdating() {
 	for {
-		time.Sleep(20 * time.Second)
+		time.Sleep(15 * time.Second)
 		GetKnownNodes()
 		knownNodes := global.GetKnownNodes()
 		for nodeAddress := range knownNodes.Get() {
