@@ -4,7 +4,7 @@ make clean
 rm -rf *.log
 source test/define.sh $0 $1
 
-GroupNumber=1
+GroupNumber=2
 Pre="-v3 -g$GroupNumber --port"
 
 declare -a Address
@@ -26,29 +26,45 @@ done
 for (( i=1; i<=GroupNumber; i++ )); do
 	RunTest create_blockchain "$Pre $(( i*1111 )) --address ${Address[i*1111]}"
 	sleep 0.1
-	RunTest send_test "$Pre $(( i*1111 )) --from ${Address[i*1111]}" &
+	RunTest send_test "$Pre $(( i*1111 )) --from ${Address[i*1111]} --group $GroupNumber" &
 	sleep 0.1
 done
+
+function sync() {
+	i=$1
+	j=$2
+	RunTest sync "$Pre $(( i*1100+j )) --address ${Address[i*1100+j]} --group $GroupNumber"
+}
 
 function mine() {
 	i=$1
 	j=$2
-	RunTest sync "$Pre $(( i*1100+j )) --address ${Address[i*1100+j]}"
-	sleep 2
-	RunTest mining "$Pre $(( i*1100+j )) --address ${Address[i*1100+j]}" &
-	sleep 3
+	RunTest mining "$Pre $(( i*1100+j )) --address ${Address[i*1100+j]} --group $GroupNumber" &
 }
 
-for (( i=1; i<GroupNumber; i++ )); do
+for (( i=1; i<=GroupNumber; i++ )); do
 	for (( j=1; j<=3; j++ )); do
+		sync $i $j
+	done
+done
+for (( i=1; i<=GroupNumber; i++ )); do
+	for (( j=1; j<=3; j++ )); do
+		sync $i $j
+	done
+done
+
+for (( i=1; i<GroupNumber; i++ )); do
+	mine $i 1
+	sleep 5
+	for (( j=2; j<=3; j++ )); do
 		mine $i $j
 	done
 done
 
-for (( j=1; j<=2; j++ )); do
+mine $GroupNumber 1
+sleep 5
+for (( j=2; j<=2; j++ )); do
 	mine $GroupNumber $j
 done
 
-RunTest sync "$Pre $(( GroupNumber*1100+3 )) --address ${Address[GroupNumber*1100+3]}"
-sleep 2
-RunTest mining "$Pre $(( GroupNumber*1100+3 )) --address ${Address[GroupNumber*1100+3]}"
+RunTest mining "$Pre $(( GroupNumber*1100+3 )) --address ${Address[GroupNumber*1100+3]} --group $GroupNumber"
