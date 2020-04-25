@@ -24,7 +24,7 @@ func (txn Transaction) Hash() HashValue {
 
 func (txn Transaction) String() (ret string) {
 	ret = "\n"
-	ret += fmt.Sprintf("Hash: %s\n", txn.Hash())
+	ret += fmt.Sprintf("TxnHash: %s\n", txn.Hash())
 	for i, in := range txn.Vin {
 		ret += fmt.Sprintf("    Input[%d]: %s\n", i, in)
 	}
