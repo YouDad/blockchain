@@ -2,12 +2,51 @@ package api
 
 import (
 	"bytes"
+	"time"
 
 	"github.com/YouDad/blockchain/core"
 	"github.com/YouDad/blockchain/global"
 	"github.com/YouDad/blockchain/log"
+	"github.com/YouDad/blockchain/network"
 	"github.com/YouDad/blockchain/utils"
 )
+
+// 同步
+func Sync(group int) error {
+	group = group % global.MaxGroupNum
+	network.Register()
+	bc := core.GetBlockchain(group)
+
+	if bc.GetHeight() < 0 {
+		genesis, err := GetGenesis(group)
+		for err != nil {
+			log.Warn(err)
+			time.Sleep(5 * time.Second)
+			log.Warn(network.GetKnownNodes())
+			network.UpdateSortedNodes()
+			genesis, err = GetGenesis(group)
+		}
+		bc.AddBlock(genesis)
+		core.GetUTXOSet(group).Reindex()
+	}
+
+	genesis := bc.GetGenesis()
+	lastest := bc.GetLastest()
+	var height int32
+	var address string
+	var err error
+	for {
+		height, err, address = SendVersion(group, lastest.Height, genesis.Hash(), lastest.Hash())
+		log.Warn(err)
+		if err == nil {
+			break
+		}
+		time.Sleep(5 * time.Second)
+	}
+
+	SyncBlocks(group, height, address)
+	return nil
+}
 
 // 同步group组的区块，最新的区块高度是newHeight，发送者是address
 func SyncBlocks(group int, newHeight int32, address string) {
