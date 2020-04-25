@@ -208,7 +208,7 @@ func (c *DBController) GossipRelayTxn() {
 		block := core.GetBlockhead(args.FromGroup).GetBlockheadByHeight(args.Height)
 		if args.Txn.RelayVerify(block.MerkleRoot, args.RelayMerklePath) {
 			global.GetMempool(args.ToGroup).AddTxn(args.Txn)
-			network.GossipCallInnerGroup("db/GossipRelayTxn", &args, nil)
+			go GossipRelayTxn(args.FromGroup, args.ToGroup, args.Height, args.RelayMerklePath, &args.Txn)
 		}
 	}
 
@@ -260,7 +260,7 @@ func (c *DBController) GossipBlock() {
 			bc.AddBlock(&args)
 			set.Update(&args)
 			global.SyncMutex.Unlock()
-			GossipBlock(&args)
+			go GossipBlock(&args)
 			lastestHeight += 1
 		}
 	}
@@ -295,7 +295,7 @@ func (c *DBController) GossipBlockHead() {
 	bh := core.GetBlockhead(args.Group)
 	if bh.GetBlockheadByHeight(args.Height) == nil {
 		bh.AddBlockhead(&args)
-		GossipBlockHead(&args)
+		go GossipBlockHead(&args)
 	}
 
 	c.Return(nil)
