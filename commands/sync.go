@@ -42,15 +42,16 @@ var SyncCmd = &cobra.Command{
 
 		genesis := bc.GetGenesis()
 		lastest := bc.GetLastest()
-		height, err, address := api.SendVersion(group, lastest.Height, genesis.Hash(), lastest.Hash())
-		if err == api.RootHashDifferentError {
-			log.Warnln(err)
-			return
-		} else if err == api.VersionDifferentError {
-			log.Warnln(err)
-			return
-		} else if err != nil {
-			log.Warnln(err)
+		var height int32
+		var address string
+		var err error
+		for {
+			height, err, address = api.SendVersion(group, lastest.Height, genesis.Hash(), lastest.Hash())
+			log.Warn(err)
+			if err == nil {
+				break
+			}
+			time.Sleep(5 * time.Second)
 		}
 
 		api.SyncBlocks(group, height, address)
