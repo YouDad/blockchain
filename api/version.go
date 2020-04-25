@@ -3,6 +3,7 @@ package api
 import (
 	"bytes"
 	"errors"
+	"fmt"
 
 	"github.com/YouDad/blockchain/core"
 	"github.com/YouDad/blockchain/global"
@@ -20,11 +21,6 @@ type SendVersionReply = types.Version
 
 const Version int = 0x00
 
-var (
-	RootHashDifferentError = errors.New("RootHash is different.")
-	VersionDifferentError  = errors.New("Version is different.")
-)
-
 func SendVersion(group int, nowHeight int32, rootHash, nowHash types.HashValue) (int32, error, string) {
 	var reply SendVersionReply
 	args := SendVersionArgs{
@@ -40,12 +36,19 @@ func SendVersion(group int, nowHeight int32, rootHash, nowHash types.HashValue) 
 		return 0, err, address
 	}
 
-	if reply.Version != Version {
-		err = VersionDifferentError
+	if reply.Version != args.Version {
+		err = errors.New(
+			fmt.Sprintf("Version is different. Args: %d, Reply: %d",
+				args.Version, reply.Version,
+			),
+		)
 	}
 
-	if bytes.Compare(reply.RootHash, rootHash) != 0 {
-		err = RootHashDifferentError
+	if bytes.Compare(reply.RootHash, args.RootHash) != 0 {
+		err = errors.New(
+			fmt.Sprintf("RootHash is different. Args: %s, Reply: %s",
+				args.RootHash, reply.RootHash),
+		)
 	}
 
 	return reply.Height, err, address
@@ -62,7 +65,7 @@ func GetVersion() (types.Version, error) {
 func (c *VersionController) SendVersion() {
 	var args SendVersionArgs
 	c.ParseParameter(&args)
-	log.Debugf("SendVersion %+v\n", args)
+	log.Debugf("SendVersionArgs: %+v\n", args)
 
 	if args.Group == -1 {
 		args.Group = global.GetGroup()
