@@ -2,10 +2,8 @@ package network
 
 import (
 	"sort"
-	"time"
 
 	"github.com/YouDad/blockchain/global"
-	"github.com/YouDad/blockchain/log"
 )
 
 var sortedNodes PositionSlice
@@ -69,25 +67,4 @@ func GetKnownNodes() error {
 
 func GetSortedNodes() PositionSlice {
 	return sortedNodes
-}
-
-func knownNodeUpdating() {
-	for {
-		time.Sleep(15 * time.Second)
-		GetKnownNodes()
-		knownNodes := global.GetKnownNodes()
-		for nodeAddress := range knownNodes.Get() {
-			address := nodeAddress
-			go func() {
-				start := time.Now().UnixNano()
-				heartBeat(address)
-				end := time.Now().UnixNano()
-				knownNodes.UpdateNode(address, end-start)
-			}()
-		}
-		knownNodes.Release()
-		time.Sleep(20 * time.Second)
-		UpdateSortedNodes()
-		log.Debugf("Sorted %+v\n", sortedNodes)
-	}
 }

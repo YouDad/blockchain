@@ -30,6 +30,8 @@ var MiningCmd = &cobra.Command{
 		log.Infoln("Starting node", global.Port)
 		network.Register()
 		core.Register(speed)
+
+		// 挖矿
 		go func() {
 			<-network.ServerReady
 			if !wallet.ValidateAddress(global.Address) {
@@ -59,6 +61,7 @@ var MiningCmd = &cobra.Command{
 				}
 			}
 		}()
+
 		network.StartServer()
 	},
 }

@@ -24,12 +24,33 @@ func Register() {
 }
 
 func StartServer() {
-	address := fmt.Sprintf("0.0.0.0:%s", global.Port)
-	go knownNodeUpdating()
-	log.Infoln("Server Listen", address)
+	// 周期性维持网络结构
+	go func() {
+		for {
+			time.Sleep(15 * time.Second)
+			GetKnownNodes()
+			knownNodes := global.GetKnownNodes()
+			for nodeAddress := range knownNodes.Get() {
+				address := nodeAddress
+				go func() {
+					start := time.Now().UnixNano()
+					heartBeat(address)
+					end := time.Now().UnixNano()
+					knownNodes.UpdateNode(address, end-start)
+				}()
+			}
+			knownNodes.Release()
+			time.Sleep(15 * time.Second)
+			UpdateSortedNodes()
+			log.Debugf("Sorted %+v\n", sortedNodes)
+		}
+	}()
+
+	// 过半秒设置信号
 	go func() {
 		time.Sleep(time.Millisecond * 500)
 		ServerReady <- 0
 	}()
-	beego.Run(address)
+
+	beego.Run(fmt.Sprintf("0.0.0.0:%s", global.Port))
 }
