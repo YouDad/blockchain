@@ -3,3 +3,4 @@ go.sum
 *.log
 *.db
 *.dat
+.*
