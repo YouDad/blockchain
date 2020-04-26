@@ -291,9 +291,10 @@ func (c *DBController) GossipBlockHead() {
 	}
 
 	bh := core.GetBlockhead(args.Group)
-	if bh.GetBlockheadByHeight(args.Height) == nil {
-		bh.AddBlockhead(&args)
+	if bh.AddBlockhead(&args) {
 		go GossipBlockHead(&args)
+	} else {
+		log.Warnln("AddBlockhead Verify failed")
 	}
 
 	c.Return(nil)

@@ -1,6 +1,8 @@
 package core
 
 import (
+	"sync"
+
 	"github.com/YouDad/blockchain/global"
 	"github.com/YouDad/blockchain/types"
 	"github.com/YouDad/blockchain/utils"
@@ -34,13 +36,56 @@ func GetBlockhead(group int) *Blockhead {
 	return &Blockhead{global.GetBlockheadsDB(), group}
 }
 
-func (bh *Blockhead) AddBlockhead(block *types.Block) {
-	if block.Verify() {
-		txns := block.Txns
-		block.Txns = nil
-		bh.Set(block.Height, utils.Encode(block))
-		block.Txns = txns
+func (bh *Blockhead) GetLastest() *types.Block {
+	block, ok := global.GetBlock(bh.group, "lastest")
+	if ok {
+		return block
 	}
+	return BytesToBlock(bh.Get("lastest"))
+}
+
+var (
+	onceBlockheadGetHeight      = make(map[int]*sync.Once)
+	cacheBlockheadHeight        = make(map[int]int32)
+	mutexBlockheadHeight        sync.Mutex
+	mutexOnceBlockheadGetHeight sync.Mutex
+)
+
+func (bh *Blockhead) GetHeight() int32 {
+	mutexOnceBlockheadGetHeight.Lock()
+	_, ok := onceBlockheadGetHeight[bh.group]
+	if !ok {
+		onceBlockheadGetHeight[bh.group] = &sync.Once{}
+	}
+
+	onceBlockheadGetHeight[bh.group].Do(func() {
+		lastest := bh.GetLastest()
+		mutexBlockheadHeight.Lock()
+		if lastest == nil {
+			cacheBlockheadHeight[bh.group] = -1
+		} else {
+			cacheBlockheadHeight[bh.group] = lastest.Height
+		}
+		mutexBlockheadHeight.Unlock()
+	})
+	mutexOnceBlockheadGetHeight.Unlock()
+	return cacheBlockheadHeight[bh.group]
+}
+
+func (bh *Blockhead) AddBlockhead(block *types.Block) bool {
+	if block == nil || bh.Get(block.Height) != nil || !block.Verify() || bh.GetHeight()+1 != block.Height {
+		return false
+	}
+
+	txns := block.Txns
+	block.Txns = nil
+	bytes := utils.Encode(block)
+
+	bh.Set(block.Height, bytes)
+	bh.Set("lastest", bytes)
+
+	block.Txns = txns
+	return true
 }
 
 func (bh *Blockhead) GetBlockheadByHeight(height int32) *types.Block {
