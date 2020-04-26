@@ -77,7 +77,7 @@ func CreateBlockchain(minerAddress string) error {
 }
 
 func GetBlockchain(group int) *Blockchain {
-	return &Blockchain{global.GetBlocksDB(), group}
+	return &Blockchain{global.GetBlocksDB(), group % global.MaxGroupNum}
 }
 
 func (bc *Blockchain) GetGenesis() *types.Block {
@@ -216,7 +216,7 @@ func MineBlocks(txns [][]*types.Transaction, groupBase, batchSize int) ([]*types
 		// 3. 构造block
 		blocks = append(blocks, &types.Block{
 			BlockHeader: types.BlockHeader{
-				Group:      groupBase + i,
+				Group:      (groupBase + i) % global.MaxGroupNum,
 				Height:     height + 1,
 				PrevHash:   prevHash,
 				Timestamp:  time.Now().UnixNano(),
