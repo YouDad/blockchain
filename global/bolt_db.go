@@ -9,15 +9,17 @@ import (
 
 type boltDB struct {
 	currentBucket string
-	mutex         sync.Mutex
+	mutex         *sync.Mutex
 }
+
+var onlyMutexBoltDB sync.Mutex
 
 func (db *boltDB) db(group int) *bolt.DB {
 	return getDatabase(group)
 }
 
 func getBoltDB(bucket string) IDatabase {
-	return &boltDB{bucket, sync.Mutex{}}
+	return &boltDB{bucket, &onlyMutexBoltDB}
 }
 
 func (db *boltDB) lock() {
