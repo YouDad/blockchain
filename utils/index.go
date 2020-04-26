@@ -59,3 +59,23 @@ func GetDecoder(b []byte) *gob.Decoder {
 	reader := bytes.NewReader(b)
 	return gob.NewDecoder(reader)
 }
+
+// 左闭右开,target in [l,r)
+func in(target, l, r int) bool {
+	return l <= target && target < r
+}
+
+func InGroup(group, base, number, max int) bool {
+	// 分组检查
+	if base+number > max {
+		if !in(group, base, max) &&
+			!in(group, 0, base+number-max) {
+			return false
+		}
+	} else {
+		if !in(group, base, base+number) {
+			return false
+		}
+	}
+	return true
+}

@@ -168,7 +168,7 @@ func (c *DBController) GossipTxn() {
 	var args GossipTxnArgs
 	c.ParseParameter(&args)
 	group := global.GetGroup()
-	if group > args.Group || args.Group >= group+global.GroupNum {
+	if !utils.InGroup(args.Group, group, global.GroupNum, global.MaxGroupNum) {
 		c.Return(nil)
 	}
 
@@ -235,7 +235,7 @@ func (c *DBController) GossipBlock() {
 	var args GossipBlockArgs
 	c.ParseParameter(&args)
 	group := global.GetGroup()
-	if group > args.Group || args.Group >= group+global.GroupNum {
+	if !utils.InGroup(args.Group, group, global.GroupNum, global.MaxGroupNum) {
 		c.Return(nil)
 	}
 
@@ -287,8 +287,7 @@ func GossipBlockHead(block *types.Block) {
 func (c *DBController) GossipBlockHead() {
 	var args GossipBlockHeadArgs
 	c.ParseParameter(&args)
-	group := global.GetGroup()
-	if group > args.Group || args.Group >= group+global.GroupNum {
+	if !utils.InGroup(args.Group, global.GetGroup(), global.GroupNum, global.MaxGroupNum) {
 		c.Return(nil)
 	}
 
