@@ -101,8 +101,6 @@ type GetBlocksReply = struct {
 	Blocks []*types.Block
 }
 
-var ErrNoBlock = errors.New("No Needed Hash Block")
-
 func CallbackGetBlocks(group int, start, end int32, hash types.HashValue, address string) ([]*types.Block, error) {
 	args := GetBlocksArgs{group, start, end, hash}
 	var reply GetBlocksReply
@@ -134,7 +132,8 @@ func (c *DBController) GetBlocks() {
 	bc := core.GetBlockchain(args.Group)
 	block := bc.GetBlockByHeight(args.From)
 	if block == nil {
-		c.ReturnErr(ErrNoBlock)
+		c.ReturnErr(errors.New(fmt.Sprintf(
+			"No Needed Hash Block, Blockchain[%d].%d is nil", args.Group, args.From)))
 	}
 
 	if bytes.Compare(block.PrevHash, args.Hash) != 0 {
@@ -142,7 +141,7 @@ func (c *DBController) GetBlocks() {
 		log.Warnln(block)
 		block := bc.GetBlockByHeight(args.From - 1)
 		log.Warnln(block)
-		c.ReturnErr(ErrNoBlock)
+		c.ReturnErr(errors.New(fmt.Sprintf("No Needed Hash Block, Hash is different.")))
 	}
 	for i := args.From; i <= args.To; i++ {
 		data := bc.GetBlockByHeight(i)
@@ -334,7 +333,8 @@ func (c *DBController) GetHash() {
 	bc := core.GetBlockchain(args.Group)
 	block := bc.GetBlockByHeight(args.Height)
 	if block == nil {
-		c.ReturnErr(ErrNoBlock)
+		c.ReturnErr(errors.New(fmt.Sprintf(
+			"No Needed Hash Block, Height is %d", args.Height)))
 	}
 	reply.Hash = block.Hash()
 
