@@ -42,17 +42,23 @@ func call(node, method string, args interface{}, reply interface{}) error {
 }
 
 func CallBack(node, method string, args interface{}, reply interface{}) error {
+	log.SetCallerLevel(1)
 	log.Debugln("Callback", method)
+	log.SetCallerLevel(0)
 	return call(node, method, args, reply)
 }
 
 func CallSelf(method string, args interface{}, reply interface{}) error {
+	log.SetCallerLevel(1)
 	log.Debugln("CallMySelf", method)
+	log.SetCallerLevel(0)
 	return call("127.0.0.1:"+global.Port, method, args, reply)
 }
 
 func CallInterGroup(method string, args interface{}, reply interface{}) (error, string) {
+	log.SetCallerLevel(1)
 	log.Debugln("CallInterGroup", method)
+	log.SetCallerLevel(0)
 	for _, node := range GetSortedNodes() {
 		err := call(node.Address, method, args, reply)
 		if err != nil {
@@ -65,7 +71,9 @@ func CallInterGroup(method string, args interface{}, reply interface{}) (error, 
 }
 
 func CallInnerGroup(method string, args interface{}, reply interface{}) (error, string) {
+	log.SetCallerLevel(1)
 	log.Debugln("CallInnerGroup", method)
+	log.SetCallerLevel(0)
 	for _, node := range GetSortedNodes() {
 		// 分组检查
 		if !utils.InGroup(global.GetGroup(), node.GroupBase, node.GroupNumber, global.MaxGroupNum) {
@@ -98,7 +106,9 @@ func send(node Position, method string, args interface{}, reply interface{}) boo
 }
 
 func GossipCallSpecialGroup(method string, args interface{}, reply interface{}, targetGroup int) error {
+	log.SetCallerLevel(2)
 	log.Debugln("GossipCall", "start", method, targetGroup)
+	log.SetCallerLevel(0)
 
 	// 打乱数组
 	nodes := sortedNodes
