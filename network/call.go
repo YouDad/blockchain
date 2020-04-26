@@ -93,51 +93,46 @@ func CallInnerGroup(method string, args interface{}, reply interface{}) (error, 
 	return errors.New("None of the nodes responded!"), ""
 }
 
-func GossipCallSpecialGroup(method string, args interface{}, reply interface{}, targetGroup int) error {
-	log.Debugln("GossipCall", "start", method, targetGroup)
-	visit := make([]bool, len(sortedNodes))
-	visited := 0
-	success := 0
-
-	send := func() bool {
-		for len(sortedNodes) > visited {
-			rand.Seed(time.Now().UnixNano())
-			visitor := rand.Int() % len(sortedNodes)
-
-			if visit[visitor] {
-				continue
-			}
-
-			visit[visitor] = true
-			visited++
-
-			// 分组检查
-			node := sortedNodes[visitor]
-			if node.GroupBase+node.GroupNumber > global.MaxGroupNum {
-				if !in(global.GetGroup(), node.GroupBase, global.MaxGroupNum) &&
-					!in(global.GetGroup(), 0, node.GroupBase+node.GroupNumber-global.MaxGroupNum) {
-					continue
-				}
-			} else {
-				if !in(global.GetGroup(), node.GroupBase, node.GroupBase+node.GroupNumber) {
-					continue
-				}
-			}
-
-			err := call(sortedNodes[visitor].Address, method, args, reply)
-			if err != nil {
-				log.Debugln("GossipCall", sortedNodes[visitor].Address, err)
-				continue
-			}
-			log.Debugln("GossipCall", sortedNodes[visitor].Address, "success!")
-			return true
+func send(node Position, method string, args interface{}, reply interface{}) bool {
+	// 分组检查
+	if node.GroupBase+node.GroupNumber > global.MaxGroupNum {
+		if !in(global.GetGroup(), node.GroupBase, global.MaxGroupNum) &&
+			!in(global.GetGroup(), 0, node.GroupBase+node.GroupNumber-global.MaxGroupNum) {
+			return false
 		}
-		return false
+	} else {
+		if !in(global.GetGroup(), node.GroupBase, node.GroupBase+node.GroupNumber) {
+			return false
+		}
 	}
 
-	for success < 3 && visited < len(sortedNodes) {
-		if send() {
+	err := call(node.Address, method, args, reply)
+	if err != nil {
+		log.Debugln("GossipCall", node.Address, method, err)
+	} else {
+		log.Debugln("GossipCall", node.Address, method, "success!")
+	}
+	return err == nil
+}
+
+func GossipCallSpecialGroup(method string, args interface{}, reply interface{}, targetGroup int) error {
+	log.Debugln("GossipCall", "start", method, targetGroup)
+
+	// 打乱数组
+	nodes := sortedNodes
+	for i := range nodes {
+		rand.Seed(time.Now().UnixNano())
+		j := rand.Int()%(len(nodes)-i) + i
+		nodes[i], nodes[j] = nodes[j], nodes[i]
+	}
+
+	success := 0
+	for _, node := range nodes {
+		if send(node, method, args, reply) {
 			success++
+		}
+		if success >= 3 {
+			break
 		}
 	}
 
