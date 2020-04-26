@@ -38,15 +38,14 @@ func StartServer() {
 			nodeNumber := len(knownNodes.Get())
 
 			for nodeAddress := range knownNodes.Get() {
-				address := nodeAddress
-				go func() {
+				go func(address string) {
 					start := time.Now().UnixNano()
 					heartBeat(address)
 					end := time.Now().UnixNano()
 					knownNodes.UpdateNode(address, end-start)
 					UpdateSortedNodes()
 					ready <- 0
-				}()
+				}(nodeAddress)
 			}
 
 			knownNodes.Release()
