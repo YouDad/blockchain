@@ -5,8 +5,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/YouDad/blockchain/api"
 	"github.com/YouDad/blockchain/global"
-	"github.com/YouDad/blockchain/log"
 	"github.com/astaxie/beego"
 )
 
@@ -27,9 +27,16 @@ func StartServer() {
 	// 周期性维持网络结构
 	go func() {
 		for {
-			time.Sleep(15 * time.Second)
+			time.Sleep(5 * time.Second)
+
+			// 获得节点列表
 			GetKnownNodes()
+
+			// 并行发送心跳包
 			knownNodes := global.GetKnownNodes()
+			ready := make(chan interface{}, 1)
+			nodeNumber := len(knownNodes.Get())
+
 			for nodeAddress := range knownNodes.Get() {
 				address := nodeAddress
 				go func() {
@@ -37,12 +44,18 @@ func StartServer() {
 					heartBeat(address)
 					end := time.Now().UnixNano()
 					knownNodes.UpdateNode(address, end-start)
+					UpdateSortedNodes()
+					ready <- 0
 				}()
 			}
+
 			knownNodes.Release()
-			time.Sleep(15 * time.Second)
-			UpdateSortedNodes()
-			log.Debugf("Sorted %+v\n", sortedNodes)
+
+			for i := 0; i < nodeNumber; i++ {
+				<-ready
+			}
+
+			time.Sleep(10 * time.Second)
 		}
 	}()
 
