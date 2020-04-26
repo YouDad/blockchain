@@ -227,7 +227,7 @@ func GossipBlock(block *types.Block) {
 
 func CallSelfBlock(block *types.Block) {
 	network.CallSelf("db/GossipBlock", block, nil)
-	GossipBlockHead(block)
+	go GossipBlockHead(block)
 }
 
 // @router /GossipBlock [post]
