@@ -31,7 +31,7 @@ var SendTestCmd = &cobra.Command{
 		}
 
 		network.Register()
-		go network.StartServer()
+		go network.StartServer(api.Sync)
 		time.Sleep(time.Duration(wait) * time.Second)
 
 		<-network.ServerReady

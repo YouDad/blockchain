@@ -21,7 +21,7 @@ var GetVersionCmd = &cobra.Command{
 		version, err := api.GetVersion()
 		if err != nil {
 			network.Register()
-			go network.StartServer()
+			go network.StartServer(api.Sync)
 			<-network.ServerReady
 			version, err = api.GetVersion()
 			log.Err(err)

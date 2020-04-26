@@ -21,7 +21,7 @@ var GetBalanceCmd = &cobra.Command{
 		balance, err := api.GetBalance(global.Address)
 		if err != nil {
 			network.Register()
-			go network.StartServer()
+			go network.StartServer(api.Sync)
 			<-network.ServerReady
 			balance, err = api.GetBalance(global.Address)
 			log.Err(err)

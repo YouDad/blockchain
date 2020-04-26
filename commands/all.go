@@ -3,6 +3,7 @@ package commands
 import (
 	"github.com/spf13/cobra"
 
+	"github.com/YouDad/blockchain/api"
 	"github.com/YouDad/blockchain/global"
 	"github.com/YouDad/blockchain/log"
 	"github.com/YouDad/blockchain/network"
@@ -20,6 +21,6 @@ var AllCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		log.Infoln("Starting node", global.Port)
 		network.Register()
-		network.StartServer()
+		network.StartServer(api.Sync)
 	},
 }

@@ -62,6 +62,6 @@ var MiningCmd = &cobra.Command{
 			}
 		}()
 
-		network.StartServer()
+		network.StartServer(api.Sync)
 	},
 }

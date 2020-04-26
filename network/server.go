@@ -5,7 +5,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/YouDad/blockchain/api"
 	"github.com/YouDad/blockchain/global"
 	"github.com/astaxie/beego"
 )
@@ -23,7 +22,7 @@ func Register() {
 	})
 }
 
-func StartServer() {
+func StartServer(sync func(group int) error) {
 	// 周期性维持网络结构
 	go func() {
 		for {
@@ -51,6 +50,29 @@ func StartServer() {
 			knownNodes.Release()
 
 			for i := 0; i < nodeNumber; i++ {
+				<-ready
+			}
+
+			time.Sleep(10 * time.Second)
+		}
+	}()
+
+	// 周期性同步节点
+	go func() {
+		for {
+			time.Sleep(5 * time.Second)
+
+			// 并行同步
+			ready := make(chan interface{}, 1)
+
+			for i := 0; i < global.GroupNum; i++ {
+				go func(group int) {
+					sync(group)
+					ready <- 0
+				}(i + global.GetGroup())
+			}
+
+			for i := 0; i < global.GroupNum; i++ {
 				<-ready
 			}
 
