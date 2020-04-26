@@ -177,7 +177,7 @@ func MineBlocksForCreate(txns *types.Transaction, groupBase int) (*types.Block, 
 	}}
 
 	pow := NewPOW(blocks)
-	err, _, nonce, _ := pow.Run()
+	err, nonce, _ := pow.Run()
 	if err != nil {
 		return nil, err
 	}
@@ -235,7 +235,7 @@ func MineBlocks(txns [][]*types.Transaction, groupBase, batchSize int) ([]*types
 
 	// 2. 计算Nonce
 	pow := NewPOW(blocks)
-	err, target, nonce, batchMerkleTree := pow.Run()
+	err, nonce, batchMerkleTree := pow.Run()
 	if err != nil {
 		return nil, err
 	}
@@ -243,22 +243,18 @@ func MineBlocks(txns [][]*types.Transaction, groupBase, batchSize int) ([]*types
 	// 3. 过滤有效区块
 	var foundBlocks []*types.Block
 	for _, block := range blocks {
-		if target.Cmp(GetTarget(block.Target)) == -1 {
+		block.Nonce = nonce
+		block.BatchMerklePath = batchMerkleTree.FindPath(block.Group - block.GroupBase)
+		if block.Verify() {
 			foundBlocks = append(foundBlocks, block)
 		}
 	}
 
-	// 4. 设置区块的一些字段
+	// 4. 返回挖到的区块
 	for _, block := range foundBlocks {
-		block.Nonce = nonce
-		block.BatchMerklePath = batchMerkleTree.FindPath(block.Group - block.GroupBase)
-	}
-
-	// 5. 返回挖到的区块
-	for _, block := range blocks {
 		log.Infoln("NewBlock", block)
 	}
-	return blocks, nil
+	return foundBlocks, nil
 }
 
 func (bc *Blockchain) FindUTXO() map[string][]types.TxnOutput {

@@ -79,20 +79,18 @@ func GetTarget(target float64) *big.Int {
 	return t.Lsh(t, 256).Div(t, div)
 }
 
-func (pow *ProofOfWork) Run() (error, *big.Int, int64, *MerkleTree) {
+func (pow *ProofOfWork) Run() (error, int64, *MerkleTree) {
 	nonce := pow.poweredStruct.Nonce
-	var target *big.Int
 
 	for nonce < math.MaxInt64 {
 		for _, block := range pow.blocks {
 			if GetBlockchain(block.Group).GetHeight() != block.Height-1 {
-				return ErrBlockchainChange, nil, 0, nil
+				return ErrBlockchainChange, 0, nil
 			}
 		}
 
-		ok, t := pow.Validate(nonce)
+		ok := pow.Validate(nonce)
 		if ok {
-			target = t
 			break
 		} else {
 			nonce++
@@ -104,10 +102,10 @@ func (pow *ProofOfWork) Run() (error, *big.Int, int64, *MerkleTree) {
 			}
 		}
 	}
-	return nil, target, nonce, pow.batchMerkleTree
+	return nil, nonce, pow.batchMerkleTree
 }
 
-func (pow *ProofOfWork) Validate(nonce int64) (bool, *big.Int) {
+func (pow *ProofOfWork) Validate(nonce int64) bool {
 	hashInt := big.NewInt(0)
 
 	pow.poweredStruct.Nonce = nonce
@@ -115,10 +113,11 @@ func (pow *ProofOfWork) Validate(nonce int64) (bool, *big.Int) {
 	hash := sha256.Sum256(data)
 	hashInt.SetBytes(hash[:])
 
-	if (nonce-nonceStart)%(1<<20) == 0 {
+	if (nonce-nonceStart)%(1<<20) == 1 {
 		log.Debugf("Dig into mine [%d] %x\n", nonce-nonceStart, hash)
 	}
-	return hashInt.Cmp(pow.target) == -1, hashInt
+
+	return hashInt.Cmp(pow.target) < 0
 }
 
 func (pow *ProofOfWork) prepareData() []byte {
