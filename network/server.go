@@ -34,15 +34,15 @@ func StartServer(sync func(group int) error) {
 			// 并行发送心跳包
 			knownNodes := global.GetKnownNodes()
 			ready := make(chan interface{}, 1)
-			nodeNumber := len(knownNodes.Get())
+			var nodeNumber int
 
 			for nodeAddress := range knownNodes.Get() {
+				nodeNumber++
 				go func(address string) {
 					start := time.Now().UnixNano()
 					heartBeat(address)
 					end := time.Now().UnixNano()
 					knownNodes.UpdateNode(address, end-start)
-					UpdateSortedNodes()
 					ready <- 0
 				}(nodeAddress)
 			}
@@ -52,6 +52,7 @@ func StartServer(sync func(group int) error) {
 			for i := 0; i < nodeNumber; i++ {
 				<-ready
 			}
+			UpdateSortedNodes()
 
 			time.Sleep(10 * time.Second)
 		}
