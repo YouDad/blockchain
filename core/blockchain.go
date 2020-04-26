@@ -104,24 +104,37 @@ func (bc *Blockchain) SetLastest(bytes []byte) {
 	bc.Set("lastest", bytes)
 	block := BytesToBlock(bytes)
 	global.SetBlock(bc.group, "lastest", block)
-	cacheHeight = block.Height
+	mutexHeight.Lock()
+	cacheHeight[bc.group] = block.Height
+	mutexHeight.Unlock()
 }
 
 var (
-	onceGetHeight sync.Once
-	cacheHeight   int32
+	onceGetHeight      = make(map[int]*sync.Once)
+	cacheHeight        = make(map[int]int32)
+	mutexHeight        sync.Mutex
+	mutexOnceGetHeight sync.Mutex
 )
 
 func (bc *Blockchain) GetHeight() int32 {
-	onceGetHeight.Do(func() {
+	mutexOnceGetHeight.Lock()
+	_, ok := onceGetHeight[bc.group]
+	if !ok {
+		onceGetHeight[bc.group] = &sync.Once{}
+	}
+
+	onceGetHeight[bc.group].Do(func() {
 		lastest := bc.GetLastest()
+		mutexHeight.Lock()
 		if lastest == nil {
-			cacheHeight = -1
+			cacheHeight[bc.group] = -1
 		} else {
-			cacheHeight = lastest.Height
+			cacheHeight[bc.group] = lastest.Height
 		}
+		mutexHeight.Unlock()
 	})
-	return cacheHeight
+	mutexOnceGetHeight.Unlock()
+	return cacheHeight[bc.group]
 }
 
 func (bc *Blockchain) AddBlock(b *types.Block) {
