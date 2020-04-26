@@ -75,12 +75,9 @@ func (c *VersionController) SendVersion() {
 	genesis := bc.GetGenesis()
 	lastest := bc.GetLastest()
 	if genesis == nil || lastest == nil {
-		c.Return(types.Version{
-			Group:   args.Group,
-			Version: Version,
-			Height:  -1,
-		})
+		c.ReturnErr(errors.New("don't have genesis or lastest"))
 	}
+
 	c.Return(types.Version{
 		Group:    args.Group,
 		Version:  Version,
