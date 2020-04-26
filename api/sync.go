@@ -92,12 +92,13 @@ func syncBlocks(group int, newHeight int32, address string) {
 
 	// 将lastest移到最新的相同点
 	lastest = bc.GetBlockByHeight(r)
-	lastestBytes := utils.Encode(lastest)
-	bc.SetLastest(lastestBytes)
 	if lastest == nil {
 		// 有可能r是-1
 		log.Errln("二分nil")
 	}
+
+	lastestBytes := utils.Encode(lastest)
+	bc.SetLastest(lastestBytes)
 
 	// 获得group组的l到newHeight高度的区块
 	lastestHash := lastest.Hash()
