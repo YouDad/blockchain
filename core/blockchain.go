@@ -93,7 +93,9 @@ func (bc *Blockchain) GetLastest() *types.Block {
 }
 
 func (bc *Blockchain) GetBlockByHeight(height int32) *types.Block {
-	return BytesToBlock(bc.Get(bc.Get(height)))
+	hash := bc.Get(height)
+	block := bc.Get(hash)
+	return BytesToBlock(block)
 }
 
 func (bc *Blockchain) SetBlockByHeight(height int, b *types.Block) {
