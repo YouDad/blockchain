@@ -62,27 +62,32 @@ func NewMerkleNode(l, r int, left, right *MerkleNode, data []byte) *MerkleNode {
 }
 
 // Index start from 0
-func (tree *MerkleTree) FindPath(index int) []types.HashValue {
+func (tree *MerkleTree) FindPath(index int) []types.MerklePath {
 	node := tree.RootNode
 	var nodes []*MerkleNode
 
 	for node.l != node.r {
 		nodes = append(nodes, node)
-		mid := node.l + node.r
-		if index < mid/2 {
+		if index < (node.l+node.r)/2 {
 			node = node.Left
 		} else {
 			node = node.Right
 		}
 	}
 
-	var ret []types.HashValue
+	var ret []types.MerklePath
 	for i := len(nodes) - 1; i >= 0; i-- {
 		if index > nodes[i].Left.r {
-			ret = append(ret, nodes[i].Left.Data)
+			ret = append(ret, types.MerklePath{
+				Left:      true,
+				HashValue: nodes[i].Left.Data,
+			})
 		}
 		if index < nodes[i].Right.l {
-			ret = append(ret, nodes[i].Right.Data)
+			ret = append(ret, types.MerklePath{
+				Left:      false,
+				HashValue: nodes[i].Right.Data,
+			})
 		}
 	}
 	return ret

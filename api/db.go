@@ -187,12 +187,12 @@ type GossipRelayTxnArgs = struct {
 	FromGroup       int
 	ToGroup         int
 	Height          int32
-	RelayMerklePath []types.HashValue
+	RelayMerklePath []types.MerklePath
 	Txn             types.Transaction
 }
 
 func GossipRelayTxn(fromGroup int, toGroup int, height int32,
-	relayMerklePath []types.HashValue, txn *types.Transaction) {
+	relayMerklePath []types.MerklePath, txn *types.Transaction) {
 
 	network.GossipCallSpecialGroup("db/GossipRelayTxn", &GossipRelayTxnArgs{
 		fromGroup, toGroup, height, relayMerklePath, *txn}, nil, toGroup)

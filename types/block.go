@@ -23,10 +23,19 @@ func (bh BlockHeader) Hash() HashValue {
 	return utils.SHA256(bh)
 }
 
+type MerklePath struct {
+	HashValue HashValue
+	Left      bool
+}
+
+func (path MerklePath) String() string {
+	return fmt.Sprintf("[Left: %v]HashValue: %s", path.Left, path.HashValue)
+}
+
 type ChukonuHeader struct {
 	GroupBase       int
 	BatchSize       int
-	BatchMerklePath []HashValue
+	BatchMerklePath []MerklePath
 	Nonce           int64
 }
 
@@ -37,12 +46,19 @@ type Block struct {
 }
 
 func (b Block) Hash() HashValue {
-	hash := b.BlockHeader.Hash()
-	sha := sha256.Sum256(hash)
-	for _, hashValue := range b.BatchMerklePath {
-		sha = sha256.Sum256(append(hash, hashValue...))
+	var hash HashValue
+
+	sha := sha256.Sum256(b.BlockHeader.Hash())
+	hash = sha[:]
+	for _, path := range b.BatchMerklePath {
+		if path.Left {
+			sha = sha256.Sum256(append(path.HashValue, hash...))
+		} else {
+			sha = sha256.Sum256(append(hash, path.HashValue...))
+		}
 		hash = sha[:]
 	}
+
 	sha = sha256.Sum256(bytes.Join(
 		[][]byte{
 			sha[:],
