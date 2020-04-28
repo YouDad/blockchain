@@ -327,7 +327,6 @@ func GetHash(group int, height int32) (types.HashValue, error) {
 
 // @router /GetHash [post]
 func (c *DBController) GetHash() {
-	log.Infoln(log.Funcname(0), c.GetString("address"))
 	var args GetHashArgs
 	var reply GetHashReply
 	c.ParseParameter(&args)
