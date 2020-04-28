@@ -20,10 +20,9 @@ function RunTest() {
 	(( global['testcount']++ ))
 
 	command="blockchain $subCommand $parameter"
-	echo -e "\n====={ [${global['filename']}] TEST${global['testcount']} }=====" | tee -a "$logfile"
+	echo -e "\n====={ [${global['filename']}] TEST${global['testcount']} }====="
 	echo -e "[TEST]: $command 2>&1" |\
-		ack --flush --passthru --color --color-match "bold blue" "\[(TEST)\].*" |\
-		tee -a last.color.log | tee -a "$logfile"
+		ack --flush --passthru --color --color-match "bold blue" "\[(TEST)\].*"
 	if [[ "$directDebug" == "debug" ]]; then
 		echo r $subCommand $parameter | xsel -b -i
 		echo Ctrl+Shift+V to paste
@@ -43,19 +42,17 @@ function RunTest() {
 	rescode="$?"
 	if [[ "$rescode" == "1" ]]; then
 		echo [PASS]: $command |\
-			ack --flush --passthru --color --color-match "bold green" "\[(PASS)\].*" |\
-			tee -a last.color.log | tee -a "$logfile"
+			ack --flush --passthru --color --color-match "bold green" "\[(PASS)\].*"
 		if [[ "$regularExpr" != "" ]]; then
 			TestRegMatch=$(echo -n "$res" | sed "$regularExpr")
 			if [[ "$?" != "0" ]]; then
-				echo "RE:{$regularExpr}" | tee -a "$logfile"
+				echo "RE:{$regularExpr}"
 			fi
 			regularExpr=''
 		fi
 	else
 		echo [FAIL]: $command |\
-			ack --flush --passthru --color --color-match "underline bold red" "\[FAIL\].*" |\
-			tee -a last.color.log | tee -a "$logfile"
+			ack --flush --passthru --color --color-match "underline bold red" "\[FAIL\].*"
 		if [[ "$NeedDebug" == "1" ]]; then
 			echo r $subCommand $parameter | xsel -b -i
 			echo Ctrl+Shift+V to paste
