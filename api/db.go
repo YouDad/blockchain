@@ -242,7 +242,8 @@ func (c *DBController) GossipBlock() {
 	lastest := bc.GetLastest()
 	lastestHeight := lastest.Height
 
-	log.Debugf("GossipBlock get=%d, lastest=%d\n", args.Height, lastestHeight)
+	log.Debugf("GossipBlock get[%d]=%d, lastest[%d]=%d\n",
+		args.Group, args.Height, lastest.Group, lastestHeight)
 
 	// 认为对方的区块不够新，反向广播
 	if args.Height < lastestHeight {
