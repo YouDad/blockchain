@@ -73,7 +73,8 @@ func (bh *Blockhead) GetHeight() int32 {
 }
 
 func (bh *Blockhead) AddBlockhead(block *types.Block) bool {
-	if block == nil || bh.Get(block.Height) != nil || !block.Verify() || bh.GetHeight()+1 != block.Height {
+	if block == nil || bh.Get(block.Height) != nil ||
+		!block.Verify() || bh.GetHeight()+1 != block.Height {
 		return false
 	}
 
