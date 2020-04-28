@@ -94,7 +94,18 @@ func (bc *Blockchain) GetLastest() *types.Block {
 
 func (bc *Blockchain) GetBlockByHeight(height int32) *types.Block {
 	hash := bc.Get(height)
-	block := bc.Get(hash)
+	var block []byte
+	if hash != nil {
+		block = bc.Get(hash)
+		if block == nil {
+			hash = bc.Get(height)
+			block = bc.Get(hash)
+			if block == nil {
+				hash = bc.Get(height)
+				block = bc.Get(hash)
+			}
+		}
+	}
 	return BytesToBlock(block)
 }
 
