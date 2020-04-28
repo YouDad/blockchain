@@ -166,13 +166,12 @@ func GossipTxn(group int, txn types.Transaction) error {
 func (c *DBController) GossipTxn() {
 	var args GossipTxnArgs
 	c.ParseParameter(&args)
-	group := global.GetGroup()
-	if !utils.InGroup(args.Group, group, global.GroupNum, global.MaxGroupNum) {
+	if !utils.InGroup(args.Group, global.GetGroup(), global.GroupNum, global.MaxGroupNum) {
 		c.Return(nil)
 	}
 
 	if _, err := global.GetMempool(args.Group).GetTxn(args.Txn.Hash()); err != nil {
-		bc := core.GetBlockchain(group)
+		bc := core.GetBlockchain(args.Group)
 		if bc.VerifyTransaction(args.Txn) {
 			global.GetMempool(args.Group).AddTxn(args.Txn)
 			go GossipTxn(args.Group, args.Txn)
@@ -233,14 +232,13 @@ func CallSelfBlock(block *types.Block) {
 func (c *DBController) GossipBlock() {
 	var args GossipBlockArgs
 	c.ParseParameter(&args)
-	group := global.GetGroup()
-	if !utils.InGroup(args.Group, group, global.GroupNum, global.MaxGroupNum) {
+	if !utils.InGroup(args.Group, global.GetGroup(), global.GroupNum, global.MaxGroupNum) {
 		c.Return(nil)
 	}
 
 	log.Debugln("GossipBlock", "{{{{{{{{")
-	bc := core.GetBlockchain(group)
-	set := core.GetUTXOSet(group)
+	bc := core.GetBlockchain(args.Group)
+	set := core.GetUTXOSet(args.Group)
 	lastest := bc.GetLastest()
 	lastestHeight := lastest.Height
 
@@ -266,7 +264,7 @@ func (c *DBController) GossipBlock() {
 
 	// 认为我们和主链差一些区块
 	if args.Height > lastestHeight {
-		SyncBlocks(group, args.Height, c.GetString("address"))
+		SyncBlocks(args.Group, args.Height, c.GetString("address"))
 	}
 
 	log.Debugln("GossipBlock", "}}}}}}}}")
