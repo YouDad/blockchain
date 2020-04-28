@@ -37,10 +37,6 @@ func GetBlockhead(group int) *Blockhead {
 }
 
 func (bh *Blockhead) GetLastest() *types.Block {
-	block, ok := global.GetBlock(bh.group, "lastest")
-	if ok {
-		return block
-	}
 	return BytesToBlock(bh.Get("lastest"))
 }
 
