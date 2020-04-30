@@ -19,10 +19,12 @@ var PrintCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		bc := core.GetBlockchain(group)
 		height := bc.GetHeight()
+		log.Infoln(height)
 		var i int32
-		for i = 0; i < height; i++ {
+		for i = 0; i <= height; i++ {
 			block := bc.GetBlockByHeight(i)
-			log.Infoln(block.Height, len(block.Txns))
+			log.Infoln(block)
+			log.Infoln(len(block.Txns))
 		}
 	},
 }

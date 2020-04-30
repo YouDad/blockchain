@@ -1,35 +1,21 @@
 #!/bin/bash
 
-echo blockchain --port 1101 print --group 0 > .a
-blockchain --port 1101 print --group 0 2>> .a
-echo blockchain --port 1102 print --group 0 >> .a
-blockchain --port 1102 print --group 0 2>> .a
-echo blockchain --port 1103 print --group 0 >> .a
-blockchain --port 1103 print --group 0 2>> .a
-echo blockchain --port 1111 print --group 0 >> .a
-blockchain --port 1111 print --group 0 2>> .a
-echo blockchain --port 2201 print --group 0 >> .a
-blockchain --port 2201 print --group 0 2>> .a
-echo blockchain --port 2202 print --group 0 >> .a
-blockchain --port 2202 print --group 0 2>> .a
-echo blockchain --port 2203 print --group 0 >> .a
-blockchain --port 2203 print --group 0 2>> .a
-echo blockchain --port 2222 print --group 0 >> .a
-blockchain --port 2222 print --group 0 2>> .a
-echo blockchain --port 1101 print --group 1 >> .a
-blockchain --port 1101 print --group 1 2>> .a
-echo blockchain --port 1102 print --group 1 >> .a
-blockchain --port 1102 print --group 1 2>> .a
-echo blockchain --port 1103 print --group 1 >> .a
-blockchain --port 1103 print --group 1 2>> .a
-echo blockchain --port 1111 print --group 1 >> .a
-blockchain --port 1111 print --group 1 2>> .a
-echo blockchain --port 2201 print --group 1 >> .a
-blockchain --port 2201 print --group 1 2>> .a
-echo blockchain --port 2202 print --group 1 >> .a
-blockchain --port 2202 print --group 1 2>> .a
-echo blockchain --port 2203 print --group 1 >> .a
-blockchain --port 2203 print --group 1 2>> .a
-echo blockchain --port 2222 print --group 1 >> .a
-blockchain --port 2222 print --group 1 2>> .a
-vim .a
+GroupNumber=1
+rm .a
+
+function print() {
+	port=$1
+	group=$2
+	echo blockchain -v3 --port $port print --group $group >> .a
+	blockchain -v3 --port $port print --group $group 2>> .a
+	echo >> .a
+
+}
+
+for (( i=1; i<=GroupNumber; i++ )); do
+	print $(( i*1111 )) $(( GroupNumber-1 ))
+	for (( j=1; j<=3; j++ )); do
+		print $(( i*1100+j )) $(( GroupNumber-1 ))
+	done
+done
+nvim .a
