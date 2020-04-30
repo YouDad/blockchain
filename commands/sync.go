@@ -18,7 +18,8 @@ var SyncCmd = &cobra.Command{
 	Short: "sync information from other node",
 	Run: func(cmd *cobra.Command, args []string) {
 		log.Debugln("Syncing", global.Port)
-		group := global.GetGroup()
-		api.Sync(group)
+		for i := 0; i < global.GroupNum; i++ {
+			api.Sync(global.GetGroup() + i)
+		}
 	},
 }
