@@ -35,7 +35,7 @@ func call(node, method string, args interface{}, reply interface{}) error {
 
 	json.NewDecoder(resp.Body).Decode(&ret)
 	if ret.Message != "" {
-		log.Warnln("call", ret.Message)
+		log.Debugln("call return error:", ret.Message)
 		return errors.New(ret.Message)
 	}
 	return nil
