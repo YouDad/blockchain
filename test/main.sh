@@ -42,6 +42,8 @@ function mine() {
 	RunTest mining "$Pre $(( i*1100+j )) --address ${Address[i*1100+j]} --group $GroupNumber" &
 }
 
+sleep 10
+
 for (( i=1; i<=GroupNumber; i++ )); do
 	for (( j=1; j<=3; j++ )); do
 		sync $i $j
