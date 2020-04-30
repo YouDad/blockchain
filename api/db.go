@@ -35,6 +35,10 @@ func GetGenesis(group int) (*types.Block, error) {
 	if err != nil {
 		return nil, err
 	}
+	if !reply.Verify() {
+		return nil, errors.New(fmt.Sprintf(
+			"Genesis[%d] Verify failed, Hash: %s", reply.Group, reply.Hash()))
+	}
 	return &reply, err
 }
 
