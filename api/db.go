@@ -269,7 +269,11 @@ func (c *DBController) GossipBlock() {
 
 	// 认为我们和主链差一些区块
 	if args.Height > lastestHeight {
-		SyncBlocks(args.Group, args.Height, c.GetString("address"))
+		if lastestHeight == -1 {
+			Sync(args.Group)
+		} else {
+			SyncBlocks(args.Group, args.Height, c.GetString("address"))
+		}
 	}
 
 	log.Debugln("GossipBlock", "}}}}}}}}")

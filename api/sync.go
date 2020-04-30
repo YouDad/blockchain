@@ -64,6 +64,11 @@ func syncBlocks(group int, newHeight int32, address string) {
 		return
 	}
 
+	if lastestHeight == -1 {
+		// 同步不了，没有genesis
+		return
+	}
+
 	global.SyncMutex.Lock()
 	defer global.SyncMutex.Unlock()
 	log.Debugln("SyncBlock Start!")
