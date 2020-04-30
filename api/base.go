@@ -19,11 +19,13 @@ type SimpleJSONResult struct {
 
 func (c *BaseController) ParseParameter(data interface{}) {
 	log.Debugln(log.Funcname(1), c.GetString("address"))
-	err := json.Unmarshal(c.Ctx.Input.RequestBody, data)
-	if err != nil {
-		log.Warnln(string(c.Ctx.Input.RequestBody))
-		log.Warnln(err)
-		c.ReturnErr(err)
+	if data != nil {
+		err := json.Unmarshal(c.Ctx.Input.RequestBody, data)
+		if err != nil {
+			log.Warnln(string(c.Ctx.Input.RequestBody))
+			log.Warnln(err)
+			c.ReturnErr(err)
+		}
 	}
 }
 

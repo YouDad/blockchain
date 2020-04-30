@@ -9,19 +9,11 @@ import (
 
 type NET struct{}
 
-type HeartBeatArgs = struct {
-	Address string
-}
-
 func heartBeat(address string) {
-	args := HeartBeatArgs{address}
-
-	call(address, "net/HeartBeat", &args, nil)
+	call(address, "net/HeartBeat", nil, nil)
 }
 
-func (net *NET) HeartBeat(args *HeartBeatArgs) error {
-	log.Debugln("HeartBeat from", args.Address)
-
+func (net *NET) HeartBeat() error {
 	return nil
 }
 

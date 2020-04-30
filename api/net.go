@@ -10,10 +10,9 @@ type NetController struct {
 }
 
 func (c *NetController) HeartBeat() {
-	var args network.HeartBeatArgs
-	c.ParseParameter(&args)
+	c.ParseParameter(nil)
 
-	c.ReturnErr(c.net.HeartBeat(&args))
+	c.ReturnErr(c.net.HeartBeat())
 	c.Return(nil)
 }
 
