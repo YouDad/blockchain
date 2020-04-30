@@ -240,10 +240,14 @@ func (c *DBController) GossipBlock() {
 	bc := core.GetBlockchain(args.Group)
 	set := core.GetUTXOSet(args.Group)
 	lastest := bc.GetLastest()
-	lastestHeight := lastest.Height
 
-	log.Debugf("GossipBlock get[%d]=%d, lastest[%d]=%d\n",
-		args.Group, args.Height, lastest.Group, lastestHeight)
+	var lastestHeight int32 = -1
+	if lastest != nil {
+		lastestHeight = lastest.Height
+	}
+
+	log.Debugf("GossipBlock[%d] get=%d, lastest=%d\n",
+		args.Group, args.Height, lastestHeight)
 
 	// 认为对方的区块不够新，反向广播
 	if args.Height < lastestHeight {
