@@ -141,12 +141,10 @@ func (c *DBController) GetBlocks() {
 	}
 
 	if bytes.Compare(block.PrevHash, args.Hash) != 0 {
-		log.Warnf("%s != %s\n", block.PrevHash, args.Hash)
-		log.Warnln(block)
-		block := bc.GetBlockByHeight(args.From - 1)
-		log.Warnln(block)
-		c.ReturnErr(errors.New(fmt.Sprintf("No Needed Hash Block, Hash is different.")))
+		c.ReturnErr(errors.New(fmt.Sprintf(
+			"No Needed Hash Block, Hash is different. My Hash: %s", block.PrevHash)))
 	}
+
 	for i := args.From; i <= args.To; i++ {
 		data := bc.GetBlockByHeight(i)
 		if data == nil {
