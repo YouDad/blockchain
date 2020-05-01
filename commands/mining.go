@@ -61,6 +61,25 @@ var MiningCmd = &cobra.Command{
 					for _, newBlock := range newBlocks {
 						api.CallSelfBlock(newBlock)
 					}
+
+					for _, newBlock := range newBlocks {
+						// 生成交易的Merkle树
+						tree := core.NewTxnMerkleTree(newBlock.Txns)
+
+						for txnIndex, txn := range newBlock.Txns {
+							groups := make(map[int]bool)
+							for _, out := range txn.Vout {
+								groups[global.GetGroupByPubKeyHash(out.PubKeyHash)] = true
+							}
+							delete(groups, global.GetGroup())
+
+							for group := range groups {
+								api.GossipRelayTxn(global.GetGroup(), group,
+									newBlock.Height, tree.FindPath(txnIndex), txn)
+							}
+						}
+					}
+
 					log.Debugf("core.MineBlocks group: %d, number: %d }}}}}}}}", group, global.GroupNum)
 				}
 			}
