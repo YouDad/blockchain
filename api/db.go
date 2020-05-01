@@ -178,7 +178,7 @@ func (c *DBController) GossipTxn() {
 			global.GetMempool(args.Group).AddTxn(args.Txn)
 			GossipTxn(args.Group, args.Txn)
 		} else {
-			log.Warnf("AddTxn Verify false %s\n", args.Txn.Hash())
+			log.Infof("[FAIL]AddTxn Verify false %s\n", args.Txn.Hash())
 		}
 	}
 	c.Return(nil)
@@ -206,7 +206,7 @@ func (c *DBController) GossipRelayTxn() {
 	if _, err := global.GetMempool(args.ToGroup).GetTxn(args.Txn.Hash()); err != nil {
 		block := core.GetBlockhead(args.FromGroup).GetBlockheadByHeight(args.Height)
 		if block == nil {
-			log.Debugln("Have no Blockhead")
+			log.Infoln("[FAIL]Have no Blockhead")
 			c.Return(nil)
 		}
 
