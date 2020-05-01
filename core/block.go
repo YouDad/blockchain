@@ -17,7 +17,19 @@ func BytesToBlock(bytes []byte) *types.Block {
 
 	block := types.Block{}
 	mutexToBlock.Lock()
-	err := json.Unmarshal(bytes, &block)
+	var err error
+	defer func() {
+		if r := recover(); r != nil {
+			log.Warnln(r)
+			defer func() {
+				if r := recover(); r != nil {
+					log.Errln(r)
+				}
+			}()
+			err = json.Unmarshal(bytes, &block)
+		}
+	}()
+	err = json.Unmarshal(bytes, &block)
 	mutexToBlock.Unlock()
 	if err != nil {
 		log.Warn(err)
