@@ -205,6 +205,11 @@ func (c *DBController) GossipRelayTxn() {
 
 	if _, err := global.GetMempool(args.ToGroup).GetTxn(args.Txn.Hash()); err != nil {
 		block := core.GetBlockhead(args.FromGroup).GetBlockheadByHeight(args.Height)
+		if block == nil {
+			log.Debugln("Have no Blockhead")
+			c.Return(nil)
+		}
+
 		if args.Txn.RelayVerify(block.MerkleRoot, args.RelayMerklePath) {
 			global.GetMempool(args.ToGroup).AddTxn(args.Txn)
 			GossipRelayTxn(args.FromGroup, args.ToGroup, args.Height, args.RelayMerklePath, &args.Txn)
