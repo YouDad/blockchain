@@ -149,7 +149,7 @@ func (bc *Blockchain) GetHeight() int32 {
 
 func (bc *Blockchain) AddBlock(b *types.Block) {
 	// 去重
-	if b == nil || bc.Get(b.Hash()) != nil {
+	if b == nil {
 		return
 	}
 
