@@ -23,7 +23,12 @@ var (
 	instanceBoltDB = make(map[int]*bolt.DB)
 	onceBoltDB     = make(map[int]*sync.Once)
 	mutexBoltDB    = sync.Mutex{}
+	rootPath       = ""
 )
+
+func SetRootPath(path string) {
+	rootPath = path
+}
 
 func getDatabase(group int) *bolt.DB {
 	mutexBoltDB.Lock()
@@ -34,7 +39,7 @@ func getDatabase(group int) *bolt.DB {
 		once = onceBoltDB[group]
 	}
 	once.Do(func() {
-		databaseName := fmt.Sprintf("blockchain%s-%d.db", Port, group)
+		databaseName := fmt.Sprintf("%sblockchain%s-%d.db", rootPath, Port, group)
 
 		var err error
 		instanceBoltDB[group], err = bolt.Open(databaseName, 0600, nil)
