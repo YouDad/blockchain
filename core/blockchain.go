@@ -167,21 +167,22 @@ func (bc *Blockchain) AddBlock(b *types.Block) {
 	}
 }
 
-func MineBlocksForCreate(txns *types.Transaction, groupBase int) (*types.Block, error) {
+func MineBlocksForCreate(txn *types.Transaction, groupBase int) (*types.Block, error) {
+	txns := []*types.Transaction{txn}
 	blocks := []*types.Block{{
 		BlockHeader: types.BlockHeader{
 			Group:      groupBase,
 			Height:     0,
 			PrevHash:   nil,
 			Timestamp:  time.Now().UnixNano(),
-			MerkleRoot: NewMerkleTree([][]byte{utils.Encode(txns)}).RootNode.Data,
+			MerkleRoot: NewTxnMerkleTree(txns).RootNode.Data,
 			Target:     1.0,
 		},
 		ChukonuHeader: types.ChukonuHeader{
 			GroupBase: groupBase,
 			BatchSize: 1,
 		},
-		Txns: []*types.Transaction{txns},
+		Txns: txns,
 	}}
 
 	pow := NewPOW(blocks)
@@ -209,13 +210,7 @@ func MineBlocks(txns [][]*types.Transaction, groupBase, batchSize int) ([]*types
 		var prevHash types.HashValue = lastest.Hash()
 		var timestamp int64 = lastest.Timestamp
 
-		// 1. 计算MerkleRoot用字节数组
-		var txnsBytes [][]byte
-		for _, txn := range txns[i] {
-			txnsBytes = append(txnsBytes, utils.Encode(txn))
-		}
-
-		// 2. 更新难度
+		// 1. 更新难度
 		if height%30 == 0 {
 			prevRecalcBlock := bc.GetBlockByHeight(height - 29)
 			if prevRecalcBlock != nil {
@@ -223,14 +218,14 @@ func MineBlocks(txns [][]*types.Transaction, groupBase, batchSize int) ([]*types
 			}
 		}
 
-		// 3. 构造block
+		// 2. 构造block
 		blocks = append(blocks, &types.Block{
 			BlockHeader: types.BlockHeader{
 				Group:      (groupBase + i) % global.MaxGroupNum,
 				Height:     height + 1,
 				PrevHash:   prevHash,
 				Timestamp:  time.Now().UnixNano(),
-				MerkleRoot: NewMerkleTree(txnsBytes).RootNode.Data,
+				MerkleRoot: NewTxnMerkleTree(txns[i]).RootNode.Data,
 				Target:     target,
 			},
 			ChukonuHeader: types.ChukonuHeader{

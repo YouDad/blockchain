@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 
 	"github.com/YouDad/blockchain/types"
+	"github.com/YouDad/blockchain/utils"
 )
 
 // MerkleTree represent a Merkle tree
@@ -91,4 +92,20 @@ func (tree *MerkleTree) FindPath(index int) []types.MerklePath {
 		}
 	}
 	return ret
+}
+
+func NewTxnMerkleTree(txns []*types.Transaction) *MerkleTree {
+	var txnsBytes [][]byte
+	for _, txn := range txns {
+		txnsBytes = append(txnsBytes, utils.Encode(txn))
+	}
+	return NewMerkleTree(txnsBytes)
+}
+
+func NewBlockMerkleTree(blocks []*types.Block) *MerkleTree {
+	var blocksBytes [][]byte
+	for _, block := range blocks {
+		blocksBytes = append(blocksBytes, block.BlockHeader.Hash())
+	}
+	return NewMerkleTree(blocksBytes)
 }

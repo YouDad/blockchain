@@ -63,11 +63,7 @@ func NewPOW(blocks []*types.Block) *ProofOfWork {
 	nonceStart = pow.poweredStruct.Nonce
 
 	// 3. get merkle tree
-	var nodeSeq [][]byte
-	for _, block := range blocks {
-		nodeSeq = append(nodeSeq, block.BlockHeader.Hash())
-	}
-	pow.batchMerkleTree = NewMerkleTree(nodeSeq)
+	pow.batchMerkleTree = NewBlockMerkleTree(blocks)
 	pow.poweredStruct.batchMerkleRoot = pow.batchMerkleTree.RootNode.Data
 
 	return pow
