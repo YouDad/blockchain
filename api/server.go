@@ -29,6 +29,6 @@ func (c *ServerController) SendCMD() {
 	txn, err := set.CreateTransaction(args.SendFrom, args.SendTo, args.Amount)
 	c.ReturnErr(err)
 	c.ReturnErr(network.GetKnownNodes())
-	c.ReturnErr(GossipTxn(global.GetGroupByAddress(args.SendFrom), *txn))
+	GossipTxn(global.GetGroupByAddress(args.SendFrom), *txn)
 	c.Return(nil)
 }

@@ -160,8 +160,8 @@ type GossipTxnArgs = struct {
 	Group int
 }
 
-func GossipTxn(group int, txn types.Transaction) error {
-	return network.GossipCallInnerGroup("db/GossipTxn", &GossipTxnArgs{txn, group}, nil)
+func GossipTxn(group int, txn types.Transaction) {
+	go network.GossipCallInnerGroup("db/GossipTxn", &GossipTxnArgs{txn, group}, nil)
 }
 
 // @router /GossipTxn [post]
@@ -176,7 +176,7 @@ func (c *DBController) GossipTxn() {
 		bc := core.GetBlockchain(args.Group)
 		if bc.VerifyTransaction(args.Txn) {
 			global.GetMempool(args.Group).AddTxn(args.Txn)
-			go GossipTxn(args.Group, args.Txn)
+			GossipTxn(args.Group, args.Txn)
 		} else {
 			log.Warnf("AddTxn Verify false %s\n", args.Txn.Hash())
 		}
@@ -194,8 +194,7 @@ type GossipRelayTxnArgs = struct {
 
 func GossipRelayTxn(fromGroup int, toGroup int, height int32,
 	relayMerklePath []types.MerklePath, txn *types.Transaction) {
-
-	network.GossipCallSpecialGroup("db/GossipRelayTxn", &GossipRelayTxnArgs{
+	go network.GossipCallSpecialGroup("db/GossipRelayTxn", &GossipRelayTxnArgs{
 		fromGroup, toGroup, height, relayMerklePath, *txn}, nil, toGroup)
 }
 
@@ -208,7 +207,7 @@ func (c *DBController) GossipRelayTxn() {
 		block := core.GetBlockhead(args.FromGroup).GetBlockheadByHeight(args.Height)
 		if args.Txn.RelayVerify(block.MerkleRoot, args.RelayMerklePath) {
 			global.GetMempool(args.ToGroup).AddTxn(args.Txn)
-			go GossipRelayTxn(args.FromGroup, args.ToGroup, args.Height, args.RelayMerklePath, &args.Txn)
+			GossipRelayTxn(args.FromGroup, args.ToGroup, args.Height, args.RelayMerklePath, &args.Txn)
 		}
 	}
 
@@ -222,12 +221,12 @@ func CallbackGossipBlock(block *types.Block, address string) {
 }
 
 func GossipBlock(block *types.Block) {
-	network.GossipCallInnerGroup("db/GossipBlock", block, nil)
+	go network.GossipCallInnerGroup("db/GossipBlock", block, nil)
 }
 
 func CallSelfBlock(block *types.Block) {
 	network.CallSelf("db/GossipBlock", block, nil)
-	go GossipBlockHead(block)
+	GossipBlockHead(block)
 }
 
 // @router /GossipBlock [post]
@@ -264,7 +263,7 @@ func (c *DBController) GossipBlock() {
 			bc.AddBlock(&args)
 			set.Update(&args)
 			global.SyncMutex.Unlock()
-			go GossipBlock(&args)
+			GossipBlock(&args)
 			lastestHeight += 1
 		}
 	}
@@ -285,10 +284,12 @@ func (c *DBController) GossipBlock() {
 type GossipBlockHeadArgs = types.Block
 
 func GossipBlockHead(block *types.Block) {
-	txns := block.Txns
-	block.Txns = nil
-	network.GossipCallInterGroup("db/GossipBlockHead", block, nil)
-	block.Txns = txns
+	go func() {
+		txns := block.Txns
+		block.Txns = nil
+		network.GossipCallInterGroup("db/GossipBlockHead", block, nil)
+		block.Txns = txns
+	}()
 }
 
 // @router /GossipBlockHead [post]
@@ -302,7 +303,7 @@ func (c *DBController) GossipBlockHead() {
 	bh := core.GetBlockhead(args.Group)
 	if args.Verify() {
 		if bh.AddBlockhead(&args) {
-			go GossipBlockHead(&args)
+			GossipBlockHead(&args)
 		}
 	} else {
 		log.Warnln("AddBlockhead Verify failed")

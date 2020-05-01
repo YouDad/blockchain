@@ -129,17 +129,16 @@ func GossipCallSpecialGroup(method string, args interface{}, reply interface{}, 
 	}
 
 	if success == 0 {
-		log.Warnln("GossipCall", "None of the nodes responded!")
 		return errors.New("None of the nodes responded!")
 	}
 
 	return nil
 }
 
-func GossipCallInnerGroup(method string, args interface{}, reply interface{}) error {
-	return GossipCallSpecialGroup(method, args, reply, global.GetGroup())
+func GossipCallInnerGroup(method string, args interface{}, reply interface{}) {
+	log.Warn(GossipCallSpecialGroup(method, args, reply, global.GetGroup()))
 }
 
-func GossipCallInterGroup(method string, args interface{}, reply interface{}) error {
-	return GossipCallSpecialGroup(method, args, reply, -1)
+func GossipCallInterGroup(method string, args interface{}, reply interface{}) {
+	log.Warn(GossipCallSpecialGroup(method, args, reply, -1))
 }
