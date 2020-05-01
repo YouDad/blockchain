@@ -76,6 +76,7 @@ func GetTarget(target float64) *big.Int {
 }
 
 func (pow *ProofOfWork) Run() (error, int64, *MerkleTree) {
+	log.Traceln("POW.Run Speed:", hashSpeed)
 	nonce := pow.poweredStruct.Nonce
 
 	for nonce < math.MaxInt64 {
@@ -92,9 +93,10 @@ func (pow *ProofOfWork) Run() (error, int64, *MerkleTree) {
 			nonce++
 		}
 
-		if (nonce-nonceStart)%int64(hashSpeed*1e4) == 0 {
+		if (nonce-nonceStart)%int64(hashSpeed*3e4) == 0 {
 			if hashSpeed < 100 {
-				time.Sleep(time.Duration(1e7 * (100 - hashSpeed)))
+				log.Traceln("Dig sleep", 3e7*(100-hashSpeed))
+				time.Sleep(time.Duration(3e7 * (100 - hashSpeed)))
 			}
 		}
 	}

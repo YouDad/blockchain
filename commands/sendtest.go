@@ -36,8 +36,9 @@ var SendTestCmd = &cobra.Command{
 
 		<-network.ServerReady
 		for {
-			for global.GetMempool(global.GetGroup()).GetMempoolSize() >= 7*int(tps) {
-				time.Sleep(time.Second)
+			for global.GetMempool(global.GetGroup()).GetMempoolSize() >= 5*int(tps) {
+				log.Traceln("sendtest sleep")
+				time.Sleep(time.Second * 3)
 			}
 
 			sendTestTo := string(wallet.NewWallet().GetAddress())

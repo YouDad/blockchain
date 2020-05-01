@@ -81,6 +81,7 @@ var MiningCmd = &cobra.Command{
 					}
 
 					log.Debugf("core.MineBlocks group: %d, number: %d }}}}}}}}", group, global.GroupNum)
+					time.Sleep(time.Second / 2)
 				}
 			}
 		}()
