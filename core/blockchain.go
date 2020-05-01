@@ -363,7 +363,6 @@ func (bc *Blockchain) VerifyTransaction(txn types.Transaction) bool {
 		// 在未打包交易池中用引用交易哈希找到该输入引用的交易
 		prevTxn, err = global.GetMempool(bc.group).GetTxn(vin.VoutHash)
 		if err != nil {
-			log.Traceln("Not Found", vin.VoutHash)
 			return false
 		}
 		prevTxns[prevTxn.Hash().String()] = *prevTxn

@@ -42,7 +42,7 @@ func (m Mempool) release() {
 
 func (m Mempool) AddTxn(txn types.Transaction) {
 	defer m.release()
-	log.Infof("AddTxnToMempool %s\n", txn.Hash())
+	log.Infof("AddTxn %s\n", txn.Hash())
 	var key [32]byte
 	copy(key[0:32], txn.Hash())
 	m.m[key] = txn

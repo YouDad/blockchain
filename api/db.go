@@ -177,7 +177,7 @@ func (c *DBController) GossipTxn() {
 			global.GetMempool(args.Group).AddTxn(args.Txn)
 			go GossipTxn(args.Group, args.Txn)
 		} else {
-			log.Warnf("AddTxnToMempool Verify false %s\n", args.Txn.Hash())
+			log.Warnf("AddTxn Verify false %s\n", args.Txn.Hash())
 		}
 	}
 	c.Return(nil)
