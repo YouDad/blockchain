@@ -3,9 +3,7 @@ package types
 import (
 	"bytes"
 	"crypto/sha256"
-	"fmt"
 	"math/big"
-	"time"
 
 	"github.com/YouDad/blockchain/utils"
 )
@@ -29,7 +27,7 @@ type MerklePath struct {
 }
 
 func (path MerklePath) String() string {
-	return fmt.Sprintf("[Left: %v]HashValue: %s", path.Left, path.HashValue)
+	return string(utils.Encode(path))
 }
 
 type ChukonuHeader struct {
@@ -70,23 +68,8 @@ func (b Block) Hash() HashValue {
 	return sha[:]
 }
 
-func (b Block) String() (ret string) {
-	ret = "\n"
-	timeStr := time.Unix(b.Timestamp/1e9, 0).Format("2006/01/02 15:04:05")
-	ret += fmt.Sprintf("Group: %d, Height: %d, Timestamp: %s, Target: %f\n",
-		b.Group, b.Height, timeStr, b.Target)
-	ret += fmt.Sprintf("GroupBase: %d, BatchSize: %d, Nonce: %d\n",
-		b.GroupBase, b.BatchSize, b.Nonce)
-	ret += fmt.Sprintf("Hash: %s\n", b.Hash())
-	ret += fmt.Sprintf("Prev: %s\n", b.PrevHash)
-	ret += fmt.Sprintf("MerkleRoot: %s\n", b.MerkleRoot)
-	for i, p := range b.BatchMerklePath {
-		ret += fmt.Sprintf("BatchMerklePath[%d]: %s\n", i, p)
-	}
-	for i, txn := range b.Txns {
-		ret += fmt.Sprintf("Txn[%d]: %s\n", i, txn)
-	}
-	return ret
+func (b Block) String() string {
+	return string(utils.Encode(b))
 }
 
 func (b Block) Verify() bool {

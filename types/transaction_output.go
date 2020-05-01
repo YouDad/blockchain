@@ -2,7 +2,8 @@ package types
 
 import (
 	"bytes"
-	"fmt"
+
+	"github.com/YouDad/blockchain/utils"
 )
 
 type TxnOutput struct {
@@ -10,11 +11,8 @@ type TxnOutput struct {
 	PubKeyHash HashValue
 }
 
-func (out TxnOutput) String() (ret string) {
-	ret = "\n"
-	ret += fmt.Sprintf("        Value: %d\n", out.Value)
-	ret += fmt.Sprintf("        PubKeyHash: %s\n", out.PubKeyHash)
-	return ret
+func (out TxnOutput) String() string {
+	return string(utils.Encode(out))
 }
 
 func (out *TxnOutput) IsLockedWithKey(pubKey PublicKey) bool {

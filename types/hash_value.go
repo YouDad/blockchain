@@ -1,20 +1,24 @@
 package types
 
-import "bytes"
+import (
+	"bytes"
+	"encoding/hex"
+)
 
 type HashValue []byte
 
-const hexTable = "0123456789abcdef"
+func (h HashValue) MarshalJSON() ([]byte, error) {
+	return []byte(`"` + h.String() + `"`), nil
+}
+
+func (h *HashValue) UnmarshalJSON(bytes []byte) error {
+	var err error
+	*h, err = hex.DecodeString(string(bytes[1 : len(bytes)-1]))
+	return err
+}
 
 func (h HashValue) String() string {
-	ret := make([]byte, len(h)*2)
-	i := 0
-	for _, v := range h {
-		ret[i] = hexTable[v>>4]
-		ret[i+1] = hexTable[v&0x0f]
-		i += 2
-	}
-	return string(ret)
+	return hex.EncodeToString(h)
 }
 
 func (h HashValue) Equal(other HashValue) bool {

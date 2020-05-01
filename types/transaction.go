@@ -22,16 +22,8 @@ func (txn Transaction) Hash() HashValue {
 	return utils.SHA256(txn)
 }
 
-func (txn Transaction) String() (ret string) {
-	ret = "\n"
-	ret += fmt.Sprintf("TxnHash: %s\n", txn.Hash())
-	for i, in := range txn.Vin {
-		ret += fmt.Sprintf("    Input[%d]: %s\n", i, in)
-	}
-	for i, out := range txn.Vout {
-		ret += fmt.Sprintf("    Output[%d]: %s\n", i, out)
-	}
-	return ret
+func (txn Transaction) String() string {
+	return string(utils.Encode(txn))
 }
 
 func (txn Transaction) IsCoinbase() bool {

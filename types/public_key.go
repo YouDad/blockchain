@@ -2,7 +2,7 @@ package types
 
 import (
 	"crypto/sha256"
-	"fmt"
+	"encoding/hex"
 
 	"github.com/YouDad/blockchain/log"
 	"golang.org/x/crypto/ripemd160"
@@ -21,6 +21,16 @@ func (pk PublicKey) Hash() HashValue {
 	return publicRIPEMD160
 }
 
+func (pk PublicKey) MarshalJSON() ([]byte, error) {
+	return []byte(`"` + pk.String() + `"`), nil
+}
+
+func (pk *PublicKey) UnmarshalJSON(bytes []byte) error {
+	var err error
+	*pk, err = hex.DecodeString(string(bytes[1 : len(bytes)-1]))
+	return err
+}
+
 func (pk PublicKey) String() string {
-	return fmt.Sprintf("%x", []byte(pk))
+	return hex.EncodeToString(pk)
 }

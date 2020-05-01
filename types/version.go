@@ -1,6 +1,6 @@
 package types
 
-import "fmt"
+import "github.com/YouDad/blockchain/utils"
 
 type Version struct {
 	Group    int
@@ -10,9 +10,6 @@ type Version struct {
 	NowHash  HashValue
 }
 
-func (v Version) String() (ret string) {
-	ret += fmt.Sprintf("Version: %d, Group: %d, Height: %d\n", v.Version, v.Group, v.Height)
-	ret += fmt.Sprintf("RootHash: %s\n", v.RootHash)
-	ret += fmt.Sprintf("NowHash:  %s\n", v.NowHash)
-	return ret
+func (v Version) String() string {
+	return string(utils.Encode(v))
 }

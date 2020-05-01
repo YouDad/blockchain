@@ -30,7 +30,7 @@ func NewWallet() *Wallet {
 }
 
 // GetAddress returns wallet address
-func (w Wallet) GetAddress() types.Address {
+func (w Wallet) GetAddress() []byte {
 	pubKeyHash := HashPubKey(w.PublicKey)
 
 	versionedPayload := append([]byte{version}, pubKeyHash...)

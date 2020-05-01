@@ -1,14 +1,19 @@
 package types
 
+import "encoding/hex"
+
 type Signature []byte
 
-func (h Signature) String() string {
-	ret := make([]byte, len(h)*2)
-	i := 0
-	for _, v := range h {
-		ret[i] = hexTable[v>>4]
-		ret[i+1] = hexTable[v&0x0f]
-		i += 2
-	}
-	return string(ret)
+func (s Signature) MarshalJSON() ([]byte, error) {
+	return []byte(`"` + s.String() + `"`), nil
+}
+
+func (s *Signature) UnmarshalJSON(bytes []byte) error {
+	var err error
+	*s, err = hex.DecodeString(string(bytes[1 : len(bytes)-1]))
+	return err
+}
+
+func (s Signature) String() string {
+	return hex.EncodeToString(s)
 }
