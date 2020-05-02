@@ -67,7 +67,8 @@ func (m Mempool) GetTxns() []*types.Transaction {
 	var ret []*types.Transaction
 	i := 0
 	for _, txn := range m.m {
-		ret = append(ret, &txn)
+		copy := txn
+		ret = append(ret, &copy)
 		i++
 		if i == 50 {
 			break
@@ -108,7 +109,8 @@ func (m Mempool) ExpandTxnOutput(out types.TxnOutput, hash types.HashValue, inde
 							continue
 						}
 
-						outs = append(outs, &out)
+						copyOut := out
+						outs = append(outs, &copyOut)
 						hashs = append(hashs, txn.Hash())
 						indexs = append(indexs, index)
 					}
