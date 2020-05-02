@@ -4,7 +4,7 @@ make clean
 rm -rf *.log
 source test/define.sh $0 $1
 
-GroupNumber=2
+GroupNumber=1
 Pre="-v3 -g$GroupNumber --port"
 
 declare -a Address
