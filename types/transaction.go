@@ -114,8 +114,7 @@ func (txn Transaction) Verify(hashedTxn map[string]Transaction) bool {
 		y.SetBytes(vin.PubKey[(keyLen / 2):])
 		rawPubKey := ecdsa.PublicKey{Curve: curve, X: &x, Y: &y}
 		if !ecdsa.Verify(&rawPubKey, dataToVerify, &r, &s) {
-			log.Traceln(txn, hashedTxn)
-			log.Traceln("false")
+			log.Debugln("ecdsa.Verify Failed", txn, hashedTxn)
 			return false
 		}
 		txnCopy.Vin[inIndex].PubKey = nil
