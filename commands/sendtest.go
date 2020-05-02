@@ -50,6 +50,7 @@ var SendTestCmd = &cobra.Command{
 			} else {
 				log.Infoln("SendTest Success!")
 			}
+			time.Sleep(time.Second / 10)
 		}
 	},
 }
