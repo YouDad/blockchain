@@ -68,6 +68,9 @@ func (txn *Transaction) Sign(sk PrivateKey, hashedTxn map[string]Transaction) er
 
 	for inIndex, vin := range txnCopy.Vin {
 		prevTxn := hashedTxn[vin.VoutHash.String()]
+		if len(prevTxn.Vout) <= vin.VoutIndex {
+			log.Errln(txn, hashedTxn)
+		}
 		txnCopy.Vin[inIndex].PubKey = PublicKey(prevTxn.Vout[vin.VoutIndex].PubKeyHash)
 		dataToSign := []byte(fmt.Sprintf("%s\n", txnCopy))
 
