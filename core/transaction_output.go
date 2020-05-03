@@ -1,11 +1,10 @@
 package core
 
 import (
-	"encoding/json"
-
 	"github.com/YouDad/blockchain/log"
 	"github.com/YouDad/blockchain/types"
 	"github.com/YouDad/blockchain/utils"
+	jsoniter "github.com/json-iterator/go"
 )
 
 func NewTxnOutput(address string, value int64) *types.TxnOutput {
@@ -20,7 +19,7 @@ func NewTxnOutput(address string, value int64) *types.TxnOutput {
 
 func BytesToTxnOutputs(bytes []byte) []types.TxnOutput {
 	txnOutputs := []types.TxnOutput{}
-	err := json.Unmarshal(bytes, &txnOutputs)
+	err := jsoniter.Unmarshal(bytes, &txnOutputs)
 	if err != nil {
 		log.Warn(err)
 		log.Warnf("len=%d,bytes=%x", len(bytes), bytes)

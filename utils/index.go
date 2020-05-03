@@ -5,12 +5,12 @@ import (
 	"crypto/sha256"
 	"encoding/binary"
 	"encoding/gob"
-	"encoding/json"
 	"io/ioutil"
 	"net/http"
 	"reflect"
 
 	"github.com/YouDad/blockchain/log"
+	jsoniter "github.com/json-iterator/go"
 )
 
 func GetExternIP() string {
@@ -32,7 +32,7 @@ func InterfaceIsNil(i interface{}) bool {
 }
 
 func Encode(arg interface{}) []byte {
-	ret, err := json.Marshal(arg)
+	ret, err := jsoniter.Marshal(arg)
 	log.Err(err)
 	return ret
 }

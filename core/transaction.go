@@ -1,12 +1,12 @@
 package core
 
 import (
-	"encoding/json"
 	"math/rand"
 	"time"
 
 	"github.com/YouDad/blockchain/log"
 	"github.com/YouDad/blockchain/types"
+	jsoniter "github.com/json-iterator/go"
 )
 
 func NewCoinbaseTxn(from string) *types.Transaction {
@@ -26,7 +26,7 @@ func NewCoinbaseTxn(from string) *types.Transaction {
 
 func BytesToTransaction(bytes []byte) *types.Transaction {
 	txn := types.Transaction{}
-	err := json.Unmarshal(bytes, &txn)
+	err := jsoniter.Unmarshal(bytes, &txn)
 	if err != nil {
 		log.Warn(err)
 		log.Warnf("len=%d,bytes=%x", len(bytes), bytes)

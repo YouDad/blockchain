@@ -6,6 +6,7 @@ import (
 
 	"github.com/YouDad/blockchain/log"
 	"github.com/astaxie/beego"
+	jsoniter "github.com/json-iterator/go"
 )
 
 type BaseController struct {
@@ -20,7 +21,7 @@ type SimpleJSONResult struct {
 func (c *BaseController) ParseParameter(data interface{}) {
 	log.Debugln(log.Funcname(1), c.GetString("address"))
 	if data != nil {
-		err := json.Unmarshal(c.Ctx.Input.RequestBody, data)
+		err := jsoniter.Unmarshal(c.Ctx.Input.RequestBody, data)
 		if err != nil {
 			log.Warnln(string(c.Ctx.Input.RequestBody))
 			log.Warnln(err)

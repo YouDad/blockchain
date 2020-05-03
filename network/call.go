@@ -2,7 +2,6 @@ package network
 
 import (
 	"bytes"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"math/rand"
@@ -12,11 +11,12 @@ import (
 	"github.com/YouDad/blockchain/global"
 	"github.com/YouDad/blockchain/log"
 	"github.com/YouDad/blockchain/utils"
+	jsoniter "github.com/json-iterator/go"
 )
 
 func call(node, method string, args interface{}, reply interface{}) error {
 	log.Infof("call %s's %s, args: %+v", node, method, args)
-	b, err := json.Marshal(args)
+	b, err := jsoniter.Marshal(args)
 	if err != nil {
 		return err
 	}
@@ -33,7 +33,7 @@ func call(node, method string, args interface{}, reply interface{}) error {
 	var ret SimpleJSONResult
 	ret.Data = reply
 
-	json.NewDecoder(resp.Body).Decode(&ret)
+	jsoniter.NewDecoder(resp.Body).Decode(&ret)
 	if ret.Message != "" {
 		log.Debugln("call return error:", ret.Message)
 		return errors.New(ret.Message)

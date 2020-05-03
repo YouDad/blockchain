@@ -1,11 +1,11 @@
 package core
 
 import (
-	"encoding/json"
 	"sync"
 
 	"github.com/YouDad/blockchain/log"
 	"github.com/YouDad/blockchain/types"
+	jsoniter "github.com/json-iterator/go"
 )
 
 var mutexToBlock sync.Mutex
@@ -26,10 +26,10 @@ func BytesToBlock(bytes []byte) *types.Block {
 					log.Errln(r)
 				}
 			}()
-			err = json.Unmarshal(bytes, &block)
+			err = jsoniter.Unmarshal(bytes, &block)
 		}
 	}()
-	err = json.Unmarshal(bytes, &block)
+	err = jsoniter.Unmarshal(bytes, &block)
 	mutexToBlock.Unlock()
 	if err != nil {
 		log.Warn(err)
