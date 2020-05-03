@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/YouDad/blockchain/global"
+	"github.com/YouDad/blockchain/global/mempool"
 	"github.com/YouDad/blockchain/log"
 	"github.com/YouDad/blockchain/types"
 	"github.com/YouDad/blockchain/utils"
@@ -186,7 +187,7 @@ func (set *UTXOSet) findUTXOs(pubKey types.PublicKey, amount int64) (int64, map[
 
 		for txnOutputIndex, txnOutput := range txnOutputs {
 			if txnOutput.IsLockedWithKey(pubKey) {
-				outs, hashs, indexs := global.GetMempool(set.group).ExpandTxnOutput(txnOutput, k, txnOutputIndex)
+				outs, hashs, indexs := mempool.ExpandTxnOutput(set.group, txnOutput, k, txnOutputIndex)
 
 				for i := range outs {
 					str := hashs[i].String()

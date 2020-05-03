@@ -7,6 +7,7 @@ import (
 
 	"github.com/YouDad/blockchain/core"
 	"github.com/YouDad/blockchain/global"
+	"github.com/YouDad/blockchain/global/mempool"
 	"github.com/YouDad/blockchain/log"
 	"github.com/YouDad/blockchain/network"
 	"github.com/YouDad/blockchain/types"
@@ -172,7 +173,7 @@ func (c *DBController) GossipTxn() {
 		c.Return(nil)
 	}
 
-	if _, err := global.GetMempool(args.Group).GetTxn(args.Txn.Hash()); err != nil {
+	if _, err := mempool.GetTxn(args.Group, args.Txn.Hash()); err != nil {
 		bc := core.GetBlockchain(args.Group)
 
 		if _, err := bc.FindTxn(args.Txn.Hash()); err == nil {
@@ -180,7 +181,7 @@ func (c *DBController) GossipTxn() {
 		}
 
 		if bc.VerifyTransaction(args.Txn) {
-			global.GetMempool(args.Group).AddTxn(args.Txn)
+			mempool.AddTxn(args.Group, args.Txn)
 			GossipTxn(args.Group, args.Txn)
 		} else {
 			log.Infof("[FAIL]AddTxn Verify false %s\n", args.Txn.Hash())
@@ -208,7 +209,7 @@ func (c *DBController) GossipRelayTxn() {
 	var args GossipRelayTxnArgs
 	c.ParseParameter(&args)
 
-	if _, err := global.GetMempool(args.ToGroup).GetTxn(args.Txn.Hash()); err != nil {
+	if _, err := mempool.GetTxn(args.ToGroup, args.Txn.Hash()); err != nil {
 		block := core.GetBlockhead(args.FromGroup).GetBlockheadByHeight(args.Height)
 		if block == nil {
 			log.Infoln("[FAIL]Have no Blockhead")
@@ -216,7 +217,7 @@ func (c *DBController) GossipRelayTxn() {
 		}
 
 		if args.Txn.RelayVerify(block.MerkleRoot, args.RelayMerklePath) {
-			global.GetMempool(args.ToGroup).AddTxn(args.Txn)
+			mempool.AddTxn(args.ToGroup, args.Txn)
 			GossipRelayTxn(args.FromGroup, args.ToGroup, args.Height, args.RelayMerklePath, &args.Txn)
 		}
 	}

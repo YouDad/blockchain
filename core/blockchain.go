@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/YouDad/blockchain/global"
+	"github.com/YouDad/blockchain/global/mempool"
 	"github.com/YouDad/blockchain/log"
 	"github.com/YouDad/blockchain/types"
 	"github.com/YouDad/blockchain/utils"
@@ -161,9 +162,11 @@ func (bc *Blockchain) AddBlock(b *types.Block) {
 		bc.Set(b.Height, b.Hash())
 		GetBlockhead(bc.group).AddBlockhead(b)
 
+		m := mempool.GetMempool(b.Group)
 		for _, txn := range b.Txns {
-			global.GetMempool(b.Group).Delete(txn.Hash())
+			m.Delete(txn.Hash())
 		}
+		m.Release()
 	}
 }
 
@@ -335,7 +338,7 @@ func (bc *Blockchain) SignTransaction(txn *types.Transaction, sk types.PrivateKe
 			continue
 		}
 
-		vinTxn, err = global.GetMempool(bc.group).GetTxn(vin.VoutHash)
+		vinTxn, err = mempool.GetTxn(bc.group, vin.VoutHash)
 		if err != nil {
 			return errors.New(fmt.Sprintf("Transaction is not found, %s", vin.VoutHash))
 		}
@@ -364,7 +367,7 @@ func (bc *Blockchain) VerifyTransaction(txn types.Transaction) bool {
 		}
 
 		// 在未打包交易池中用引用交易哈希找到该输入引用的交易
-		prevTxn, err = global.GetMempool(bc.group).GetTxn(vin.VoutHash)
+		prevTxn, err = mempool.GetTxn(bc.group, vin.VoutHash)
 		if err != nil {
 			return false
 		}

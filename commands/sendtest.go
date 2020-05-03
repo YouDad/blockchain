@@ -5,6 +5,7 @@ import (
 
 	"github.com/YouDad/blockchain/api"
 	"github.com/YouDad/blockchain/global"
+	"github.com/YouDad/blockchain/global/mempool"
 	"github.com/YouDad/blockchain/log"
 	"github.com/YouDad/blockchain/network"
 	"github.com/YouDad/blockchain/wallet"
@@ -35,23 +36,26 @@ var SendTestCmd = &cobra.Command{
 		time.Sleep(time.Duration(wait) * time.Second)
 
 		<-network.ServerReady
+		group := global.GetGroup()
 		for {
-			for global.GetMempool(global.GetGroup()).GetMempoolSize() >= 5*int(tps) {
+			for mempool.GetMempoolSize(group) >= 5*int(tps) {
 				log.Traceln("sendtest sleep")
 				time.Sleep(time.Second * 3)
 			}
 
-			sendTestTo := string(wallet.NewWallet().GetAddress())
-			log.Infoln("SendTest", global.GetMempool(global.GetGroup()).GetMempoolSize(),
-				global.Address, sendTestTo)
-			err := api.SendCMD(global.Address, sendTestTo, 1)
+			for mempool.GetMempoolSize(group) < 5*int(tps) {
+				sendTestTo := string(wallet.NewWallet().GetAddress())
+				log.Infoln("SendTest", mempool.GetMempoolSize(group),
+					global.Address, sendTestTo)
+				err := api.SendCMD(global.Address, sendTestTo, 1)
 
-			if err != nil {
-				log.Warnln("SendTest Warn?", err)
-			} else {
-				log.Infoln("SendTest Success!")
+				if err != nil {
+					log.Warnln("SendTest Warn?", err)
+				} else {
+					log.Infoln("SendTest Success!")
+				}
+				time.Sleep(time.Second / 2)
 			}
-			time.Sleep(time.Second / 10)
 		}
 	},
 }

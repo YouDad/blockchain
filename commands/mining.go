@@ -8,6 +8,7 @@ import (
 	"github.com/YouDad/blockchain/api"
 	"github.com/YouDad/blockchain/core"
 	"github.com/YouDad/blockchain/global"
+	"github.com/YouDad/blockchain/global/mempool"
 	"github.com/YouDad/blockchain/log"
 	"github.com/YouDad/blockchain/network"
 	"github.com/YouDad/blockchain/types"
@@ -43,7 +44,7 @@ var MiningCmd = &cobra.Command{
 				var txns [][]*types.Transaction
 				for i := 0; i < global.GroupNum; i++ {
 					txns = append(txns, []*types.Transaction{core.NewCoinbaseTxn(global.Address)})
-					txns[i] = append(txns[i], global.GetMempool(group+i).GetTxns()...)
+					txns[i] = append(txns[i], mempool.GetTxns(group+i)...)
 				}
 
 				log.Debugf("core.MineBlocks group: %d, number: %d {{{{{{{{", group, global.GroupNum)

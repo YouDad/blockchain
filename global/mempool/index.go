@@ -1,4 +1,4 @@
-package global
+package mempool
 
 import (
 	"errors"
@@ -36,12 +36,11 @@ func GetMempool(group int) Mempool {
 	return instanceMempool.mempool[group]
 }
 
-func (m Mempool) release() {
+func (m Mempool) Release() {
 	instanceMempool.mutex[m.group].Unlock()
 }
 
 func (m Mempool) AddTxn(txn types.Transaction) {
-	defer m.release()
 	log.Infof("AddTxn %s\n", txn.Hash())
 	var key [32]byte
 	copy(key[0:32], txn.Hash())
@@ -49,7 +48,6 @@ func (m Mempool) AddTxn(txn types.Transaction) {
 }
 
 func (m Mempool) GetTxn(hash types.HashValue) (*types.Transaction, error) {
-	defer m.release()
 	txn, ok := m.m[hash.Key()]
 	if ok {
 		return &txn, nil
@@ -58,14 +56,11 @@ func (m Mempool) GetTxn(hash types.HashValue) (*types.Transaction, error) {
 }
 
 func (m Mempool) Delete(hash types.HashValue) {
-	defer m.release()
 	delete(m.m, hash.Key())
 	log.Debugln("Txn Delete", hash)
 }
 
 func (m Mempool) GetTxns() []*types.Transaction {
-	defer m.release()
-
 	// 拓扑排序
 	type edge struct {
 		dest int
@@ -142,13 +137,11 @@ func (m Mempool) GetTxns() []*types.Transaction {
 }
 
 func (m Mempool) GetMempoolSize() int {
-	defer m.release()
 	return len(m.m)
 }
 
 func (m Mempool) ExpandTxnOutput(out types.TxnOutput, hash types.HashValue, index int) (
 	outs []*types.TxnOutput, hashs []types.HashValue, indexs []int) {
-	defer m.release()
 	outs = append(outs, &out)
 	hashs = append(hashs, hash)
 	indexs = append(indexs, index)
