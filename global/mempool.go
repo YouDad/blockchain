@@ -64,11 +64,74 @@ func (m Mempool) Delete(hash types.HashValue) {
 
 func (m Mempool) GetTxns() []*types.Transaction {
 	defer m.release()
-	var ret []*types.Transaction
+
+	// 拓扑排序
+	type edge struct {
+		dest int
+		next *edge
+	}
+	var e []edge
+	head := make(map[int]*edge)
+	indeg := make(map[int]int)
+	addedge := func(u, v int) {
+		e = append(e, edge{v, head[u]})
+		head[u] = &e[len(e)-1]
+		_, ok := indeg[u]
+		if !ok {
+			indeg[u] = 0
+		}
+		indeg[v] += 1
+	}
+
+	keyToId := make(map[[32]byte]int)
+	idToTxn := make(map[int]*types.Transaction)
 	i := 0
 	for _, txn := range m.m {
-		copy := txn
-		ret = append(ret, &copy)
+		keyToId[txn.Hash().Key()] = i
+		copyTxn := txn
+		idToTxn[i] = &copyTxn
+		indeg[i] = 0
+		i++
+	}
+
+	for _, txn := range m.m {
+		for _, vin := range txn.Vin {
+			prevTxn, ok := m.m[vin.VoutHash.Key()]
+			if ok {
+				j := keyToId[prevTxn.Hash().Key()]
+				addedge(j, keyToId[txn.Hash().Key()])
+			}
+		}
+	}
+
+	var nodes []int
+	lenBefore := len(nodes)
+	for node, cnt := range indeg {
+		if cnt == 0 {
+			nodes = append(nodes, node)
+		}
+	}
+	lenAfter := len(nodes)
+
+	for lenAfter != lenBefore {
+		for i := lenBefore; i < lenAfter; i++ {
+			u := nodes[i]
+			delete(indeg, u)
+			for ptr := head[u]; ptr != nil; ptr = ptr.next {
+				indeg[ptr.dest] -= 1
+				if indeg[ptr.dest] == 0 {
+					nodes = append(nodes, ptr.dest)
+				}
+			}
+		}
+		lenBefore = lenAfter
+		lenAfter = len(nodes)
+	}
+
+	var ret []*types.Transaction
+	i = 0
+	for _, node := range nodes {
+		ret = append(ret, idToTxn[node])
 		i++
 		if i == 50 {
 			break
