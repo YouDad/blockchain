@@ -1,23 +1,24 @@
 package core
 
 import (
-	"crypto/rand"
 	"encoding/json"
-	"fmt"
+	"math/rand"
+	"time"
 
 	"github.com/YouDad/blockchain/log"
 	"github.com/YouDad/blockchain/types"
 )
 
 func NewCoinbaseTxn(from string) *types.Transaction {
-	randData := make([]byte, 20)
-	_, err := rand.Read(randData)
-	log.Err(err)
-	data := fmt.Sprintf("%x", randData)
+	randData := make([]byte, 32)
+	rand.Seed(time.Now().UnixNano())
+	for i := range randData {
+		randData[i] = byte(rand.Int())
+	}
 
 	txn := types.Transaction{}
 
-	txn.Vin = []types.TxnInput{{VoutIndex: -1, VoutValue: 50_000_000, PubKey: []byte(data)}}
+	txn.Vin = []types.TxnInput{{VoutIndex: -1, VoutValue: 50_000_000, PubKey: randData}}
 	// Send $from 50BTC
 	txn.Vout = []types.TxnOutput{*NewTxnOutput(from, 50_000_000)}
 	return &txn
