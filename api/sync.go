@@ -118,7 +118,9 @@ func syncBlocks(group int, newHeight int32, address string) {
 	// 撤销原先lastestHeight到r的高度的UTXOSet集合
 	set := core.GetUTXOSet(group)
 	for i := lastestHeight; i > r; i-- {
-		set.Reverse(bc.GetBlockByHeight(i))
+		block := bc.GetBlockByHeight(i)
+		set.Reverse(block)
+		bc.DeleteBlock(block)
 	}
 
 	// 然后将后面所有区块都追加到lastest的后面

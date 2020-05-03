@@ -1,7 +1,6 @@
 package core
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
 	"sync"
@@ -16,6 +15,7 @@ import (
 
 type Blockchain struct {
 	db    *global.BlocksDB
+	txn   *global.TxnsDB
 	group int
 }
 
@@ -41,6 +41,22 @@ func (bc *Blockchain) Delete(key interface{}) {
 
 func (bc *Blockchain) Foreach(fn func(k, v []byte) bool) {
 	bc.db.Foreach(bc.group, fn)
+}
+
+func (bc *Blockchain) txnGet(key interface{}) (value []byte) {
+	return bc.txn.Get(bc.group, key)
+}
+
+func (bc *Blockchain) txnSet(key interface{}, value []byte) {
+	bc.txn.Set(bc.group, key, value)
+}
+
+func (bc *Blockchain) txnDelete(key interface{}) {
+	bc.txn.Delete(bc.group, key)
+}
+
+func (bc *Blockchain) txnForeach(fn func(k, v []byte) bool) {
+	bc.txn.Foreach(bc.group, fn)
 }
 
 type BlockchainIterator struct {
@@ -78,7 +94,11 @@ func CreateBlockchain(minerAddress string) error {
 }
 
 func GetBlockchain(group int) *Blockchain {
-	return &Blockchain{global.GetBlocksDB(), group % global.MaxGroupNum}
+	return &Blockchain{
+		db:    global.GetBlocksDB(),
+		txn:   global.GetTxnsDB(),
+		group: group % global.MaxGroupNum,
+	}
 }
 
 func (bc *Blockchain) GetGenesis() *types.Block {
@@ -161,6 +181,9 @@ func (bc *Blockchain) AddBlock(b *types.Block) {
 		bc.Set(b.Hash(), bytes)
 		bc.Set(b.Height, b.Hash())
 		GetBlockhead(bc.group).AddBlockhead(b)
+		for _, txn := range b.Txns {
+			bc.txnSet(txn.Hash(), utils.Encode(txn))
+		}
 
 		m := mempool.GetMempool(b.Group)
 		for _, txn := range b.Txns {
@@ -190,6 +213,15 @@ func (bc *Blockchain) AddBlock(b *types.Block) {
 			}
 		}
 		m.Release()
+	}
+}
+
+func (bc *Blockchain) DeleteBlock(b *types.Block) {
+	bc.Delete(b.Hash())
+	bc.Delete(b.Height)
+	GetBlockhead(bc.group).Delete(b.Height)
+	for _, txn := range b.Txns {
+		bc.txnDelete(txn.Hash())
 	}
 }
 
@@ -336,19 +368,11 @@ func (bc *Blockchain) FindUTXO() map[string][]types.TxnOutput {
 }
 
 func (bc *Blockchain) FindTxn(hash types.HashValue) (*types.Transaction, error) {
-	var block *types.Block
-	iter := bc.Begin()
-
-	// 遍历所有区块的所有交易，找到哈希值一致的交易
-	for block = iter.Next(); block != nil; block = iter.Next() {
-		for _, txn := range block.Txns {
-			if bytes.Compare(txn.Hash(), hash) == 0 {
-				return txn, nil
-			}
-		}
+	b := bc.txnGet(hash)
+	if len(b) == 0 {
+		return nil, errors.New(fmt.Sprintf("Transaction is not found, %s", hash))
 	}
-
-	return nil, errors.New(fmt.Sprintf("Transaction is not found, %s", hash))
+	return BytesToTransaction(b), nil
 }
 
 func (bc *Blockchain) SignTransaction(txn *types.Transaction, sk types.PrivateKey) error {
