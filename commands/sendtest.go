@@ -18,7 +18,7 @@ func init() {
 	SendTestCmd.Flags().IntVar(&global.GroupNum, "group", 1, "process group of number")
 	SendTestCmd.Flags().StringVar(&global.Address, "from", "", "Source wallet address")
 	SendTestCmd.Flags().Int64Var(&tps, "tps", 10, "send speed, transaction per second")
-	SendTestCmd.Flags().Int64Var(&wait, "wait", 90, "the time before sendloop")
+	SendTestCmd.Flags().Int64Var(&wait, "wait", 60, "the time before sendloop")
 	SendTestCmd.MarkFlagRequired("from")
 }
 

@@ -46,43 +46,41 @@ var MiningCmd = &cobra.Command{
 					txns[i] = append(txns[i], global.GetMempool(group+i).GetTxns()...)
 				}
 
-				for {
-					log.Debugf("core.MineBlocks group: %d, number: %d {{{{{{{{", group, global.GroupNum)
-					newBlocks, err := core.MineBlocks(txns, group, global.GroupNum)
-					if err != core.ErrBlockchainChange {
-						log.Warn(err)
-					}
+				log.Debugf("core.MineBlocks group: %d, number: %d {{{{{{{{", group, global.GroupNum)
+				newBlocks, err := core.MineBlocks(txns, group, global.GroupNum)
+				if err == core.ErrBlockchainChange {
+					log.Infoln("[FAIL]", err)
+				}
 
-					if err != nil {
-						time.Sleep(10 * time.Second)
-						break
-					}
+				if err != nil {
+					time.Sleep(10 * time.Second)
+					continue
+				}
 
-					for _, newBlock := range newBlocks {
-						api.CallSelfBlock(newBlock)
-					}
+				for _, newBlock := range newBlocks {
+					api.CallSelfBlock(newBlock)
+				}
 
-					for _, newBlock := range newBlocks {
-						// 生成交易的Merkle树
-						tree := core.NewTxnMerkleTree(newBlock.Txns)
+				for _, newBlock := range newBlocks {
+					// 生成交易的Merkle树
+					tree := core.NewTxnMerkleTree(newBlock.Txns)
 
-						for txnIndex, txn := range newBlock.Txns {
-							groups := make(map[int]bool)
-							for _, out := range txn.Vout {
-								groups[global.GetGroupByPubKeyHash(out.PubKeyHash)] = true
-							}
-							delete(groups, global.GetGroup())
+					for txnIndex, txn := range newBlock.Txns {
+						groups := make(map[int]bool)
+						for _, out := range txn.Vout {
+							groups[global.GetGroupByPubKeyHash(out.PubKeyHash)] = true
+						}
+						delete(groups, global.GetGroup())
 
-							for group := range groups {
-								api.GossipRelayTxn(global.GetGroup(), group,
-									newBlock.Height, tree.FindPath(txnIndex), txn)
-							}
+						for group := range groups {
+							api.GossipRelayTxn(global.GetGroup(), group,
+								newBlock.Height, tree.FindPath(txnIndex), txn)
 						}
 					}
-
-					log.Debugf("core.MineBlocks group: %d, number: %d }}}}}}}}", group, global.GroupNum)
-					time.Sleep(time.Second / 2)
 				}
+
+				log.Debugf("core.MineBlocks group: %d, number: %d }}}}}}}}", group, global.GroupNum)
+				time.Sleep(time.Second / 10)
 			}
 		}()
 
