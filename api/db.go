@@ -174,6 +174,11 @@ func (c *DBController) GossipTxn() {
 
 	if _, err := global.GetMempool(args.Group).GetTxn(args.Txn.Hash()); err != nil {
 		bc := core.GetBlockchain(args.Group)
+
+		if _, err := bc.FindTxn(args.Txn.Hash()); err == nil {
+			log.Infof("[FAIL]AddTxn find true %s", args.Txn.Hash())
+		}
+
 		if bc.VerifyTransaction(args.Txn) {
 			global.GetMempool(args.Group).AddTxn(args.Txn)
 			GossipTxn(args.Group, args.Txn)
