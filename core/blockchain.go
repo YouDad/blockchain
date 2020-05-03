@@ -166,6 +166,29 @@ func (bc *Blockchain) AddBlock(b *types.Block) {
 		for _, txn := range b.Txns {
 			m.Delete(txn.Hash())
 		}
+
+		// TODO: 还可以优化写法
+		var verify func(txn *types.Transaction) bool
+		verify = func(txn *types.Transaction) bool {
+			for _, vin := range txn.Vin {
+				txnHash := vin.VoutHash
+				_, err := bc.FindTxn(txnHash)
+				if err != nil {
+					t, err := m.GetTxn(txnHash)
+					if err != nil || !verify(t) {
+						return false
+					}
+				}
+			}
+			return true
+		}
+
+		txns := m.GetTxns()
+		for _, txn := range txns {
+			if !verify(txn) {
+				m.Delete(txn.Hash())
+			}
+		}
 		m.Release()
 	}
 }
