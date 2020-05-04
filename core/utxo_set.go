@@ -78,7 +78,8 @@ func (set *UTXOSet) Update(b *types.Block) {
 }
 
 func (set *UTXOSet) Reverse(b *types.Block) {
-	for _, txn := range b.Txns {
+	for i := range b.Txns {
+		txn := b.Txns[len(b.Txns)-i-1]
 		if !txn.IsCoinbase() {
 			set.Delete(txn.Hash())
 			for _, vin := range txn.Vin {
