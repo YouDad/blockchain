@@ -105,7 +105,8 @@ func send(node Position, method string, args interface{}, reply interface{}) boo
 	return err == nil
 }
 
-func GossipCallSpecialGroup(method string, args interface{}, reply interface{}, targetGroup int) error {
+func GossipCallSpecialGroup(method string, args interface{},
+	reply interface{}, targetGroup int, exceptedAddress string) error {
 	log.SetCallerLevel(2)
 	log.Debugln("GossipCall", "start", method, targetGroup)
 	log.SetCallerLevel(0)
@@ -120,7 +121,7 @@ func GossipCallSpecialGroup(method string, args interface{}, reply interface{}, 
 
 	success := 0
 	for _, node := range nodes {
-		if send(node, method, args, reply) {
+		if node.Address != exceptedAddress && send(node, method, args, reply) {
 			success++
 		}
 		if success >= 3 {
@@ -135,10 +136,10 @@ func GossipCallSpecialGroup(method string, args interface{}, reply interface{}, 
 	return nil
 }
 
-func GossipCallInnerGroup(method string, args interface{}, reply interface{}) {
-	log.Warn(GossipCallSpecialGroup(method, args, reply, global.GetGroup()))
+func GossipCallInnerGroup(method string, args interface{}, reply interface{}, exceptedAddress string) {
+	log.Warn(GossipCallSpecialGroup(method, args, reply, global.GetGroup(), exceptedAddress))
 }
 
-func GossipCallInterGroup(method string, args interface{}, reply interface{}) {
-	log.Warn(GossipCallSpecialGroup(method, args, reply, -1))
+func GossipCallInterGroup(method string, args interface{}, reply interface{}, exceptedAddress string) {
+	log.Warn(GossipCallSpecialGroup(method, args, reply, -1, exceptedAddress))
 }

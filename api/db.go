@@ -161,8 +161,8 @@ type GossipTxnArgs = struct {
 	Group int
 }
 
-func GossipTxn(group int, txn types.Transaction) {
-	go network.GossipCallInnerGroup("db/GossipTxn", &GossipTxnArgs{txn, group}, nil)
+func GossipTxn(group int, txn types.Transaction, exceptedAddress string) {
+	go network.GossipCallInnerGroup("db/GossipTxn", &GossipTxnArgs{txn, group}, nil, exceptedAddress)
 }
 
 // @router /GossipTxn [post]
@@ -191,7 +191,7 @@ func (c *DBController) GossipTxn() {
 	}
 
 	mempool.AddTxn(args.Group, args.Txn)
-	GossipTxn(args.Group, args.Txn)
+	GossipTxn(args.Group, args.Txn, c.Param(":address"))
 	c.Return(nil)
 }
 
@@ -204,9 +204,9 @@ type GossipRelayTxnArgs = struct {
 }
 
 func GossipRelayTxn(fromGroup int, toGroup int, height int32,
-	relayMerklePath []types.MerklePath, txn *types.Transaction) {
+	relayMerklePath []types.MerklePath, txn *types.Transaction, exceptedAddress string) {
 	go network.GossipCallSpecialGroup("db/GossipRelayTxn", &GossipRelayTxnArgs{
-		fromGroup, toGroup, height, relayMerklePath, *txn}, nil, toGroup)
+		fromGroup, toGroup, height, relayMerklePath, *txn}, nil, toGroup, exceptedAddress)
 }
 
 // @router /GossipRelayTxn
@@ -223,7 +223,8 @@ func (c *DBController) GossipRelayTxn() {
 
 		if args.Txn.RelayVerify(block.MerkleRoot, args.RelayMerklePath) {
 			mempool.AddTxn(args.ToGroup, args.Txn)
-			GossipRelayTxn(args.FromGroup, args.ToGroup, args.Height, args.RelayMerklePath, &args.Txn)
+			GossipRelayTxn(args.FromGroup, args.ToGroup, args.Height,
+				args.RelayMerklePath, &args.Txn, c.Param(":address"))
 		}
 	}
 
@@ -236,13 +237,13 @@ func CallbackGossipBlock(block *types.Block, address string) {
 	network.CallBack(address, "db/GossipBlock", block, nil)
 }
 
-func GossipBlock(block *types.Block) {
-	go network.GossipCallInnerGroup("db/GossipBlock", block, nil)
+func GossipBlock(block *types.Block, exceptedAddress string) {
+	go network.GossipCallInnerGroup("db/GossipBlock", block, nil, exceptedAddress)
 }
 
 func CallSelfBlock(block *types.Block) {
 	network.CallSelf("db/GossipBlock", block, nil)
-	GossipBlockHead(block)
+	GossipBlockHead(block, "127.0.0.1:"+global.Port)
 }
 
 // @router /GossipBlock [post]
@@ -279,7 +280,7 @@ func (c *DBController) GossipBlock() {
 			bc.AddBlock(&args)
 			set.Update(&args)
 			global.SyncMutex.Unlock()
-			GossipBlock(&args)
+			GossipBlock(&args, c.Param(":address"))
 			lastestHeight += 1
 		}
 	}
@@ -299,11 +300,11 @@ func (c *DBController) GossipBlock() {
 
 type GossipBlockHeadArgs = types.Block
 
-func GossipBlockHead(block *types.Block) {
+func GossipBlockHead(block *types.Block, exceptedAddress string) {
 	go func() {
 		txns := block.Txns
 		block.Txns = nil
-		network.GossipCallInterGroup("db/GossipBlockHead", block, nil)
+		network.GossipCallInterGroup("db/GossipBlockHead", block, nil, exceptedAddress)
 		block.Txns = txns
 	}()
 }
@@ -319,7 +320,7 @@ func (c *DBController) GossipBlockHead() {
 	bh := core.GetBlockhead(args.Group)
 	if args.Verify() {
 		if bh.AddBlockhead(&args) {
-			GossipBlockHead(&args)
+			GossipBlockHead(&args, c.Param(":address"))
 		}
 	} else {
 		log.Warnln("AddBlockhead Verify failed")

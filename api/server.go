@@ -1,6 +1,8 @@
 package api
 
 import (
+	"fmt"
+
 	"github.com/YouDad/blockchain/core"
 	"github.com/YouDad/blockchain/global"
 	"github.com/YouDad/blockchain/network"
@@ -29,6 +31,7 @@ func (c *ServerController) SendCMD() {
 	txn, err := set.CreateTransaction(args.SendFrom, args.SendTo, args.Amount)
 	c.ReturnErr(err)
 	c.ReturnErr(network.GetKnownNodes())
-	GossipTxn(global.GetGroupByAddress(args.SendFrom), *txn)
+	GossipTxn(global.GetGroupByAddress(args.SendFrom), *txn,
+		fmt.Sprintf("127.0.0.1:%s", global.Port))
 	c.Return(nil)
 }
