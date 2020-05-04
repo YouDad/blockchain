@@ -67,6 +67,8 @@ var MiningCmd = &cobra.Command{
 					tree := core.NewTxnMerkleTree(newBlock.Txns)
 
 					for txnIndex, txn := range newBlock.Txns {
+						path := tree.FindPath(txnIndex)
+
 						groups := make(map[int]bool)
 						for _, out := range txn.Vout {
 							groups[global.GetGroupByPubKeyHash(out.PubKeyHash)] = true
@@ -75,8 +77,7 @@ var MiningCmd = &cobra.Command{
 
 						for group := range groups {
 							api.GossipRelayTxn(global.GetGroup(), group,
-								newBlock.Height, tree.FindPath(txnIndex), txn,
-								"127.0.0.1:"+global.Port)
+								newBlock.Height, path, txn, "127.0.0.1:"+global.Port)
 						}
 					}
 				}

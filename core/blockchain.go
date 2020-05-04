@@ -261,11 +261,12 @@ func MineBlocks(txns [][]*types.Transaction, groupBase, batchSize int) ([]*types
 		bc := GetBlockchain(groupBase + i)
 		lastest := bc.GetLastest()
 		if lastest == nil {
-			return nil, errors.New(fmt.Sprintf("MineBlocks failed, because don't have blockchain[%d].lastest", groupBase+i))
+			return nil, errors.New(fmt.Sprintf(
+				"MineBlocks failed, because don't have "+
+					"blockchain[%d].lastest", (groupBase+i)%global.MaxGroupNum))
 		}
 		var target float64 = lastest.Target
 		var height int32 = lastest.Height
-		var prevHash types.HashValue = lastest.Hash()
 		var timestamp int64 = lastest.Timestamp
 
 		// 1. 更新难度
@@ -281,7 +282,7 @@ func MineBlocks(txns [][]*types.Transaction, groupBase, batchSize int) ([]*types
 			BlockHeader: types.BlockHeader{
 				Group:      (groupBase + i) % global.MaxGroupNum,
 				Height:     height + 1,
-				PrevHash:   prevHash,
+				PrevHash:   lastest.Hash(),
 				Timestamp:  time.Now().UnixNano(),
 				MerkleRoot: NewTxnMerkleTree(txns[i]).RootNode.Data,
 				Target:     target,

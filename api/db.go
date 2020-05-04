@@ -217,15 +217,18 @@ func (c *DBController) GossipRelayTxn() {
 	if _, err := mempool.GetTxn(args.ToGroup, args.Txn.Hash()); err != nil {
 		block := core.GetBlockhead(args.FromGroup).GetBlockheadByHeight(args.Height)
 		if block == nil {
-			log.Infoln("[FAIL]Have no Blockhead")
+			log.Infoln("[FAIL]AddTxn Relay have no blockhead")
 			c.Return(nil)
 		}
 
-		if args.Txn.RelayVerify(block.MerkleRoot, args.RelayMerklePath) {
-			mempool.AddTxn(args.ToGroup, args.Txn)
-			GossipRelayTxn(args.FromGroup, args.ToGroup, args.Height,
-				args.RelayMerklePath, &args.Txn, c.Param(":address"))
+		if !args.Txn.RelayVerify(block.MerkleRoot, args.RelayMerklePath) {
+			log.Infoln("[FAIL]AddTxn Relay verify false")
+			c.Return(nil)
 		}
+
+		mempool.AddTxn(args.ToGroup, args.Txn)
+		GossipRelayTxn(args.FromGroup, args.ToGroup, args.Height,
+			args.RelayMerklePath, &args.Txn, c.Param(":address"))
 	}
 
 	c.Return(nil)
