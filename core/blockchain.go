@@ -396,9 +396,9 @@ func (bc *Blockchain) SignTransaction(txn *types.Transaction, sk types.PrivateKe
 }
 
 // 验证交易是否有效
-func (bc *Blockchain) VerifyTransaction(txn types.Transaction) bool {
+func (bc *Blockchain) VerifyTransaction(txn types.Transaction) error {
 	if txn.IsCoinbase() {
-		return true
+		return nil
 	}
 
 	// map[前置交易哈希]前置交易
@@ -416,10 +416,14 @@ func (bc *Blockchain) VerifyTransaction(txn types.Transaction) bool {
 		// 在未打包交易池中用引用交易哈希找到该输入引用的交易
 		prevTxn, err = mempool.GetTxn(bc.group, vin.VoutHash)
 		if err != nil {
-			return false
+			return errors.New("mempool not found " + vin.VoutHash.String())
 		}
 		prevTxns[prevTxn.Hash().String()] = *prevTxn
 	}
 
-	return txn.Verify(prevTxns)
+	if txn.Verify(prevTxns) {
+		return nil
+	} else {
+		return errors.New("verify false")
+	}
 }

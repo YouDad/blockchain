@@ -173,20 +173,25 @@ func (c *DBController) GossipTxn() {
 		c.Return(nil)
 	}
 
-	if _, err := mempool.GetTxn(args.Group, args.Txn.Hash()); err != nil {
-		bc := core.GetBlockchain(args.Group)
-
-		if _, err := bc.FindTxn(args.Txn.Hash()); err == nil {
-			log.Infof("[FAIL]AddTxn find true %s", args.Txn.Hash())
-		}
-
-		if bc.VerifyTransaction(args.Txn) {
-			mempool.AddTxn(args.Group, args.Txn)
-			GossipTxn(args.Group, args.Txn)
-		} else {
-			log.Infof("[FAIL]AddTxn Verify false %s\n", args.Txn.Hash())
-		}
+	if _, err := mempool.GetTxn(args.Group, args.Txn.Hash()); err == nil {
+		c.Return(nil)
 	}
+
+	bc := core.GetBlockchain(args.Group)
+
+	if _, err := bc.FindTxn(args.Txn.Hash()); err == nil {
+		log.Infof("[FAIL]AddTxn find true %s", args.Txn.Hash())
+		c.Return(nil)
+	}
+
+	err := bc.VerifyTransaction(args.Txn)
+	if err != nil {
+		log.Infof("[FAIL]AddTxn Verify false, because %s, hash: %s\n", err.Error(), args.Txn.Hash())
+		c.Return(nil)
+	}
+
+	mempool.AddTxn(args.Group, args.Txn)
+	GossipTxn(args.Group, args.Txn)
 	c.Return(nil)
 }
 
