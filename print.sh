@@ -1,13 +1,13 @@
 #!/bin/bash
 
-GroupNumber=1
+GroupNumber=2
 rm .a
 
 function print() {
 	port=$1
 	group=$2
-	echo blockchain -v3 --port $port print --group $group >> .a
-	blockchain -v3 --port $port print --group $group 2>> .a
+	echo blockchain -v3 -g$GroupNumber --port $port print --group $group >> .a
+	blockchain -v3 -g$GroupNumber --port $port print --group $group 2>> .a
 	echo >> .a
 
 }
