@@ -305,7 +305,8 @@ func MineBlocks(txns [][]*types.Transaction, groupBase, batchSize int) ([]*types
 	var foundBlocks []*types.Block
 	for _, block := range blocks {
 		block.Nonce = nonce
-		block.BatchMerklePath = batchMerkleTree.FindPath(block.Group - block.GroupBase)
+		block.BatchMerklePath = batchMerkleTree.FindPath(
+			(block.Group + global.MaxGroupNum - block.GroupBase) % global.MaxGroupNum)
 		if block.Verify() {
 			foundBlocks = append(foundBlocks, block)
 		}

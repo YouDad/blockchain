@@ -24,7 +24,9 @@ var PrintCmd = &cobra.Command{
 		for i = 0; i <= height; i++ {
 			block := bc.GetBlockByHeight(i)
 			log.Infoln(block)
-			log.Infoln(len(block.Txns))
+			if block != nil {
+				log.Infoln(len(block.Txns))
+			}
 		}
 	},
 }

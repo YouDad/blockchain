@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/YouDad/blockchain/global"
 	"github.com/YouDad/blockchain/log"
 	"github.com/YouDad/blockchain/types"
 )
@@ -22,6 +23,7 @@ var instanceMempool Mempools
 var onceMempool = sync.Once{}
 
 func GetMempool(group int) Mempool {
+	group = group % global.MaxGroupNum
 	onceMempool.Do(func() {
 		instanceMempool.mempool = make(map[int]Mempool)
 		instanceMempool.mutex = make(map[int]*sync.Mutex)
