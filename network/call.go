@@ -124,7 +124,7 @@ func GossipCallSpecialGroup(method string, args interface{},
 		if node.Address != exceptedAddress && send(node, method, args, reply) {
 			success++
 		}
-		if success >= 3 {
+		if success >= 5 {
 			break
 		}
 	}
