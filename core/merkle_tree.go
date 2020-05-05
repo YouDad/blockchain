@@ -3,6 +3,7 @@ package core
 import (
 	"crypto/sha256"
 
+	"github.com/YouDad/blockchain/log"
 	"github.com/YouDad/blockchain/types"
 	"github.com/YouDad/blockchain/utils"
 )
@@ -28,6 +29,10 @@ func NewMerkleTree(dataSeq [][]byte) *MerkleTree {
 	for index, data := range dataSeq {
 		node := NewMerkleNode(index, index, nil, nil, data)
 		nodes = append(nodes, *node)
+	}
+
+	if len(nodes) == 0 {
+		log.Errln("Parameter Error")
 	}
 
 	for len(nodes) != 1 {

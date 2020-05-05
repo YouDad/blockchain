@@ -59,7 +59,7 @@ var MiningCmd = &cobra.Command{
 				}
 
 				for _, newBlock := range newBlocks {
-					api.CallSelfBlock(newBlock)
+					api.CallSelfBlock(*newBlock)
 				}
 
 				for _, newBlock := range newBlocks {

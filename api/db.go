@@ -244,8 +244,8 @@ func GossipBlock(block *types.Block, exceptedAddress string) {
 	go network.GossipCallInnerGroup("db/GossipBlock", block, nil, exceptedAddress)
 }
 
-func CallSelfBlock(block *types.Block) {
-	network.CallSelf("db/GossipBlock", block, nil)
+func CallSelfBlock(block types.Block) {
+	network.CallSelf("db/GossipBlock", &block, nil)
 	GossipBlockHead(block, "127.0.0.1:"+global.Port)
 }
 
@@ -303,12 +303,10 @@ func (c *DBController) GossipBlock() {
 
 type GossipBlockHeadArgs = types.Block
 
-func GossipBlockHead(block *types.Block, exceptedAddress string) {
+func GossipBlockHead(block types.Block, exceptedAddress string) {
 	go func() {
-		txns := block.Txns
 		block.Txns = nil
-		network.GossipCallInterGroup("db/GossipBlockHead", block, nil, exceptedAddress)
-		block.Txns = txns
+		network.GossipCallInterGroup("db/GossipBlockHead", &block, nil, exceptedAddress)
 	}()
 }
 
@@ -323,7 +321,7 @@ func (c *DBController) GossipBlockHead() {
 	bh := core.GetBlockhead(args.Group)
 	if args.Verify() {
 		if bh.AddBlockhead(&args) {
-			GossipBlockHead(&args, c.Param(":address"))
+			GossipBlockHead(args, c.Param(":address"))
 		}
 	} else {
 		log.Warnln("AddBlockhead Verify failed")
