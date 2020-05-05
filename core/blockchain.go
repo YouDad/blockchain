@@ -59,6 +59,16 @@ func (bc *Blockchain) txnForeach(fn func(k, v []byte) bool) {
 	bc.txn.Foreach(bc.group, fn)
 }
 
+func (bc *Blockchain) TxnReindex() {
+	bc.txn.Clear(bc.group)
+	iter := bc.Begin()
+	for block := iter.Next(); block != nil; block = iter.Next() {
+		for _, txn := range block.Txns {
+			bc.txnSet(txn.Hash(), utils.Encode(txn))
+		}
+	}
+}
+
 type BlockchainIterator struct {
 	bc   *Blockchain
 	next types.HashValue
@@ -90,6 +100,7 @@ func CreateBlockchain(minerAddress string) error {
 	bc.Clear()
 	bc.AddBlock(block)
 	GetUTXOSet(group).Reindex()
+	bc.TxnReindex()
 	return nil
 }
 

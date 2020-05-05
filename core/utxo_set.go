@@ -51,6 +51,7 @@ func (set *UTXOSet) Update(b *types.Block) {
 				outsBytes := set.Get(vin.VoutHash)
 				if len(outsBytes) == 0 {
 					set.Reindex()
+					set.bc.TxnReindex()
 					return
 				}
 				outs := BytesToTxnOutputs(outsBytes)

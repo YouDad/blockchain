@@ -28,6 +28,7 @@ func Sync(group int) error {
 		}
 		bc.AddBlock(genesis)
 		core.GetUTXOSet(group).Reindex()
+		bc.TxnReindex()
 	}
 
 	genesis := bc.GetGenesis()
