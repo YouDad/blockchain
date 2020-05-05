@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"reflect"
+	"sync"
 
 	"github.com/YouDad/blockchain/log"
 	jsoniter "github.com/json-iterator/go"
@@ -35,6 +36,25 @@ func Encode(arg interface{}) []byte {
 	ret, err := jsoniter.Marshal(arg)
 	log.Err(err)
 	return ret
+}
+
+var mutexDecode sync.Mutex
+
+func Decode(b []byte, v interface{}) (err error) {
+	mutexDecode.Lock()
+	defer func() {
+		if r := recover(); r != nil {
+			log.Warnln(r)
+			defer func() {
+				log.SetCallerLevel(3)
+				log.Errln(r)
+			}()
+			err = jsoniter.Unmarshal(b, v)
+		}
+	}()
+	err = jsoniter.Unmarshal(b, v)
+	mutexDecode.Unlock()
+	return err
 }
 
 func SHA256(arg interface{}) []byte {

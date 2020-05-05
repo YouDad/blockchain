@@ -6,7 +6,7 @@ import (
 
 	"github.com/YouDad/blockchain/log"
 	"github.com/YouDad/blockchain/types"
-	jsoniter "github.com/json-iterator/go"
+	"github.com/YouDad/blockchain/utils"
 )
 
 func NewCoinbaseTxn(from string) *types.Transaction {
@@ -26,7 +26,8 @@ func NewCoinbaseTxn(from string) *types.Transaction {
 
 func BytesToTransaction(bytes []byte) *types.Transaction {
 	txn := types.Transaction{}
-	err := jsoniter.Unmarshal(bytes, &txn)
+
+	err := utils.Decode(bytes, &txn)
 	if err != nil {
 		log.Warn(err)
 		log.Warnf("len=%d,bytes=%x", len(bytes), bytes)
