@@ -59,6 +59,8 @@ func SyncBlocks(group int, newHeight int32, address string) {
 func syncBlocks(group int, newHeight int32, address string) {
 	bc := core.GetBlockchain(group)
 
+	global.SyncMutex.Lock()
+	defer global.SyncMutex.Unlock()
 	lastestHeight := bc.GetHeight()
 	if newHeight <= lastestHeight {
 		// 认为不需要同步
@@ -70,8 +72,6 @@ func syncBlocks(group int, newHeight int32, address string) {
 		return
 	}
 
-	global.SyncMutex.Lock()
-	defer global.SyncMutex.Unlock()
 	log.Debugln("SyncBlock Start!")
 	lastest := bc.GetLastest()
 	originHash := lastest.Hash()
@@ -120,6 +120,10 @@ func syncBlocks(group int, newHeight int32, address string) {
 	set := core.GetUTXOSet(group)
 	for i := lastestHeight; i > r; i-- {
 		block := bc.GetBlockByHeight(i)
+		if block == nil {
+			log.Warnln("[FAIL] Reverse GetBlockByHeight return 0")
+			continue
+		}
 		set.Reverse(block)
 		bc.DeleteBlock(block)
 	}
