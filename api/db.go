@@ -191,6 +191,7 @@ func (c *DBController) GossipTxn() {
 	}
 
 	mempool.AddTxn(args.Group, args.Txn)
+	log.Infof("AddTxn %s\n", args.Txn.Hash())
 	GossipTxn(args.Group, args.Txn, c.Param(":address"))
 	c.Return(nil)
 }
@@ -227,6 +228,7 @@ func (c *DBController) GossipRelayTxn() {
 		}
 
 		mempool.AddTxn(args.ToGroup, args.Txn)
+		log.Infof("AddTxn Relay %s\n", args.Txn.Hash())
 		GossipRelayTxn(args.FromGroup, args.ToGroup, args.Height,
 			args.RelayMerklePath, &args.Txn, c.Param(":address"))
 	}
