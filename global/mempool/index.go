@@ -58,7 +58,9 @@ func (m Mempool) GetTxn(hash types.HashValue) (*types.Transaction, error) {
 
 func (m Mempool) Delete(hash types.HashValue) {
 	delete(m.m, hash.Key())
-	log.Debugln("Txn Delete", hash)
+	log.SetCallerLevel(1)
+	log.Debugln("Mempool Txn Delete", hash)
+	log.SetCallerLevel(0)
 }
 
 func (m Mempool) GetTxns() []*types.Transaction {
