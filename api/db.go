@@ -149,7 +149,8 @@ func (c *DBController) GetBlocks() {
 	for i := args.From; i <= args.To; i++ {
 		data := bc.GetBlockByHeight(i)
 		if data == nil {
-			break
+			c.ReturnErr(errors.New(fmt.Sprintf(
+				"No Needed Hash Block, bc.GetBlockByHeight[%d] is nil", i)))
 		}
 		reply.Blocks = append(reply.Blocks, data)
 	}
