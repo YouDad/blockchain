@@ -65,6 +65,8 @@ func (bh *Blockhead) GetHeight() int32 {
 		mutexBlockheadHeight.Unlock()
 	})
 	mutexOnceBlockheadGetHeight.Unlock()
+	mutexBlockheadHeight.Lock()
+	defer mutexBlockheadHeight.Unlock()
 	return cacheBlockheadHeight[bh.group]
 }
 
@@ -77,6 +79,10 @@ func (bh *Blockhead) AddBlockhead(block *types.Block) bool {
 	txns := block.Txns
 	block.Txns = nil
 	bytes := utils.Encode(block)
+
+	mutexBlockheadHeight.Lock()
+	cacheBlockheadHeight[bh.group] = block.Height
+	mutexBlockheadHeight.Unlock()
 
 	bh.Set(block.Height, bytes)
 	bh.Set("lastest", bytes)
