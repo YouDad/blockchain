@@ -43,9 +43,7 @@ func (m Mempool) Release() {
 }
 
 func (m Mempool) AddTxn(txn types.Transaction) {
-	var key [32]byte
-	copy(key[0:32], txn.Hash())
-	m.m[key] = txn
+	m.m[txn.Hash().Key()] = txn
 }
 
 func (m Mempool) GetTxn(hash types.HashValue) (*types.Transaction, error) {
