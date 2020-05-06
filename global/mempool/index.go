@@ -64,7 +64,7 @@ func (m Mempool) Delete(hash types.HashValue) {
 }
 
 func (m Mempool) GetTxns() []*types.Transaction {
-	// 拓扑排序
+	// 拓扑排序结构和函数定义
 	type edge struct {
 		dest int
 		next *edge
@@ -82,6 +82,7 @@ func (m Mempool) GetTxns() []*types.Transaction {
 		indeg[v] += 1
 	}
 
+	// 将目标映射到整数域
 	keyToId := make(map[[32]byte]int)
 	idToTxn := make(map[int]*types.Transaction)
 	i := 0
@@ -93,6 +94,7 @@ func (m Mempool) GetTxns() []*types.Transaction {
 		i++
 	}
 
+	// 构建拓扑排序图
 	for _, txn := range m.m {
 		for _, vin := range txn.Vin {
 			prevTxn, ok := m.m[vin.VoutHash.Key()]
@@ -103,6 +105,7 @@ func (m Mempool) GetTxns() []*types.Transaction {
 		}
 	}
 
+	// 选出入度为0的节点作为初始节点
 	var nodes []int
 	lenBefore := len(nodes)
 	for node, cnt := range indeg {
@@ -112,6 +115,7 @@ func (m Mempool) GetTxns() []*types.Transaction {
 	}
 	lenAfter := len(nodes)
 
+	// 开始排序
 	for lenAfter != lenBefore {
 		for i := lenBefore; i < lenAfter; i++ {
 			u := nodes[i]
@@ -127,6 +131,7 @@ func (m Mempool) GetTxns() []*types.Transaction {
 		lenAfter = len(nodes)
 	}
 
+	// 收集返回值及删除有效节点
 	var ret []*types.Transaction
 	i = 0
 	for _, node := range nodes {
@@ -137,6 +142,7 @@ func (m Mempool) GetTxns() []*types.Transaction {
 		i++
 	}
 
+	// 删除拓扑排序中的环结构
 	for _, txn := range idToTxn {
 		delete(m.m, txn.Hash().Key())
 	}
