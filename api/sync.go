@@ -82,14 +82,14 @@ func syncBlocks(group int, newHeight int32, address string) {
 	for r >= l {
 		m := l + (r-l)/2
 
-		block := bc.GetBlockByHeight(m)
 		hash, err := CallbackGetHash(group, m, address)
 		if err != nil {
 			log.Warn(err)
 			return
 		}
 
-		if bytes.Compare(hash, block.Hash()) == 0 {
+		block := bc.GetBlockByHeight(m)
+		if hash.Equal(block.Hash()) {
 			l = m + 1
 		} else {
 			r = m - 1
