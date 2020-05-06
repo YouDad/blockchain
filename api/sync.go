@@ -1,7 +1,6 @@
 package api
 
 import (
-	"bytes"
 	"time"
 
 	"github.com/YouDad/blockchain/core"
@@ -130,7 +129,7 @@ func syncBlocks(group int, newHeight int32, address string) {
 
 	// 然后将后面所有区块都追加到lastest的后面
 	for _, block := range blocks {
-		if bytes.Compare(block.PrevHash, lastestHash) != 0 {
+		if !lastestHash.Equal(block.PrevHash) {
 			break
 		}
 

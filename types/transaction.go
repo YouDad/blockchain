@@ -1,7 +1,6 @@
 package types
 
 import (
-	"bytes"
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rand"
@@ -134,5 +133,5 @@ func (txn *Transaction) RelayVerify(merkleRoot HashValue, relayMerklePath []Merk
 		}
 		hash = sha[:]
 	}
-	return bytes.Compare(merkleRoot, hash) == 0
+	return merkleRoot.Equal(hash)
 }

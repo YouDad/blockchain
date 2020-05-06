@@ -1,7 +1,6 @@
 package api
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
 
@@ -44,7 +43,7 @@ func SendVersion(group int, nowHeight int32, rootHash, nowHash types.HashValue) 
 		)
 	}
 
-	if bytes.Compare(reply.RootHash, args.RootHash) != 0 {
+	if !reply.RootHash.Equal(args.RootHash) {
 		err = errors.New(
 			fmt.Sprintf("RootHash is different. Args: %s, Reply: %s",
 				args.RootHash, reply.RootHash),

@@ -1,7 +1,6 @@
 package api
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
 
@@ -141,7 +140,7 @@ func (c *DBController) GetBlocks() {
 			"No Needed Hash Block, Blockchain[%d].%d is nil", args.Group, args.From)))
 	}
 
-	if bytes.Compare(block.PrevHash, args.Hash) != 0 {
+	if !block.PrevHash.Equal(args.Hash) {
 		c.ReturnErr(errors.New(fmt.Sprintf(
 			"No Needed Hash Block, Hash is different. My Hash: %s", block.PrevHash)))
 	}
@@ -281,7 +280,7 @@ func (c *DBController) GossipBlock() {
 	// 从高度上来说可能是后继区块
 	if args.Height == lastestHeight+1 {
 		// 满足哈希链
-		if bytes.Compare(args.PrevHash, lastest.Hash()) == 0 {
+		if args.PrevHash.Equal(lastest.Hash()) {
 			global.SyncMutex.Lock()
 			bc.AddBlock(&args)
 			set.Update(&args)

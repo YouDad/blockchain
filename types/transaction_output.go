@@ -1,8 +1,6 @@
 package types
 
 import (
-	"bytes"
-
 	"github.com/YouDad/blockchain/utils"
 )
 
@@ -16,5 +14,5 @@ func (out TxnOutput) String() string {
 }
 
 func (out *TxnOutput) IsLockedWithKey(pubKey PublicKey) bool {
-	return bytes.Compare(out.PubKeyHash, pubKey.Hash()) == 0
+	return out.PubKeyHash.Equal(pubKey.Hash())
 }
