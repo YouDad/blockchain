@@ -130,12 +130,17 @@ func (m Mempool) GetTxns() []*types.Transaction {
 	var ret []*types.Transaction
 	i = 0
 	for _, node := range nodes {
-		ret = append(ret, idToTxn[node])
-		i++
-		if i == 50 {
-			break
+		if i < 50 {
+			ret = append(ret, idToTxn[node])
 		}
+		delete(idToTxn, node)
+		i++
 	}
+
+	for _, txn := range idToTxn {
+		delete(m.m, txn.Hash().Key())
+	}
+
 	return ret
 }
 
