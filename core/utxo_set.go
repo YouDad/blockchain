@@ -51,6 +51,9 @@ func (set *UTXOSet) Update(b *types.Block) {
 				updatedOuts := []types.TxnOutput{}
 				outsBytes := set.get(vin.VoutHash)
 				if len(outsBytes) == 0 {
+					if set.group != global.GetGroupByPubKeyHash(vin.PubKey.Hash()) {
+						continue
+					}
 					global.UpdateUnlock()
 					set.Reindex()
 					set.bc.TxnReindex()
@@ -241,6 +244,9 @@ func (set *UTXOSet) UTXOMemVerifyTransaction(txn types.Transaction) bool {
 				if !ok {
 					outBytes := set.get(vin.VoutHash)
 					if len(outBytes) == 0 {
+						if set.group != global.GetGroupByPubKeyHash(vin.PubKey.Hash()) {
+							continue
+						}
 						log.Warnln("utxoMem:", utxoMem)
 						log.Warnln("txns:", txns)
 						log.Errln("[FAIL] len(outBytes) == 0")
