@@ -57,6 +57,8 @@ func interfaceToString(key interface{}) string {
 		keyString = v.String()
 	case string:
 		keyString = v
+	case int:
+		keyString = fmt.Sprint(v)
 	case int32:
 		keyString = fmt.Sprint(v)
 	case nil:
@@ -74,6 +76,15 @@ func interfaceToBytes(key interface{}) []byte {
 		keyBytes = []byte(v)
 	case string:
 		keyBytes = []byte(v)
+	case int:
+		bytes := [8]byte{}
+		for i := 0; i < 8; i++ {
+			bytes[i] = byte(v >> (i * 8))
+			if v < 256<<(i*8) {
+				keyBytes = bytes[:i+1]
+				break
+			}
+		}
 	case int32:
 		bytes := [4]byte{}
 		for i := 0; i < 4; i++ {
