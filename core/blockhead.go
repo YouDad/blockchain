@@ -13,15 +13,15 @@ type Blockhead struct {
 	group int
 }
 
-func (bh *Blockhead) Clear() {
+func (bh *Blockhead) clear() {
 	bh.db.Clear(bh.group)
 }
 
-func (bh *Blockhead) Get(key interface{}) (value []byte) {
+func (bh *Blockhead) get(key interface{}) (value []byte) {
 	return bh.db.Get(bh.group, key)
 }
 
-func (bh *Blockhead) Set(key interface{}, value []byte) {
+func (bh *Blockhead) set(key interface{}, value []byte) {
 	bh.db.Set(bh.group, key, value)
 }
 
@@ -29,7 +29,7 @@ func (bh *Blockhead) Delete(key interface{}) {
 	bh.db.Delete(bh.group, key)
 }
 
-func (bh *Blockhead) Foreach(fn func(k, v []byte) bool) {
+func (bh *Blockhead) foreach(fn func(k, v []byte) bool) {
 	bh.db.Foreach(bh.group, fn)
 }
 func GetBlockhead(group int) *Blockhead {
@@ -37,7 +37,7 @@ func GetBlockhead(group int) *Blockhead {
 }
 
 func (bh *Blockhead) GetLastest() *types.Block {
-	return BytesToBlock(bh.Get("lastest"))
+	return BytesToBlock(bh.get("lastest"))
 }
 
 var (
@@ -71,7 +71,7 @@ func (bh *Blockhead) GetHeight() int32 {
 }
 
 func (bh *Blockhead) AddBlockhead(block *types.Block) bool {
-	if block == nil || bh.Get(block.Height) != nil ||
+	if block == nil || bh.get(block.Height) != nil ||
 		!block.Verify() || bh.GetHeight()+1 != block.Height {
 		return false
 	}
@@ -84,13 +84,13 @@ func (bh *Blockhead) AddBlockhead(block *types.Block) bool {
 	cacheBlockheadHeight[bh.group] = block.Height
 	mutexBlockheadHeight.Unlock()
 
-	bh.Set(block.Height, bytes)
-	bh.Set("lastest", bytes)
+	bh.set(block.Height, bytes)
+	bh.set("lastest", bytes)
 
 	block.Txns = txns
 	return true
 }
 
 func (bh *Blockhead) GetBlockheadByHeight(height int32) *types.Block {
-	return BytesToBlock(bh.Get(height))
+	return BytesToBlock(bh.get(height))
 }

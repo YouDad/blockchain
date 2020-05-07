@@ -20,23 +20,23 @@ type UTXOSet struct {
 	group int
 }
 
-func (set *UTXOSet) Clear() {
+func (set *UTXOSet) clear() {
 	set.db.Clear(set.group)
 }
 
-func (set *UTXOSet) Get(key interface{}) (value []byte) {
+func (set *UTXOSet) get(key interface{}) (value []byte) {
 	return set.db.Get(set.group, key)
 }
 
-func (set *UTXOSet) Set(key interface{}, value []byte) {
+func (set *UTXOSet) set(key interface{}, value []byte) {
 	set.db.Set(set.group, key, value)
 }
 
-func (set *UTXOSet) Delete(key interface{}) {
+func (set *UTXOSet) delete(key interface{}) {
 	set.db.Delete(set.group, key)
 }
 
-func (set *UTXOSet) Foreach(fn func(k, v []byte) bool) {
+func (set *UTXOSet) foreach(fn func(k, v []byte) bool) {
 	set.db.Foreach(set.group, fn)
 }
 func GetUTXOSet(group int) *UTXOSet {
@@ -49,7 +49,7 @@ func (set *UTXOSet) Update(b *types.Block) {
 		if txn.IsCoinbase() == false {
 			for _, vin := range txn.Vin {
 				updatedOuts := []types.TxnOutput{}
-				outsBytes := set.Get(vin.VoutHash)
+				outsBytes := set.get(vin.VoutHash)
 				if len(outsBytes) == 0 {
 					global.UpdateUnlock()
 					set.Reindex()
@@ -65,9 +65,9 @@ func (set *UTXOSet) Update(b *types.Block) {
 				}
 
 				if len(updatedOuts) == 0 {
-					set.Delete(vin.VoutHash)
+					set.delete(vin.VoutHash)
 				} else {
-					set.Set(vin.VoutHash, utils.Encode(updatedOuts))
+					set.set(vin.VoutHash, utils.Encode(updatedOuts))
 				}
 			}
 		}
@@ -76,7 +76,7 @@ func (set *UTXOSet) Update(b *types.Block) {
 		for _, out := range txn.Vout {
 			newOutputs = append(newOutputs, out)
 		}
-		set.Set(txn.Hash(), utils.Encode(newOutputs))
+		set.set(txn.Hash(), utils.Encode(newOutputs))
 	}
 	global.UpdateUnlock()
 }
@@ -87,10 +87,10 @@ func (set *UTXOSet) Reverse(b *types.Block) {
 	for i := range b.Txns {
 		txn := b.Txns[len(b.Txns)-i-1]
 		if !txn.IsCoinbase() {
-			set.Delete(txn.Hash())
+			set.delete(txn.Hash())
 			for _, vin := range txn.Vin {
 				var txos []types.TxnOutput
-				txosBytes := set.Get(vin.VoutHash)
+				txosBytes := set.get(vin.VoutHash)
 				if len(txosBytes) != 0 {
 					txos = BytesToTxnOutputs(txosBytes)
 				}
@@ -98,7 +98,7 @@ func (set *UTXOSet) Reverse(b *types.Block) {
 					Value:      vin.VoutValue,
 					PubKeyHash: vin.PubKey.Hash(),
 				})
-				set.Set(vin.VoutHash, utils.Encode(txos))
+				set.set(vin.VoutHash, utils.Encode(txos))
 			}
 		}
 	}
@@ -108,12 +108,12 @@ func (set *UTXOSet) Reindex() {
 	global.UpdateLock()
 	defer global.UpdateUnlock()
 	hashedUtxos := set.bc.FindUTXO()
-	set.Clear()
+	set.clear()
 
 	for txnHash, utxos := range hashedUtxos {
 		hash, err := hex.DecodeString(txnHash)
 		log.Err(err)
-		set.Set(hash, utils.Encode(utxos))
+		set.set(hash, utils.Encode(utxos))
 	}
 }
 
@@ -173,7 +173,7 @@ func (set *UTXOSet) FindUTXOByHash(pubKey types.PublicKey) []types.TxnOutput {
 
 	global.UpdateLock()
 	defer global.UpdateUnlock()
-	set.Foreach(func(k, v []byte) bool {
+	set.foreach(func(k, v []byte) bool {
 		outs := BytesToTxnOutputs(v)
 
 		for _, out := range outs {
@@ -195,7 +195,7 @@ func (set *UTXOSet) findUTXOs(pubKey types.PublicKey, amount int64) (int64, map[
 
 	global.UpdateLock()
 	defer global.UpdateUnlock()
-	set.Foreach(func(k, v []byte) bool {
+	set.foreach(func(k, v []byte) bool {
 		txnOutputs := BytesToTxnOutputs(v)
 
 		for txnOutputIndex, txnOutput := range txnOutputs {
@@ -239,7 +239,7 @@ func (set *UTXOSet) UTXOMemVerifyTransaction(txn types.Transaction) bool {
 				updatedOuts := []types.TxnOutput{}
 				outs, ok := utxoMem[vin.VoutHash.Key()]
 				if !ok {
-					outBytes := set.Get(vin.VoutHash)
+					outBytes := set.get(vin.VoutHash)
 					if len(outBytes) == 0 {
 						log.Warnln("utxoMem:", utxoMem)
 						log.Warnln("txns:", txns)

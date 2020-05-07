@@ -7,7 +7,6 @@ import (
 	"github.com/YouDad/blockchain/global"
 	"github.com/YouDad/blockchain/log"
 	"github.com/YouDad/blockchain/network"
-	"github.com/YouDad/blockchain/utils"
 )
 
 // 同步
@@ -102,16 +101,15 @@ func syncBlocks(group int, newHeight int32, address string) {
 		log.Errln("二分nil")
 	}
 
-	lastestBytes := utils.Encode(lastest)
-	bc.SetLastest(lastestBytes)
+	bc.SetLastest(lastest)
 
 	// 获得group组的l到newHeight高度的区块
 	lastestHash := lastest.Hash()
 	blocks, err := CallbackGetBlocks(group, l, newHeight, lastestHash, address)
 	if err != nil {
 		log.Warn(err)
-		lastestBytes = bc.Get(originHash)
-		bc.SetLastest(lastestBytes)
+		block := bc.GetBlockByHash(originHash)
+		bc.SetLastest(block)
 		return
 	}
 

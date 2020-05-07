@@ -19,27 +19,27 @@ type Blockchain struct {
 	group int
 }
 
-func (bc *Blockchain) Clear() {
+func (bc *Blockchain) blockClear() {
 	bc.db.Clear(bc.group)
 }
 
-func (bc *Blockchain) Get(key interface{}) (value []byte) {
+func (bc *Blockchain) blockGet(key interface{}) (value []byte) {
 	return bc.db.Get(bc.group, key)
 }
 
-func (bc *Blockchain) GetWithoutLog(key interface{}) (value []byte) {
+func (bc *Blockchain) blockGetWithoutLog(key interface{}) (value []byte) {
 	return bc.db.GetWithoutLog(bc.group, key)
 }
 
-func (bc *Blockchain) Set(key interface{}, value []byte) {
+func (bc *Blockchain) blockSet(key interface{}, value []byte) {
 	bc.db.Set(bc.group, key, value)
 }
 
-func (bc *Blockchain) Delete(key interface{}) {
+func (bc *Blockchain) blockDelete(key interface{}) {
 	bc.db.Delete(bc.group, key)
 }
 
-func (bc *Blockchain) Foreach(fn func(k, v []byte) bool) {
+func (bc *Blockchain) blockForeach(fn func(k, v []byte) bool) {
 	bc.db.Foreach(bc.group, fn)
 }
 
@@ -76,14 +76,15 @@ type BlockchainIterator struct {
 
 func (bc *Blockchain) Begin() *BlockchainIterator {
 	log.Debugln("Blockchain.Begin")
-	return &BlockchainIterator{bc, bc.GetLastest().Hash()}
+	lastest := BytesToBlock(bc.blockGet("lastest"))
+	return &BlockchainIterator{bc, lastest.Hash()}
 }
 
 func (iter *BlockchainIterator) Next() (nextBlock *types.Block) {
 	if iter.next == nil {
 		return nil
 	}
-	nextBlock = BytesToBlock(iter.bc.GetWithoutLog(iter.next))
+	nextBlock = BytesToBlock(iter.bc.blockGetWithoutLog(iter.next))
 	if nextBlock != nil {
 		iter.next = nextBlock.PrevHash
 	}
@@ -97,7 +98,7 @@ func CreateBlockchain(minerAddress string) error {
 	if err != nil {
 		return err
 	}
-	bc.Clear()
+	bc.blockClear()
 	bc.AddBlock(block)
 	GetUTXOSet(group).Reindex()
 	bc.TxnReindex()
@@ -113,34 +114,47 @@ func GetBlockchain(group int) *Blockchain {
 }
 
 func (bc *Blockchain) GetGenesis() *types.Block {
-	return bc.GetBlockByHeight(0)
+	hash := bc.blockGet(0)
+	if hash == nil {
+		hash = bc.blockGet(0)
+	}
+
+	block := bc.blockGet(hash)
+	if block == nil {
+		block = bc.blockGet(hash)
+	}
+
+	return BytesToBlock(block)
 }
 
 func (bc *Blockchain) GetLastest() *types.Block {
-	return BytesToBlock(bc.Get("lastest"))
+	return BytesToBlock(bc.blockGet("lastest"))
+}
+
+func (bc *Blockchain) GetBlockByHash(hash types.HashValue) *types.Block {
+	return BytesToBlock(bc.blockGet(hash))
 }
 
 func (bc *Blockchain) GetBlockByHeight(height int32) *types.Block {
-	hash := bc.Get(height)
+	hash := bc.blockGet(height)
 	if hash == nil {
-		hash = bc.Get(height)
+		hash = bc.blockGet(height)
 	}
 
-	block := bc.Get(hash)
+	block := bc.blockGet(hash)
 	if block == nil {
-		block = bc.Get(hash)
+		block = bc.blockGet(hash)
 	}
 
 	return BytesToBlock(block)
 }
 
 func (bc *Blockchain) SetBlockByHeight(height int, b *types.Block) {
-	bc.Set(height, b.Hash())
+	bc.blockSet(height, b.Hash())
 }
 
-func (bc *Blockchain) SetLastest(bytes []byte) {
-	bc.Set("lastest", bytes)
-	block := BytesToBlock(bytes)
+func (bc *Blockchain) SetLastest(block *types.Block) {
+	bc.blockSet("lastest", utils.Encode(block))
 	mutexHeight.Lock()
 	cacheHeight[bc.group] = block.Height
 	mutexHeight.Unlock()
@@ -185,9 +199,9 @@ func (bc *Blockchain) AddBlock(b *types.Block) {
 	// 符合高度
 	if bc.GetHeight()+1 == b.Height {
 		bytes := utils.Encode(b)
-		bc.SetLastest(bytes)
-		bc.Set(b.Hash(), bytes)
-		bc.Set(b.Height, b.Hash())
+		bc.SetLastest(b)
+		bc.blockSet(b.Hash(), bytes)
+		bc.blockSet(b.Height, b.Hash())
 		GetBlockhead(bc.group).AddBlockhead(b)
 		for _, txn := range b.Txns {
 			bc.txnSet(txn.Hash(), utils.Encode(txn))
@@ -217,6 +231,7 @@ func (bc *Blockchain) AddBlock(b *types.Block) {
 		txns := m.GetTxns()
 		for _, txn := range txns {
 			if !verify(txn) {
+				log.Warnln("Delete Txn !!!!!!")
 				m.Delete(txn.Hash())
 			}
 		}
@@ -225,8 +240,8 @@ func (bc *Blockchain) AddBlock(b *types.Block) {
 }
 
 func (bc *Blockchain) DeleteBlock(b *types.Block) {
-	bc.Delete(b.Hash())
-	bc.Delete(b.Height)
+	bc.blockDelete(b.Hash())
+	bc.blockDelete(b.Height)
 	GetBlockhead(bc.group).Delete(b.Height)
 	for _, txn := range b.Txns {
 		bc.txnDelete(txn.Hash())
