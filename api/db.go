@@ -3,6 +3,7 @@ package api
 import (
 	"errors"
 	"fmt"
+	"sync"
 
 	"github.com/YouDad/blockchain/core"
 	"github.com/YouDad/blockchain/global"
@@ -165,6 +166,8 @@ func GossipTxn(group int, txn types.Transaction, exceptedAddress string) {
 	go network.GossipCallInnerGroup("db/GossipTxn", &GossipTxnArgs{txn, group}, nil, exceptedAddress)
 }
 
+var mutexGossipTxn sync.Mutex
+
 // @router /GossipTxn [post]
 func (c *DBController) GossipTxn() {
 	var args GossipTxnArgs
@@ -173,6 +176,8 @@ func (c *DBController) GossipTxn() {
 		c.Return(nil)
 	}
 
+	mutexGossipTxn.Lock()
+	defer mutexGossipTxn.Unlock()
 	if _, err := mempool.GetTxn(args.Group, args.Txn.Hash()); err == nil {
 		c.Return(nil)
 	}
@@ -209,15 +214,19 @@ type GossipRelayTxnArgs = struct {
 
 func GossipRelayTxn(fromGroup int, toGroup int, height int32,
 	relayMerklePath []types.MerklePath, txn *types.Transaction, exceptedAddress string) {
-	network.GossipCallSpecialGroup("db/GossipRelayTxn", &GossipRelayTxnArgs{
+	go network.GossipCallSpecialGroup("db/GossipRelayTxn", &GossipRelayTxnArgs{
 		fromGroup, toGroup, height, relayMerklePath, *txn}, nil, toGroup, exceptedAddress)
 }
+
+var mutexGossipRelayTxn sync.Mutex
 
 // @router /GossipRelayTxn
 func (c *DBController) GossipRelayTxn() {
 	var args GossipRelayTxnArgs
 	c.ParseParameter(&args)
 
+	mutexGossipRelayTxn.Lock()
+	defer mutexGossipRelayTxn.Unlock()
 	if _, err := mempool.GetTxn(args.ToGroup, args.Txn.Hash()); err == nil {
 		c.Return(nil)
 	}
@@ -246,7 +255,7 @@ func (c *DBController) GossipRelayTxn() {
 type GossipBlockArgs = types.Block
 
 func CallbackGossipBlock(block *types.Block, address string) {
-	network.CallBack(address, "db/GossipBlock", block, nil)
+	go network.CallBack(address, "db/GossipBlock", block, nil)
 }
 
 func GossipBlock(block *types.Block, exceptedAddress string) {
@@ -258,6 +267,8 @@ func CallSelfBlock(block types.Block) {
 	GossipBlockHead(block, "127.0.0.1:"+global.Port)
 }
 
+var mutexGossipBlock sync.Mutex
+
 // @router /GossipBlock [post]
 func (c *DBController) GossipBlock() {
 	var args GossipBlockArgs
@@ -266,6 +277,8 @@ func (c *DBController) GossipBlock() {
 		c.Return(nil)
 	}
 
+	mutexGossipBlock.Lock()
+	defer mutexGossipBlock.Unlock()
 	log.Debugln("GossipBlock", "{{{{{{{{")
 	bc := core.GetBlockchain(args.Group)
 	set := core.GetUTXOSet(args.Group)
@@ -319,6 +332,8 @@ func GossipBlockHead(block types.Block, exceptedAddress string) {
 	}()
 }
 
+var mutexGossipBlockHead sync.Mutex
+
 // @router /GossipBlockHead [post]
 func (c *DBController) GossipBlockHead() {
 	var args GossipBlockHeadArgs
@@ -327,6 +342,8 @@ func (c *DBController) GossipBlockHead() {
 		c.Return(nil)
 	}
 
+	mutexGossipBlockHead.Lock()
+	defer mutexGossipBlockHead.Unlock()
 	bh := core.GetBlockhead(args.Group)
 	if args.Verify() {
 		if bh.AddBlockhead(&args) {
