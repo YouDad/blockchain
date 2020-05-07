@@ -209,3 +209,66 @@ func (set *UTXOSet) findUTXOs(pubKey types.PublicKey, amount int64) (int64, map[
 
 	return sum, hashedUTXOIdxs, hashedUTXOValues
 }
+
+// 用现有的UTXOSet和Mempool，校验新的交易是否合法，防止分叉
+func (set *UTXOSet) UTXOMemVerifyTransaction(txn types.Transaction) bool {
+	if txn.IsCoinbase() {
+		return true
+	}
+
+	txns := mempool.GetTxns(set.group)
+	utxoMem := make(map[[32]byte][]types.TxnOutput)
+	for _, txn := range txns {
+		if txn.IsCoinbase() == false {
+			for _, vin := range txn.Vin {
+				updatedOuts := []types.TxnOutput{}
+				outs, ok := utxoMem[vin.VoutHash.Key()]
+				if !ok {
+					outBytes := set.Get(vin.VoutHash)
+					if len(outBytes) == 0 {
+						log.Warnln("utxoMem:", utxoMem)
+						log.Warnln("txns:", txns)
+						log.Errln("[FAIL] len(outBytes) == 0")
+					}
+					outs = BytesToTxnOutputs(outBytes)
+				}
+
+				for _, out := range outs {
+					if !out.IsLockedWithKey(vin.PubKey) {
+						updatedOuts = append(updatedOuts, out)
+					}
+				}
+
+				if len(updatedOuts) == 0 {
+					delete(utxoMem, vin.VoutHash.Key())
+				} else {
+					utxoMem[vin.VoutHash.Key()] = updatedOuts
+				}
+			}
+		}
+
+		newOutputs := []types.TxnOutput{}
+		for _, out := range txn.Vout {
+			newOutputs = append(newOutputs, out)
+		}
+		utxoMem[txn.Hash().Key()] = newOutputs
+	}
+
+	for _, vin := range txn.Vin {
+		outs, ok := utxoMem[vin.VoutHash.Key()]
+		if ok {
+			ok = false
+			for _, out := range outs {
+				if out.IsLockedWithKey(vin.PubKey) {
+					ok = true
+					break
+				}
+			}
+			if !ok {
+				return false
+			}
+		}
+	}
+
+	return true
+}

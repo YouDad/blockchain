@@ -190,9 +190,12 @@ func (c *DBController) GossipTxn() {
 		c.Return(nil)
 	}
 
-	mempool.AddTxn(args.Group, args.Txn)
-	log.Infof("AddTxn %s\n", args.Txn.Hash())
-	GossipTxn(args.Group, args.Txn, c.Param(":address"))
+	if core.GetUTXOSet(args.Group).UTXOMemVerifyTransaction(args.Txn) {
+		mempool.AddTxn(args.Group, args.Txn)
+		log.Infof("AddTxn %s\n", args.Txn.Hash())
+		GossipTxn(args.Group, args.Txn, c.Param(":address"))
+	}
+
 	c.Return(nil)
 }
 
@@ -215,18 +218,22 @@ func (c *DBController) GossipRelayTxn() {
 	var args GossipRelayTxnArgs
 	c.ParseParameter(&args)
 
-	if _, err := mempool.GetTxn(args.ToGroup, args.Txn.Hash()); err != nil {
-		block := core.GetBlockhead(args.FromGroup).GetBlockheadByHeight(args.Height)
-		if block == nil {
-			log.Infoln("[FAIL]AddTxn Relay have no blockhead")
-			c.Return(nil)
-		}
+	if _, err := mempool.GetTxn(args.ToGroup, args.Txn.Hash()); err == nil {
+		c.Return(nil)
+	}
 
-		if !args.Txn.RelayVerify(block.MerkleRoot, args.RelayMerklePath) {
-			log.Infoln("[FAIL]AddTxn Relay verify false")
-			c.Return(nil)
-		}
+	block := core.GetBlockhead(args.FromGroup).GetBlockheadByHeight(args.Height)
+	if block == nil {
+		log.Infoln("[FAIL]AddTxn Relay have no blockhead")
+		c.Return(nil)
+	}
 
+	if !args.Txn.RelayVerify(block.MerkleRoot, args.RelayMerklePath) {
+		log.Infoln("[FAIL]AddTxn Relay verify false")
+		c.Return(nil)
+	}
+
+	if core.GetUTXOSet(args.ToGroup).UTXOMemVerifyTransaction(args.Txn) {
 		mempool.AddTxn(args.ToGroup, args.Txn)
 		log.Infof("AddTxn Relay %s\n", args.Txn.Hash())
 		GossipRelayTxn(args.FromGroup, args.ToGroup, args.Height,
