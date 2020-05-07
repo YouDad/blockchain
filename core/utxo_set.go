@@ -56,8 +56,8 @@ func (set *UTXOSet) Update(b *types.Block) {
 				}
 				outs := BytesToTxnOutputs(outsBytes)
 
-				for outIdx, out := range outs {
-					if outIdx != vin.VoutIndex {
+				for _, out := range outs {
+					if !out.IsLockedWithKey(vin.PubKey) {
 						updatedOuts = append(updatedOuts, out)
 					}
 				}
