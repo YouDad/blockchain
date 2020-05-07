@@ -229,6 +229,8 @@ func (set *UTXOSet) UTXOMemVerifyTransaction(txn types.Transaction) bool {
 
 	global.UpdateMutex.Lock()
 	defer global.UpdateMutex.Unlock()
+	global.SyncMutex.Lock()
+	defer global.SyncMutex.Unlock()
 	txns := mempool.GetTxns(set.group)
 	utxoMem := make(map[[32]byte][]types.TxnOutput)
 	for _, txn := range txns {
