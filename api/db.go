@@ -288,10 +288,10 @@ func (c *DBController) GossipBlock() {
 	if args.Height == lastestHeight+1 {
 		// 满足哈希链
 		if args.PrevHash.Equal(lastest.Hash()) {
-			global.SyncMutex.Lock()
+			global.SyncLock()
 			bc.AddBlock(&args)
 			set.Update(&args)
-			global.SyncMutex.Unlock()
+			global.SyncUnlock()
 			GossipBlock(&args, c.Param(":address"))
 			lastestHeight += 1
 		}

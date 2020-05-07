@@ -58,8 +58,8 @@ func SyncBlocks(group int, newHeight int32, address string) {
 func syncBlocks(group int, newHeight int32, address string) {
 	bc := core.GetBlockchain(group)
 
-	global.SyncMutex.Lock()
-	defer global.SyncMutex.Unlock()
+	global.SyncLock()
+	defer global.SyncUnlock()
 	lastestHeight := bc.GetHeight()
 	if newHeight <= lastestHeight {
 		// 认为不需要同步

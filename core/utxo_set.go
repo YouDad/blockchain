@@ -44,14 +44,14 @@ func GetUTXOSet(group int) *UTXOSet {
 }
 
 func (set *UTXOSet) Update(b *types.Block) {
-	global.UpdateMutex.Lock()
+	global.UpdateLock()
 	for _, txn := range b.Txns {
 		if txn.IsCoinbase() == false {
 			for _, vin := range txn.Vin {
 				updatedOuts := []types.TxnOutput{}
 				outsBytes := set.Get(vin.VoutHash)
 				if len(outsBytes) == 0 {
-					global.UpdateMutex.Unlock()
+					global.UpdateUnlock()
 					set.Reindex()
 					set.bc.TxnReindex()
 					return
@@ -78,12 +78,12 @@ func (set *UTXOSet) Update(b *types.Block) {
 		}
 		set.Set(txn.Hash(), utils.Encode(newOutputs))
 	}
-	global.UpdateMutex.Unlock()
+	global.UpdateUnlock()
 }
 
 func (set *UTXOSet) Reverse(b *types.Block) {
-	global.UpdateMutex.Lock()
-	defer global.UpdateMutex.Unlock()
+	global.UpdateLock()
+	defer global.UpdateUnlock()
 	for i := range b.Txns {
 		txn := b.Txns[len(b.Txns)-i-1]
 		if !txn.IsCoinbase() {
@@ -105,8 +105,8 @@ func (set *UTXOSet) Reverse(b *types.Block) {
 }
 
 func (set *UTXOSet) Reindex() {
-	global.UpdateMutex.Lock()
-	defer global.UpdateMutex.Unlock()
+	global.UpdateLock()
+	defer global.UpdateUnlock()
 	hashedUtxos := set.bc.FindUTXO()
 	set.Clear()
 
@@ -171,8 +171,8 @@ func (set *UTXOSet) CreateTransaction(from, to string, amount int64) (*types.Tra
 func (set *UTXOSet) FindUTXOByHash(pubKey types.PublicKey) []types.TxnOutput {
 	utxos := []types.TxnOutput{}
 
-	global.UpdateMutex.Lock()
-	defer global.UpdateMutex.Unlock()
+	global.UpdateLock()
+	defer global.UpdateUnlock()
 	set.Foreach(func(k, v []byte) bool {
 		outs := BytesToTxnOutputs(v)
 
@@ -193,8 +193,8 @@ func (set *UTXOSet) findUTXOs(pubKey types.PublicKey, amount int64) (int64, map[
 	hashedUTXOValues := make(map[string][]int64)
 	var sum int64 = 0
 
-	global.UpdateMutex.Lock()
-	defer global.UpdateMutex.Unlock()
+	global.UpdateLock()
+	defer global.UpdateUnlock()
 	set.Foreach(func(k, v []byte) bool {
 		txnOutputs := BytesToTxnOutputs(v)
 
@@ -227,10 +227,10 @@ func (set *UTXOSet) UTXOMemVerifyTransaction(txn types.Transaction) bool {
 		return true
 	}
 
-	global.UpdateMutex.Lock()
-	defer global.UpdateMutex.Unlock()
-	global.SyncMutex.Lock()
-	defer global.SyncMutex.Unlock()
+	global.SyncLock()
+	defer global.SyncUnlock()
+	global.UpdateLock()
+	defer global.UpdateUnlock()
 	txns := mempool.GetTxns(set.group)
 	utxoMem := make(map[[32]byte][]types.TxnOutput)
 	for _, txn := range txns {
