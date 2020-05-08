@@ -62,25 +62,27 @@ var MiningCmd = &cobra.Command{
 					api.CallSelfBlock(*newBlock)
 				}
 
-				for _, newBlock := range newBlocks {
-					// 生成交易的Merkle树
-					tree := core.NewTxnMerkleTree(newBlock.Txns)
+				go func() {
+					time.Sleep(time.Second)
+					for _, newBlock := range newBlocks {
+						tree := core.NewTxnMerkleTree(newBlock.Txns)
 
-					for txnIndex, txn := range newBlock.Txns {
-						path := tree.FindPath(txnIndex)
+						for txnIndex, txn := range newBlock.Txns {
+							path := tree.FindPath(txnIndex)
 
-						groups := make(map[int]bool)
-						for _, out := range txn.Vout {
-							groups[global.GetGroupByPubKeyHash(out.PubKeyHash)] = true
-						}
-						delete(groups, global.GetGroup())
+							groups := make(map[int]bool)
+							for _, out := range txn.Vout {
+								groups[global.GetGroupByPubKeyHash(out.PubKeyHash)] = true
+							}
+							delete(groups, global.GetGroup())
 
-						for group := range groups {
-							api.GossipRelayTxn(global.GetGroup(), group,
-								newBlock.Height, path, txn, "127.0.0.1:"+global.Port)
+							for group := range groups {
+								api.GossipRelayTxn(global.GetGroup(), group,
+									newBlock.Height, path, txn, "127.0.0.1:"+global.Port)
+							}
 						}
 					}
-				}
+				}()
 
 				log.Debugf("core.MineBlocks group: %d, number: %d }}}}}}}}", group, global.GroupNum)
 				time.Sleep(time.Second / 10)
