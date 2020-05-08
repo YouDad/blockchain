@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"github.com/YouDad/blockchain/global"
-	"github.com/YouDad/blockchain/log"
 )
 
 type NET struct{}
@@ -50,7 +49,7 @@ func (net *NET) GetKnownNodes(args *GetKnownNodesArgs, reply *GetKnownNodesReply
 		})
 	}
 	reply.Addresses = nodes
-	log.Debugln("GetKnownNodes Reply", *reply)
+	// log.Debugln("GetKnownNodes Reply", *reply)
 
 	return nil
 }

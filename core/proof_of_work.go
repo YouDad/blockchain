@@ -54,7 +54,7 @@ func NewPOW(blocks []*types.Block) *ProofOfWork {
 			minTarget = block.Target
 		}
 	}
-	log.Debugln(minTarget)
+	// log.Debugln(minTarget)
 	pow.target = GetTarget(minTarget)
 
 	// 2. Random for nonce
@@ -76,7 +76,7 @@ func GetTarget(target float64) *big.Int {
 }
 
 func (pow *ProofOfWork) Run() (error, int64, *MerkleTree) {
-	log.Traceln("POW.Run Speed:", hashSpeed)
+	// log.Traceln("POW.Run Speed:", hashSpeed)
 	nonce := pow.poweredStruct.Nonce
 
 	for nonce < math.MaxInt64 {
@@ -95,7 +95,7 @@ func (pow *ProofOfWork) Run() (error, int64, *MerkleTree) {
 
 		if (nonce-nonceStart)%int64(hashSpeed*3e4) == 0 {
 			if hashSpeed < 100 {
-				log.Traceln("Dig sleep", 3e7*(100-hashSpeed))
+				// log.Traceln("Dig sleep", 3e7*(100-hashSpeed))
 				time.Sleep(time.Duration(3e7 * (100 - hashSpeed)))
 			}
 		}

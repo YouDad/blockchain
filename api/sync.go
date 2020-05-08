@@ -60,6 +60,7 @@ func syncBlocks(group int, newHeight int32, address string) {
 	global.SyncLock()
 	defer global.SyncUnlock()
 	lastestHeight := bc.GetHeight()
+	// log.Traceln("bc.GetHeight() return", lastestHeight)
 	if newHeight <= lastestHeight {
 		// 认为不需要同步
 		return

@@ -125,6 +125,7 @@ func (txn Transaction) Verify(hashedTxn map[string]Transaction) bool {
 func (txn *Transaction) RelayVerify(merkleRoot HashValue, relayMerklePath []MerklePath) bool {
 	hash := txn.Hash()
 	var sha [32]byte
+	// log.Traceln("RelayVerify", hash, merkleRoot)
 	for _, path := range relayMerklePath {
 		if path.Left {
 			sha = sha256.Sum256(append(path.HashValue, hash...))
@@ -132,6 +133,7 @@ func (txn *Transaction) RelayVerify(merkleRoot HashValue, relayMerklePath []Merk
 			sha = sha256.Sum256(append(hash, path.HashValue...))
 		}
 		hash = sha[:]
+		// log.Traceln("RelayVerify", path, hash)
 	}
 	return merkleRoot.Equal(hash)
 }

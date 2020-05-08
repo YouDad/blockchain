@@ -39,7 +39,7 @@ var SendTestCmd = &cobra.Command{
 		group := global.GetGroup()
 		for {
 			for mempool.GetMempoolSize(group) >= 5*int(tps) {
-				log.Traceln("sendtest sleep")
+				// log.Traceln("sendtest sleep")
 				time.Sleep(time.Second * 3)
 			}
 
