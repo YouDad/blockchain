@@ -79,6 +79,7 @@ var MiningCmd = &cobra.Command{
 							for group := range groups {
 								api.GossipRelayTxn(global.GetGroup(), group,
 									newBlock.Height, path, txn, "127.0.0.1:"+global.Port)
+								time.Sleep(time.Second / 5)
 							}
 						}
 					}

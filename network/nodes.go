@@ -1,32 +1,19 @@
 package network
 
 import (
-	"sort"
+	"math/rand"
+	"time"
 
 	"github.com/YouDad/blockchain/global"
 )
 
-var sortedNodes PositionSlice
+var sortedNodes []Position
 
 type Position struct {
 	Address     string
 	Distance    int
 	GroupBase   int
 	GroupNumber int
-}
-
-type PositionSlice []Position
-
-func (p PositionSlice) Len() int {
-	return len(p)
-}
-
-func (p PositionSlice) Swap(i, j int) {
-	p[i], p[j] = p[j], p[i]
-}
-
-func (p PositionSlice) Less(i, j int) bool {
-	return p[i].Distance < p[j].Distance
 }
 
 func UpdateSortedNodes() {
@@ -50,7 +37,12 @@ func UpdateSortedNodes() {
 			GroupNumber: node.GroupNumber,
 		})
 	}
-	sort.Sort(sortedNodes)
+
+	rand.Seed(time.Now().UnixNano())
+	for i := len(sortedNodes) - 1; i > 0; i-- {
+		j := rand.Int() % i
+		sortedNodes[i], sortedNodes[j] = sortedNodes[j], sortedNodes[i]
+	}
 }
 
 func GetKnownNodes() error {
@@ -65,6 +57,6 @@ func GetKnownNodes() error {
 	return err
 }
 
-func GetSortedNodes() PositionSlice {
+func GetSortedNodes() []Position {
 	return sortedNodes
 }
