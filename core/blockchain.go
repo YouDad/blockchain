@@ -338,7 +338,7 @@ func MineBlocks(txns [][]*types.Transaction, groupBase, batchSize int) ([]*types
 
 	// 4. 返回挖到的区块
 	for _, block := range foundBlocks {
-		log.Infoln("NewBlock", block)
+		log.Infoln("NewBlock", block.Hash(), block)
 	}
 	return foundBlocks, nil
 }
