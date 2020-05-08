@@ -26,6 +26,5 @@ func GetGroupByAddress(address string) int {
 
 // 返回公钥哈希对应的组
 func GetGroupByPubKeyHash(pubKeyHash types.HashValue) int {
-	pubKeyHash = pubKeyHash[1 : len(pubKeyHash)-4]
 	return int(pubKeyHash[0]) % MaxGroupNum
 }
