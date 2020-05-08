@@ -33,8 +33,8 @@ func (c *ServerController) SendCMD() {
 	c.ReturnErr(err)
 	c.ReturnErr(network.GetKnownNodes())
 
-	log.Traceln(global.GetGroupByAddress(args.SendFrom), global.GetGroupByPubKeyHash(txn.Vin[0].PubKey.Hash()))
-	log.Traceln(txn.Hash(), *txn)
+	log.Debugln(global.GetGroupByAddress(args.SendFrom), global.GetGroupByPubKeyHash(txn.Vin[0].PubKey.Hash()))
+	log.Debugln(txn.Hash(), *txn)
 	GossipTxn(global.GetGroupByAddress(args.SendFrom), *txn,
 		fmt.Sprintf("127.0.0.1:%s", global.Port))
 	c.Return(nil)
